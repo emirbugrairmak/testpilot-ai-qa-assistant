@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>proje</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --line: #d1d5db;
+    --head: #111827;
+    --code-bg: #f3f4f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, Roboto, "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 980px;
+    margin: 24px auto;
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  h1, h2, h3 {
+    color: var(--head);
+    line-height: 1.25;
+    margin: 1.2em 0 0.5em;
+  }
+  h1 { font-size: 1.9rem; margin-top: 0; }
+  h2 { font-size: 1.35rem; }
+  h3 { font-size: 1.12rem; }
+  p { margin: 0.65em 0; }
+  blockquote {
+    margin: 0.9em 0;
+    padding: 0.6em 1em;
+    border-left: 4px solid #9ca3af;
+    background: #f9fafb;
+  }
+  ul, ol { margin: 0.7em 0 0.7em 1.4em; }
+  li { margin: 0.25em 0; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 1.25em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.9em 0 1.1em;
+    table-layout: fixed;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 10px;
+    vertical-align: top;
+    text-align: left;
+    word-break: break-word;
+  }
+  thead th { background: #f3f4f6; }
+  code {
+    background: var(--code-bg);
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 0.08em 0.35em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.92em;
+  }
+  pre {
+    background: #111827;
+    color: #f9fafb;
+    padding: 12px 14px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  pre code {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    padding: 0;
+  }
+  img { max-width: 100%; height: auto; display: block; margin: 0.5em 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📋 ÜRÜN GELİŞTİRME PROJESİ — FİKİR ONAY DOKÜMANI</h1>
+<blockquote>
+<p><strong>Öğrenci Adı Soyadı:</strong> <code>Emir Buğra Irmak</code><br>
+<strong>Öğrenci Numarası:</strong> <code>21253061</code><br>
+<strong>Tarih:</strong> <code>06/03/2026</code></p>
+</blockquote>
+<hr>
+<h2>1. 🏷️ Ürün İsmi</h2>
+<table>
+<thead><tr><th>Alan</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Ürün İsmi</strong></td><td><code>TestPilot – AI QA Assistant</code></td></tr>
+<tr><td><strong>İsmin Anlamı / Hikayesi</strong></td><td><code>Pilot” kelimesi, uçuştan önce yapılan kontrol ve yönlendirmeyi çağrıştırır. TestPilot da yazılım geliştirme sürecinde canlıya çıkmadan önce gereksinimleri analiz edip test planı ve test senaryolarını çıkararak kaliteyi “pilot” gibi yöneten bir asistan fikrini temsil eder.</code></td></tr>
+<tr><td><strong>Slogan</strong></td><td><code>From idea to test cases, in minutes.</code></td></tr>
+</tbody>
+</table>
+<hr>
+<h2>2. 🎨 Ürün Markası</h2>
+<table>
+<thead><tr><th>Alan</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Marka Adı</strong></td><td><code>TestPilot</code></td></tr>
+<tr><td><strong>Marka Kimliği</strong></td><td><code>Güvenilirlik, netlik, hız, kalite odaklılık, geliştirici/QA dostu yaklaşım, süreç disiplini (standardize edilmiş çıktı).</code></td></tr>
+<tr><td><strong>Hedef Kitle Algısı</strong></td><td><code>“Kolay kullanılan; QA işini hızlandıran ve standardize eden akıllı bir yardımcı.” Özellikle stajyer/junior QA'ların da rahat kullanabileceği pratik bir araç.</code></td></tr>
+<tr><td><strong>Marka Renk Paleti</strong></td><td><code>Ana renk: Lacivert (güven/kurumsallık). Yardımcı renkler: Açık mavi (teknoloji), turuncu (aksiyon/uyarı–bug vurgusu), gri tonları (sadelik).</code></td></tr>
+<tr><td><strong>Tipografi</strong></td><td><code>Inter (UI için modern ve okunaklı). Alternatif: Roboto.</code></td></tr>
+</tbody>
+</table>
+<hr>
+<h2>3. 🌐 Domain (Alan Adı) Kontrolü</h2>
+<table>
+<thead><tr><th>Alan</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Birincil Domain</strong></td><td><code>testpilotqa.me</code></td></tr>
+<tr><td><strong>Domain Müsait mi?</strong></td><td><code>Evet — Kontrol tarihi: 03/03/2026</code></td></tr>
+<tr><td><strong>Kontrol Yapılan Site</strong></td><td><code>namecheap.com</code></td></tr>
+</tbody>
+</table>
+<blockquote>
+<p>📸 <strong>Ekran Görüntüsü:</strong><br>
+<img src="domain_kanit.png" alt="Domain müsaitlik kontrolü"></p>
+</blockquote>
+<hr>
+<h2>4. 💰 Paketleme Modeli (Free &amp; Premium)</h2>
+<h3>4.1 Free (Ücretsiz) Paket</h3>
+<table>
+<thead><tr><th>Özellik</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Özellik 1</strong></td><td><code>Mod A &amp; Mod B (Temel): Mod A: kullanıcı sadece “feature fikri” girer → User story (veya iş gereksinimi) + AC’yi AI üretir. / Mod B: kullanıcı story/AC’yi hazır girer → AI sadece test plan/test case üretir.</code></td></tr>
+<tr><td><strong>Özellik 2</strong></td><td><code>Çıktı formatı: Markdown + JSON çıktı alma</code></td></tr>
+<tr><td><strong>Özellik 3</strong></td><td><code>Temel şablonlar: Smoke/Regression etiketleme + basic bug report taslağı</code></td></tr>
+<tr><td><strong>Özellik 4</strong></td><td><code>History (kısıtlı): Son 15 çalışma kaydı (run history)</code></td></tr>
+<tr><td><strong>Kısıtlamalar</strong></td><td><code>Ayda 30 üretim (LLM çağrısı) • Tek proje • TestRail CSV export yok • Batch (çoklu story, çoklu işlem) yok • Custom template/prompt yok • “Generated by TestPilot” watermarkı mevcut</code></td></tr>
+</tbody>
+</table>
+<h3>4.2 Premium (Ücretli) Paket</h3>
+<table>
+<thead><tr><th>Özellik</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Aylık Fiyat</strong></td><td><code>$4.99 / ay</code></td></tr>
+<tr><td><strong>Yıllık Fiyat</strong></td><td><code>$49 / yıl (2 ay bedava gibi)</code></td></tr>
+<tr><td><strong>Özellik 1</strong></td><td><code>Ayda 200 üretim (LLM çağrısı) + AC Coverage Check + Edge-case önerileri + Risk (P0/P1/P2) etiketleme.</code></td></tr>
+<tr><td><strong>Özellik 2</strong></td><td><code>TestRail CSV export + Jira ticket metni export</code></td></tr>
+<tr><td><strong>Özellik 3</strong></td><td><code>Batch mode: tek seferde çoklu story/endpoint işleme</code></td></tr>
+<tr><td><strong>Özellik 4</strong></td><td><code>Custom templates: kendi şablonlarını kaydetme</code></td></tr>
+<tr><td><strong>Özellik 5</strong></td><td><code>Sınırsız history + arama/filtreleme</code></td></tr>
+<tr><td><strong>Ek Avantajlar</strong></td><td><code>Watermark yok • Öncelikli geri bildirim/feature request</code></td></tr>
+</tbody>
+</table>
+<h3>4.3 Premium Paket Gerekçesi — Neden Bir Kullanıcı Bunun İçin Para Öder?</h3>
+<blockquote>
+<p>⚠️ <strong>Bu bölüm kritik öneme sahiptir.</strong> Aşağıdaki iki paragrafı doldururken kendinize şu soruları sorunuz ve dürüstçe cevaplayınız:</p>
+<ul>
+<li>Gerçek bir kullanıcı bu Premium paket için cebinden 1 dolar, 5 dolar veya belirlediğiniz fiyatı öder mi?</li>
+<li>Premium pakette sunduğunuz özellikler, kullanıcının günlük hayatında gerçek bir ihtiyaca karşılık geliyor mu?</li>
+<li>Bu özelliklerin aynısı veya benzeri başka bir platformda <strong>ücretsiz</strong> olarak sunuluyor mu? Sunuluyorsa sizinki neden farklı ve neden ücrete değer?</li>
+<li>Kullanıcı bu parayı vermezse ne kaybeder? Free paket yeterli olabilir mi?</li>
+</ul>
+</blockquote>
+<p><strong>Paragraf 1 — Gerçek İhtiyaç Analizi:</strong></p>
+<blockquote>
+<p><code>Premium, özellikle “günlük işte aktif QA” yapan kişiler için değer katar. Örneğin bir sprintte 8–12 user story geliyor ve QA’in her story için hızlıca test plan + test case seti çıkarıp TestRail’e aktarması gerekiyor. Free pakette aylık 30 üretim limiti ve TestRail CSV export olmaması yüzünden bu iş aksar; kullanıcı ya tek tek manuel yazmak zorunda kalır ya da çıktıları kopyalayıp düzeltmekle zaman kaybeder. Premium’da yüksek limit + batch + TestRail export ile QA kişi/ekip saatlerce zaman kazanır, çıktılar daha standart olur ve “boş sayfa sendromu” olmadan hızlı başlar. TestPilot’un amacı testleri tamamen ‘otomatik bitirmek’ değil; QA’in üretilen çıktıyı hızlıca gözden geçirip düzenleyerek çok daha kısa sürede standardize bir test setine ulaşmasını sağlamaktır.</code></p>
+</blockquote>
+<p><strong>Paragraf 2 — Piyasa Karşılaştırması ve Fiyat Gerekçesi:</strong></p>
+<blockquote>
+<p><code>Piyasada test yönetim araçları genelde kişi başı fiyatlanır: TestRail’in Professional planı yaklaşık $40/ kullanıcı/ ay seviyesinde. Testmo’nun başlangıç planı $99/ay (10 kullanıcı dahil) gibi paketler sunar. Jira eklentisi Xray ise kullanıcı sayısına göre ölçeklenir ve “min kullanıcı” gibi kısıtlar olabilir. Qase’in ücretsiz planı da var ama “kullanıcı/proje/history” gibi limitleri bulunur (ör. 3 kullanıcı, 2 proje, 30 gün history).Ayrıca ChatGPT/Gemini gibi araçlarla ücretsiz şekilde “metin olarak” test case taslağı üretmek mümkün olsa da bu yaklaşımda her seferinde prompt yazma, çıktıyı standardize etme, toplu işleme (batch) ve TestRail’e import edilebilir formatta export gibi günlük iş akışını hızlandıran parçalar eksik kalır. TestPilot ise tam bir TMS (TestRail gibi) olmak yerine AI ile test üretimini hızlandıran bir yardımcı olduğu için daha düşük fiyatla konumlanır; ayrıca Premium’un yüksek kullanım limiti LLM maliyetini de karşılar. Bu yüzden $4.99/ay, “her hafta düzenli test case üreten” bir QA için makul bir bedel olarak gerekçelendirilebilir. Ayrıca Premium paketteki kullanım limitleri (ör. ayda 200 üretim) LLM maliyetini kontrol altında tutarken gerçek kullanım için yeterli olacak şekilde seçilmiştir.</code></p>
+</blockquote>
+<hr>
+<h2>5. 📊 Ürün Tanımı ve Problem Çözümü</h2>
+<h3>5.1 Ürün Ne İş Yapar?</h3>
+<blockquote>
+<p><code>[TestPilot, yazılım geliştirme sürecinde test hazırlama işini hızlandıran bir AI QA asistanıdır. Özellikle stajyer/junior QA’ler ve küçük ekipler için, hızlı başlangıç ve standart çıktı sağlayarak öğrenmeyi ve üretkenliği artırır. Kullanıcı ister sadece bir “özellik fikri” yazsın, ister hazır user story ve acceptance criteria (kabul kriterleri) versin; TestPilot bu bilgileri analiz ederek kısa ve anlaşılır bir test planı çıkarır ve ardından test senaryolarını otomatik üretir. Ayrıca test verisi önerileri ve bug report (hata raporu) taslağı da sunar. Böylece QA veya geliştirici, “boş sayfadan başlama” zorunluluğu olmadan hızlıca işe başlar, testleri daha düzenli ve standart şekilde yürütür. Üretilen çıktılar Markdown/JSON olarak alınabilir ve Premium pakette TestRail’e aktarım için CSV formatında dışa aktarılabilir.</code></p>
+</blockquote>
+<h3>5.2 Kullanıcı Persona</h3>
+<blockquote>
+<p>`Adı: Ece</p>
+</blockquote>
+<p>Yaşı: 24<br>
+Mesleği: Junior QA Engineer<br>
+Çalışma Şekli: Haftada 5 gün bir yazılım ekibinde çalışıyor, sprint toplantılarına giriyor ve her sprintte 6–10 yeni user story için test hazırlaması gerekiyor.<br>
+Günlük Rutini: Sabah Jira’daki ticket’ları kontrol ediyor, acceptance criteria’ları okuyor, test senaryolarını yazıyor, test verisi hazırlıyor ve bulduğu bug’ları raporluyor.<br>
+Karşılaştığı Problem: Zaman baskısı altında test case yazmak zorunda kalıyor; bazen acceptance criteria eksik/dağınık oluyor. Bu nedenle önemli edge-case’leri kaçırma riski oluşuyor ve test case formatı ekip içinde standart olmuyor.<br>
+TestPilot’u Nasıl Kullanır? Ece, Jira’dan aldığı user story/AC metnini TestPilot’a yapıştırır (veya sadece feature fikrini yazar). TestPilot’tan çıkan test plan + test case setini hızlıca gözden geçirip düzenler, TestRail CSV export ile test yönetim aracına aktarır. Bug bulduğunda da gözlemini TestPilot’a verip daha net bir bug report taslağı oluşturur. Böylece aynı iş için daha az zaman harcar ve daha tutarlı, standardize bir test süreci yürütür.`</p>
+<p>` Adı: Emir<br>
+Yaşı: 23<br>
+Mesleği: QA Intern / QA Trainee<br>
+Çalışma Şekli: Haftada birkaç gün staj yapıyor; kalan zamanda kendi kendine portföy ve öğrenme planı ile ilerliyor.<br>
+Günlük Rutini: Postman ile API testleri deniyor, Jira/TestRail mantığını öğreniyor, örnek projeler üzerinden test case yazıyor ve bug report pratiği yapıyor.<br>
+Karşılaştığı Problem: “Doğru test senaryosu nasıl yazılır?” ve “hangi edge-case’ler unutulmamalı?” konularında emin olamıyor. Ayrıca her seferinde sıfırdan test plan çıkarmak zaman alıyor ve yazdıkları tutarsız olabiliyor.<br>
+TestPilot’u Nasıl Kullanır? Emir bir user story veya feature fikrini TestPilot’a verir, üretilen test plan/test case’leri “örnek” olarak inceler ve kendi yazdıklarıyla karşılaştırır. AC coverage ve edge-case önerileri sayesinde eksiklerini görür, çıktıları düzenleyerek TestRail formatında export alıp portföyüne ekler. Böylece daha hızlı öğrenir ve daha profesyonel test dokümantasyonu üretir. `</p>
+<hr>
+<h2>6.Madde Kaldırıldı -</h2>
+<h2>7. 🛠️ Teknolojik Altyapı</h2>
+<blockquote>
+<p>⚠️ <strong>Bu bölümde her alan için yalnızca tek bir teknoloji belirtilmelidir.</strong> "X veya Y" şeklinde belirsiz ifadeler kabul edilmez. Seçiminizi kesin olarak yapınız.</p>
+</blockquote>
+<h3>7.1 Backend (Sunucu Tarafı)</h3>
+<table>
+<thead><tr><th>Alan</th><th>Seçim</th><th>Gerekçe</th></tr></thead>
+<tbody>
+<tr><td><strong>Programlama Dili</strong></td><td><code>Python</code></td><td><code>Neden? : Hızlı geliştirme, LLM entegrasyonu kolay, öğrenme/uygulama maliyeti düşük.</code></td></tr>
+<tr><td><strong>Framework</strong></td><td><code>FastAPI</code></td><td><code>Neden? : Çok hızlı API geliştirme + otomatik Swagger dokümantasyonu + modern yapı.</code></td></tr>
+<tr><td><strong>Veritabanı</strong></td><td><code>SQLite</code></td><td><code>Neden? : Kurulum gerektirmez (tek dosya), geliştirme ve demo için en pratik çözüm; run history/artifact kayıtları için yeterli.</code></td></tr>
+<tr><td><strong>API Mimarisi</strong></td><td><code>REST</code></td><td><code>Neden? : Basit, anlaşılır, her yerle uyumlu.</code></td></tr>
+<tr><td><strong>Kimlik Doğrulama</strong></td><td><code>API Key (Bearer Token)</code></td><td><code>Neden? : En kolay kurulum: tek bir gizli anahtar ile endpoint’leri korursun, kullanıcı sistemi gerektirmez.</code></td></tr>
+</tbody>
+</table>
+<h3>7.2 Frontend (Ön Yüz) — Web</h3>
+<table>
+<thead><tr><th>Alan</th><th>Seçim</th><th>Gerekçe</th></tr></thead>
+<tbody>
+<tr><td><strong>Programlama Dili</strong></td><td><code>TypeScript</code></td><td><code>Neden? : Daha güvenli kod (tip kontrolü), büyük projelerde hata azaltır, sektörde yaygın.</code></td></tr>
+<tr><td><strong>Framework / Kütüphane</strong></td><td><code>React</code></td><td><code>Neden? : Web uygulamalarında en yaygın çözümlerden; komponent yapısı ile hızlı UI geliştirme.</code></td></tr>
+<tr><td><strong>CSS Framework</strong></td><td><code>Tailwind CSS</code></td><td><code>Neden? : Hızlı ve tutarlı tasarım, ekstra CSS dosyası yazma ihtiyacını azaltır.</code></td></tr>
+<tr><td><strong>State Management</strong></td><td><code>React Query</code></td><td><code>Neden? : API tabanlı uygulamalarda server-state (fetch/cache/loading/error) yönetimini çok kolaylaştırır.</code></td></tr>
+</tbody>
+</table>
+<h3>7.3 Mobil Uygulama</h3>
+<table>
+<thead><tr><th>Alan</th><th>Seçim</th><th>Gerekçe</th></tr></thead>
+<tbody>
+<tr><td><strong>Geliştirme Yaklaşımı</strong></td><td><code>Cross-platform</code></td><td><code>Neden? : Tek kod tabanı ile hem iOS hem Android’e çıkılır; geliştirme süresi ve bakım maliyeti düşer.</code></td></tr>
+<tr><td><strong>Teknoloji</strong></td><td><code>Flutter</code></td><td><code>Neden? : Hızlı arayüz geliştirme, iyi performans, tek projeyle iki platform; REST API ile FastAPI’ye bağlamak çok kolay.</code></td></tr>
+<tr><td><strong>Desteklenen Platformlar</strong></td><td><code>Her ikisi (iOS + Android)</code></td><td><code>Neden? : Cross-platform seçildiği için aynı uygulama iki platformda da çalışır.</code></td></tr>
+</tbody>
+</table>
+<h3>7.4 DevOps &amp; Altyapı</h3>
+<table>
+<thead><tr><th>Alan</th><th>Durum</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Versiyon Kontrolü</strong></td><td>🔒 Zorunlu</td><td>Git</td></tr>
+<tr><td><strong>Kod Deposu</strong></td><td>🔒 Zorunlu</td><td>GitHub</td></tr>
+<tr><td><strong>Konteynerizasyon</strong></td><td>🔒 Zorunlu</td><td>Docker + Docker Compose</td></tr>
+</tbody>
+</table>
+<blockquote>
+<p>Git, GitHub ve Docker bu derste zorunlu altyapı bileşenleridir. Değiştirilemez ve tartışmaya açık değildir.</p>
+</blockquote>
+<h3>7.5 Mimari Diyagram</h3>
+<blockquote>
+<p><img src="diyagram.png" alt="Diyagram"></p>
+</blockquote>
+<hr>
+<h2>8. 📱 Instagram Story Tanıtım Görselleri (10 Adet)</h2>
+<p>Aşağıdaki 10 story görseli (dikey/story) formatında hazırlanmalıdır.</p>
+<p><strong>Görseller, Google Gemini (veya eşdeğer bir yapay zekâ görsel üretim aracı) kullanılarak üretilecektir.</strong> Üretilen her görselde ürün logosu açık ve görünür biçimde yer almalı, marka kimliği (renk paleti, tipografi, görsel dil) tüm görsellerde tutarlı şekilde yansıtılmalıdır.</p>
+<table>
+<thead><tr><th>Story No</th><th>İçerik / Konu</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Story 1</strong></td><td>Teaser / Merak Uyandırma</td><td><code>[Yakında bir şey geliyor... tarzı]</code></td></tr>
+<tr><td><strong>Story 2</strong></td><td>Problem Tanımı</td><td><code>[Hangi sorunu çözüyorsunuz?]</code></td></tr>
+<tr><td><strong>Story 3</strong></td><td>Çözüm Tanıtımı</td><td><code>[Ürünü tanıtın]</code></td></tr>
+<tr><td><strong>Story 4</strong></td><td>Öne Çıkan Özellik 1</td><td><code>[Ana özellik gösterimi]</code></td></tr>
+<tr><td><strong>Story 5</strong></td><td>Öne Çıkan Özellik 2</td><td><code>[İkinci önemli özellik]</code></td></tr>
+<tr><td><strong>Story 6</strong></td><td>Öne Çıkan Özellik 3</td><td><code>[Üçüncü önemli özellik]</code></td></tr>
+<tr><td><strong>Story 7</strong></td><td>Free vs Premium Karşılaştırma</td><td><code>[Paket farkları]</code></td></tr>
+<tr><td><strong>Story 8</strong></td><td>Kullanıcı Yorumu / Sosyal Kanıt</td><td><code>[Testimonial veya istatistik]</code></td></tr>
+<tr><td><strong>Story 9</strong></td><td>Nasıl Başlarım? (CTA)</td><td><code>[İndirme / Kayıt adımları]</code></td></tr>
+<tr><td><strong>Story 10</strong></td><td>Lansman / Son Çağrı</td><td><code>[Şimdi dene! Link / QR kod]</code></td></tr>
+</tbody>
+</table>
+<blockquote>
+<p>📁 <strong>Görseller:</strong> Story görselleri ayrı klasörde (<code>/stories</code>) teslim edilecektir.</p>
+</blockquote>
+<hr>
+<h2>9. 🎨 Logo Tasarımı</h2>
+<table>
+<thead><tr><th>Alan</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Logo Tipi</strong></td><td><code>Kombinasyon (Logomark + Logotype)</code></td></tr>
+<tr><td><strong>Ana Renk(ler)</strong></td><td><code>#102050 (lacivert) • #50B0E0 (açık mavi) • #E07020 (turuncu vurgu)</code></td></tr>
+<tr><td><strong>Font</strong></td><td><code>Inter Bold</code></td></tr>
+<tr><td><strong>İlham Kaynağı</strong></td><td><code>Kağıt uçak + onay işareti (check) birleşimi. “Pilot” fikriyle hızla yönlendirme ve kontrolü; check işaretiyle kalite onayı ve test doğrulamayı temsil eder. Turuncu vurgu, aksiyon/uyarı (bug vurgusu) hissi verir.</code></td></tr>
+<tr><td><strong>Kullanım Alanları</strong></td><td><code>Web arayüzü, mobil uygulama splash/login ekranı, Instagram story/post, sunum/slayt kapağı, basılı materyal (sticker/afiş)</code></td></tr>
+</tbody>
+</table>
+<h3>Teslim Edilecek Logo Formatları:</h3>
+<ul>
+<li>[ ] PNG (şeffaf arka plan)</li>
+<li>[ ] Koyu arka plan versiyonu</li>
+<li>[ ] Açık arka plan versiyonu</li>
+<li>[ ] Favicon (32x32 px)</li>
+</ul>
+<blockquote>
+<p>📁 <strong>Logolar:</strong> Logo dosyaları ayrı klasörde (<code>/logo</code>) teslim edilecektir.</p>
+</blockquote>
+<hr>
+<h2>10. 📲 Platform Desteği</h2>
+<table>
+<thead><tr><th>Platform</th><th>Planlanan</th><th>Teknoloji</th><th>Açıklama</th></tr></thead>
+<tbody>
+<tr><td><strong>Web Uygulaması</strong></td><td><code>Evet</code></td><td><code>React (Frontend) + FastAPI (Backend API)</code></td><td><code>Web üzerinden Swagger UI (/docs) ile endpoint’ler denenebilir + opsiyonel basit “demo” sayfası. Responsive ihtiyaç minimal (tarayıcıdan kullanım).</code></td></tr>
+<tr><td><strong>iOS Uygulaması</strong></td><td><code>Evet</code></td><td><code>Flutter</code></td><td><code>App Store yayını opsiyonel; proje kapsamında debug/TestFlight benzeri demo build hedeflenir.</code></td></tr>
+<tr><td><strong>Android Uygulaması</strong></td><td><code>Evet</code></td><td><code>Flutter</code></td><td><code>Play Store yayını opsiyonel; proje kapsamında APK/AAB demo build hedeflenir.</code></td></tr>
+<tr><td><strong>Tablet Desteği</strong></td><td><code>Evet</code></td><td><code>Flutter</code></td><td><code>Ayrı tablet app yok; Flutter’da responsive layout ile tablette daha geniş görünüm.</code></td></tr>
+</tbody>
+</table>
+<hr>
+<h2>⚠️ ÖNEMLİ UYARILAR — LÜTFEN DİKKATLE OKUYUNUZ</h2>
+<h3>📌 Önemli Not 1 — Doküman Gerçekçiliği ve Sorumluluk</h3>
+<p>Bu doküman, ürün fikrinizin onaylanması için gerekli <strong>asgari içeriktir</strong>. Tüm alanlar eksiksiz doldurulmalı ve ilgili görseller ile ekran görüntüleri ile desteklenmelidir. README.md dosyasının hazırlığında yapay zekâ araçlarından faydalanılabilir; ancak <strong>içeriğin tamamı sizin özgün fikrinize, araştırmanıza ve teknik kapasitenize dayalı olmalıdır.</strong></p>
+<p>Bu doküman, dönem başında GitHub'a yüklenen ilk sürüm olarak kayıt altına alınacak ve <strong>dönem sonunda projenin nihai hâliyle birebir karşılaştırılacaktır.</strong> Bu nedenle dokümanı son derece titizlikle hazırlayınız. Yapay zekâya yazdırıp dönem içerisinde hayata geçiremeyeceğiniz hiçbir özellik, teknoloji veya kapsam bu dokümanda yer almamalıdır. <strong>Burada yazdığınız her maddeyi geliştirmek ve teslim etmekle yükümlüsünüz.</strong></p>
+<hr>
+<h3>📌 Önemli Not 2 — Teknoloji Seçimlerinde Kesinlik</h3>
+<p>Teknolojik altyapı bölümünde <strong>belirsiz, muğlak veya çoklu seçenek içeren ifadeler kabul edilmeyecektir.</strong> Her alan için kesin, net ve tek bir teknoloji belirtilmelidir.</p>
+<p>❌ <strong>Kabul edilmeyen örnek:</strong> <em>"Backend için C# veya Go kullanılacaktır."</em> — <em>"PHP ya da Java tercih edilecektir."</em></p>
+<p>✅ <strong>Kabul edilen örnek:</strong> <em>"Backend programlama dili olarak Python kullanılacaktır."</em></p>
+<p>✅ <strong>Kabul edilen örnek:</strong> <em>"Backend programlama dili olarak c# kullanılacaktır."</em></p>
+<p>Hangi teknolojiyi kullanacağınızı bu aşamada kesin olarak belirlemiş ve o teknolojide kendinizi geliştirme planınızı oluşturmuş olmanız gerekmektedir. Yapay zekâ çıktısını okumadan kopyalayıp yapıştırmayınız; seçtiğiniz her teknolojinin ne olduğunu bilmeniz ve savunabilmeniz beklenmektedir.</p>
+<hr>
+<h3>📌 Önemli Not 3 — Docker ile Konteynerizasyon Zorunluluğu</h3>
+<p>Proje, <strong>ilk günden itibaren Docker ile konteynerize edilmiş</strong> şekilde geliştirilecektir. GitHub deposundan <code>git pull</code> komutu çalıştırıldığında, projenin aşağıdaki komutlarla sorunsuz biçimde ayağa kalkması beklenmektedir:</p>
+<pre><code class="language-bash">git pull
+docker-compose up --build</code></pre>
+<p>Bu gereksinim dönem boyunca geçerlidir. Her aşamada projenizin çalışır durumda, konteynerize edilmiş ve erişilebilir olması zorunludur. <code>Dockerfile</code> ve <code>docker-compose.yml</code> dosyaları projenin ayrılmaz bileşenleri olarak değerlendirilecek ve proje değerlendirmesinde dikkate alınacaktır.</p>
+<hr>
+<blockquote>
+<p>📎 <strong>Son Hatırlatma:</strong> Bu dokümanı dikkatlice doldurunuz, tüm içeriği en az bir kez gözden geçiriniz ve teslim etmeden önce her maddenin eksiksiz olduğundan emin olunuz.</p>
+</blockquote>
+</div>
+</body>
+</html>
