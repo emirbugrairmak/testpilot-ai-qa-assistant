@@ -24,5 +24,16 @@ class Settings:
         "http://localhost:8000",    # Backend (Swagger UI)
     ]
 
+    # ── Database ────────────────────────────────────
+    DATABASE_PATH: str = os.getenv("DATABASE_PATH", "data/testpilot.db")
+
+    # ── Usage Limits ────────────────────────────────
+    FREE_MONTHLY_LIMIT: int = 30
+    PREMIUM_MONTHLY_LIMIT: int = 200
+
+    # ── LLM (ileride Gemini entegrasyonu için) ──────
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "mock")  # "mock" | "gemini"
+
 
 settings = Settings()
