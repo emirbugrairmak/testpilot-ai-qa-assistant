@@ -16,6 +16,8 @@ router = APIRouter(tags=["Generate"])
 @router.post(
     "/generate",
     response_model=GenerateResponse,
+    response_model_exclude_none=True,
+    response_model_exclude_defaults=True,
     summary="Test Üretimi",
     description=(
         "Mod A: feature_idea → user story + AC + test plan + test cases.\n\n"
@@ -62,6 +64,41 @@ def generate(
         inputs = {
             "user_story": request.user_story,
             "acceptance_criteria": request.acceptance_criteria,
+        }
+    elif request.mode == GenerationMode.BUG_REPORT:
+        if not request.title and not request.summary:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="'title' or 'summary' is required for bug_report",
+            )
+        if not request.steps_to_reproduce:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="'steps_to_reproduce' is required for bug_report",
+            )
+        if not request.actual_result:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="'actual_result' is required for bug_report",
+            )
+        if not request.expected_result:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="'expected_result' is required for bug_report",
+            )
+        if not request.environment:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="'environment' is required for bug_report",
+            )
+        inputs = {
+            "title": request.title,
+            "summary": request.summary,
+            "steps_to_reproduce": request.steps_to_reproduce,
+            "actual_result": request.actual_result,
+            "expected_result": request.expected_result,
+            "environment": request.environment,
+            "severity": request.severity,
         }
     else:
         raise HTTPException(

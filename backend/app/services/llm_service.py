@@ -21,7 +21,7 @@ def generate_with_llm(mode: str, inputs: dict) -> dict:
     """LLM ile üretim yap.
 
     Args:
-        mode: "mod_a" veya "mod_b"
+        mode: "mod_a", "mod_b" veya "bug_report"
         inputs: Mod'a göre değişen input dict
 
     Returns:
@@ -41,8 +41,9 @@ def _generate_mock(mode: str, inputs: dict) -> dict:
     """
     if mode == "mod_a":
         return _mock_mod_a(inputs["feature_idea"])
-    else:
+    if mode == "mod_b":
         return _mock_mod_b(inputs["user_story"], inputs["acceptance_criteria"])
+    return _mock_bug_report(inputs)
 
 
 def _mock_mod_a(feature_idea: str) -> dict:
@@ -253,6 +254,55 @@ def _mock_mod_b(user_story: str, acceptance_criteria: str) -> dict:
         "acceptance_criteria": ac_lines,
         "test_plan": test_plan,
         "test_cases": test_cases,
+    }
+
+
+def _mock_bug_report(inputs: dict) -> dict:
+    """Bug report inputlarından deterministic, yapılandırılmış rapor üret."""
+    raw_steps = inputs["steps_to_reproduce"]
+    if isinstance(raw_steps, list):
+        steps = [str(step).strip() for step in raw_steps if str(step).strip()]
+    else:
+        steps = [
+            line.strip(" -\t")
+            for line in str(raw_steps).replace("\\n", "\n").split("\n")
+            if line.strip(" -\t")
+        ]
+    if not steps:
+        steps = ["Reproduce the issue using the reported user flow."]
+
+    severity = (inputs.get("severity") or "Medium").strip().title()
+    severity_priority_map = {
+        "Critical": "P0",
+        "Blocker": "P0",
+        "High": "P1",
+        "Major": "P1",
+        "Medium": "P2",
+        "Minor": "P3",
+        "Low": "P3",
+    }
+    priority = severity_priority_map.get(severity, "P2")
+
+    title = (inputs.get("title") or inputs.get("summary") or "Bug report").strip()
+    summary = (
+        inputs.get("summary")
+        or f"{title}. Actual behavior differs from the expected result and should be investigated."
+    ).strip()
+
+    labels = ["bug", "qa-generated", severity.lower().replace(" ", "-")]
+
+    return {
+        "bug_report": {
+            "title": title,
+            "summary": summary,
+            "severity": severity,
+            "priority": priority,
+            "environment": inputs["environment"].strip(),
+            "steps_to_reproduce": steps,
+            "actual_result": inputs["actual_result"].strip(),
+            "expected_result": inputs["expected_result"].strip(),
+            "labels": labels,
+        }
     }
 
 

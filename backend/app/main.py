@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import init_db
-from app.routers import auth, generate
+from app.routers import auth, export, generate, history, usage
 
 
 # ── Lifespan ────────────────────────────────────────────
@@ -44,6 +44,9 @@ app.add_middleware(
 # ── Routers ─────────────────────────────────────────────
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(generate.router, prefix="/api/v1")
+app.include_router(history.router, prefix="/api/v1")
+app.include_router(export.router, prefix="/api/v1")
+app.include_router(usage.router, prefix="/api/v1")
 
 
 # ── Health Check ────────────────────────────────────────

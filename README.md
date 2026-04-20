@@ -92,6 +92,65 @@ curl -X POST http://localhost:8000/api/v1/generate \
   }'
 ```
 
+**Bug Report Üretimi:**
+```bash
+curl -X POST http://localhost:8000/api/v1/generate \
+  -H "Authorization: Bearer tp_free_demo_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "bug_report",
+    "title": "Login button stays disabled",
+    "steps_to_reproduce": [
+      "Open the login page",
+      "Enter a valid email and password",
+      "Try to click Login"
+    ],
+    "actual_result": "The Login button remains disabled.",
+    "expected_result": "The user can submit the login form.",
+    "environment": "Chrome 123, macOS",
+    "severity": "High"
+  }'
+```
+
+**History Listeleme:**
+```bash
+curl http://localhost:8000/api/v1/history \
+  -H "Authorization: Bearer tp_free_demo_key"
+```
+
+**History Arama / Mode Filtresi:**
+```bash
+curl "http://localhost:8000/api/v1/history?mode=bug_report&q=Login" \
+  -H "Authorization: Bearer tp_free_demo_key"
+```
+
+**Usage Bilgisi:**
+```bash
+curl http://localhost:8000/api/v1/usage \
+  -H "Authorization: Bearer tp_free_demo_key"
+```
+
+**Export Örnekleri:**
+```bash
+# JSON ve Markdown: Free + Premium
+curl http://localhost:8000/api/v1/export/1/json \
+  -H "Authorization: Bearer tp_free_demo_key" \
+  -OJ
+
+curl http://localhost:8000/api/v1/export/1/markdown \
+  -H "Authorization: Bearer tp_free_demo_key" \
+  -OJ
+
+# CSV ve Jira: sadece Premium
+curl http://localhost:8000/api/v1/export/1/csv \
+  -H "Authorization: Bearer tp_premium_demo_key" \
+  -OJ
+
+curl http://localhost:8000/api/v1/export/1/jira \
+  -H "Authorization: Bearer tp_premium_demo_key" \
+  -OJ
+```
+
 ---
 
 ## 📡 API Endpoint'leri
@@ -101,7 +160,40 @@ curl -X POST http://localhost:8000/api/v1/generate \
 | `GET` | `/health` | Servis sağlık kontrolü | ❌ |
 | `GET` | `/docs` | Swagger API dokümantasyonu | ❌ |
 | `POST` | `/api/v1/auth/validate` | API key doğrulama + plan bilgisi | ✅ Bearer |
-| `POST` | `/api/v1/generate` | Test üretimi (Mod A / Mod B) | ✅ Bearer |
+| `POST` | `/api/v1/generate` | Test üretimi (`mod_a`, `mod_b`) ve bug report üretimi (`bug_report`) | ✅ Bearer |
+| `GET` | `/api/v1/history` | Generation geçmişi; `mode` ve `q` query desteği vardır | ✅ Bearer |
+| `GET` | `/api/v1/history/{id}` | Tek generation detayı | ✅ Bearer |
+| `DELETE` | `/api/v1/history/{id}` | Tek generation kaydını siler | ✅ Bearer |
+| `GET` | `/api/v1/export/{id}/json` | JSON export | ✅ Bearer |
+| `GET` | `/api/v1/export/{id}/markdown` | Markdown export | ✅ Bearer |
+| `GET` | `/api/v1/export/{id}/csv` | CSV export | ✅ Bearer + Premium |
+| `GET` | `/api/v1/export/{id}/jira` | Jira-friendly text export | ✅ Bearer + Premium |
+| `GET` | `/api/v1/usage` | Plan, aylık limit, kullanım ve kalan hak bilgisi | ✅ Bearer |
+
+### Free / Premium Kuralları
+
+| Özellik | Free | Premium |
+|---------|------|---------|
+| History liste | Son 15 kayıt | Tüm kayıtlar |
+| JSON export | ✅ | ✅ |
+| Markdown export | ✅ | ✅ |
+| CSV export | ❌ 403 | ✅ |
+| Jira export | ❌ 403 | ✅ |
+| Free watermark | ✅ | ❌ |
+
+### Usage Yanıtı
+
+`GET /api/v1/usage` aşağıdaki alanları döndürür:
+
+```json
+{
+  "plan": "free",
+  "monthly_limit": 30,
+  "usage_count": 4,
+  "remaining": 26,
+  "usage_reset_at": "2026-05-01T00:00:00"
+}
+```
 
 ---
 
@@ -123,11 +215,17 @@ TestPilot – AI QA Assistant/
 │       │   └── schemas.py
 │       ├── routers/
 │       │   ├── auth.py
-│       │   └── generate.py
+│       │   ├── export.py
+│       │   ├── generate.py
+│       │   ├── history.py
+│       │   └── usage.py
 │       ├── services/
+│       │   ├── export_service.py
 │       │   ├── generation_service.py
+│       │   ├── history_service.py
 │       │   └── llm_service.py
 │       ├── prompts/
+│       │   ├── bug_report_prompt.py
 │       │   ├── mod_a_prompt.py
 │       │   └── mod_b_prompt.py
 │       └── utils/
@@ -151,7 +249,8 @@ TestPilot – AI QA Assistant/
 
 - [x] Faz 0 — Proje İskeleti + Docker
 - [x] Faz 1A — Backend Core (DB, Auth, Generate API, Mock LLM)
-- [ ] Faz 1B — Backend LLM Entegrasyonu (Gemini)
+- [x] Faz 1B — Backend Surface Completion (History, Export, Usage, Bug Report)
+- [ ] Faz 1C — Backend LLM Entegrasyonu (Gemini)
 - [ ] Faz 2 — Frontend Web UI
 - [ ] Faz 3 — Flutter Mobil Uygulama
 - [ ] Faz 4 — Premium Özellikler

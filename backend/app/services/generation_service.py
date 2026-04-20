@@ -17,8 +17,8 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
     """Tek bir test üretimi gerçekleştir.
 
     Args:
-        mode: "mod_a" veya "mod_b"
-        inputs: {feature_idea} veya {user_story, acceptance_criteria}
+        mode: "mod_a", "mod_b" veya "bug_report"
+        inputs: Moda göre değişen input dict
         key_info: API key bilgisi (plan, id, vb.)
 
     Returns:
@@ -35,27 +35,35 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
     # ── 3. Timestamp ───────────────────────────────
     created_at = datetime.now(timezone.utc).isoformat()
 
-    # ── 4. Tüm tag'leri topla ──────────────────────
-    all_tags = set()
-    for tc in result.get("test_cases", []):
-        all_tags.update(tc.get("tags", []))
+    # ── 4. Output dict oluştur ─────────────────────
+    if mode == "bug_report":
+        output = {
+            "mode": mode,
+            "bug_report": result["bug_report"],
+            "tags": result["bug_report"].get("labels", []),
+            "watermark": watermark,
+            "created_at": created_at,
+        }
+    else:
+        all_tags = set()
+        for tc in result.get("test_cases", []):
+            all_tags.update(tc.get("tags", []))
 
-    # ── 5. Output dict oluştur ─────────────────────
-    output = {
-        "mode": mode,
-        "user_story": result["user_story"],
-        "acceptance_criteria": result["acceptance_criteria"],
-        "test_plan": result["test_plan"],
-        "test_cases": result["test_cases"],
-        "tags": sorted(all_tags),
-        "watermark": watermark,
-        "created_at": created_at,
-    }
+        output = {
+            "mode": mode,
+            "user_story": result["user_story"],
+            "acceptance_criteria": result["acceptance_criteria"],
+            "test_plan": result["test_plan"],
+            "test_cases": result["test_cases"],
+            "tags": sorted(all_tags),
+            "watermark": watermark,
+            "created_at": created_at,
+        }
 
-    # ── 6. Markdown çıktı üret ─────────────────────
+    # ── 5. Markdown çıktı üret ─────────────────────
     output_md = _to_markdown(output)
 
-    # ── 7. Veritabanına kaydet ─────────────────────
+    # ── 6. Veritabanına kaydet ─────────────────────
     output_json_str = json.dumps(output, ensure_ascii=False)
     input_json_str = json.dumps(inputs, ensure_ascii=False)
 
@@ -68,13 +76,18 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
         )
         generation_id = cursor.lastrowid
 
-    # ── 8. Response ────────────────────────────────
+    # ── 7. Response ────────────────────────────────
     output["generation_id"] = generation_id
+    if mode == "bug_report":
+        output["markdown"] = output_md
     return output
 
 
 def _to_markdown(data: dict) -> str:
     """Üretim çıktısını markdown formatına dönüştür."""
+    if data.get("mode") == "bug_report":
+        return _bug_report_to_markdown(data)
+
     lines = []
 
     lines.append(f"# Test Plan: {data['test_plan']['objective']}")
@@ -127,6 +140,53 @@ def _to_markdown(data: dict) -> str:
         lines.append("")
 
     # Watermark
+    if data.get("watermark"):
+        lines.append("---")
+        lines.append(f"*{data['watermark']}*")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+def _bug_report_to_markdown(data: dict) -> str:
+    """Bug report çıktısını markdown formatına dönüştür."""
+    bug = data["bug_report"]
+    lines = [
+        f"# Bug Report: {bug['title']}",
+        "",
+        f"**Mode:** `{data['mode']}`",
+        f"**Generated:** {data['created_at']}",
+        f"**Severity:** {bug['severity']}",
+        f"**Priority:** {bug['priority']}",
+        f"**Environment:** {bug['environment']}",
+        "",
+        "## Summary",
+        "",
+        bug["summary"],
+        "",
+        "## Steps to Reproduce",
+        "",
+    ]
+
+    for index, step in enumerate(bug["steps_to_reproduce"], 1):
+        lines.append(f"{index}. {step}")
+
+    lines.extend([
+        "",
+        "## Actual Result",
+        "",
+        bug["actual_result"],
+        "",
+        "## Expected Result",
+        "",
+        bug["expected_result"],
+        "",
+        "## Labels",
+        "",
+        ", ".join(bug["labels"]),
+        "",
+    ])
+
     if data.get("watermark"):
         lines.append("---")
         lines.append(f"*{data['watermark']}*")

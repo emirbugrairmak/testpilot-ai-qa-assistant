@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
 CREATE TABLE IF NOT EXISTS generations (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     api_key_id      INTEGER NOT NULL,
-    mode            TEXT    NOT NULL CHECK(mode IN ('mod_a', 'mod_b')),
+    mode            TEXT    NOT NULL CHECK(mode IN ('mod_a', 'mod_b', 'bug_report')),
     input_json      TEXT    NOT NULL,
     output_json     TEXT    NOT NULL,
     output_md       TEXT    NOT NULL DEFAULT '',
@@ -106,6 +106,38 @@ def _seed_api_keys(conn: sqlite3.Connection) -> None:
         )
 
 
+def _migrate_generations_bug_report_mode(conn: sqlite3.Connection) -> None:
+    """Eski Phase 1A generations CHECK constraint'ini bug_report ile genişlet."""
+    row = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'generations'"
+    ).fetchone()
+    if not row or "bug_report" in (row["sql"] or ""):
+        return
+
+    conn.executescript(
+        """
+        CREATE TABLE generations_new (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            api_key_id      INTEGER NOT NULL,
+            mode            TEXT    NOT NULL CHECK(mode IN ('mod_a', 'mod_b', 'bug_report')),
+            input_json      TEXT    NOT NULL,
+            output_json     TEXT    NOT NULL,
+            output_md       TEXT    NOT NULL DEFAULT '',
+            created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (api_key_id) REFERENCES api_keys(id)
+        );
+
+        INSERT INTO generations_new
+            (id, api_key_id, mode, input_json, output_json, output_md, created_at)
+        SELECT id, api_key_id, mode, input_json, output_json, output_md, created_at
+        FROM generations;
+
+        DROP TABLE generations;
+        ALTER TABLE generations_new RENAME TO generations;
+        """
+    )
+
+
 def init_db() -> None:
     """Tabloları oluştur ve seed data ekle.
 
@@ -118,6 +150,7 @@ def init_db() -> None:
 
     with get_db() as conn:
         conn.executescript(SCHEMA_SQL)
+        _migrate_generations_bug_report_mode(conn)
         _seed_api_keys(conn)
         conn.commit()
 

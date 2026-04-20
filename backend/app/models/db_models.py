@@ -35,7 +35,7 @@ class Generation:
     """generations tablosuna karşılık gelen model."""
     id: int
     api_key_id: int
-    mode: str                           # "mod_a" | "mod_b"
+    mode: str                           # "mod_a" | "mod_b" | "bug_report"
     input_json: str
     output_json: str
     output_md: str

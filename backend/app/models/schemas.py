@@ -6,9 +6,8 @@ API request / response modelleri.
 
 from __future__ import annotations
 
-from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -19,6 +18,7 @@ class GenerationMode(str, Enum):
     """Desteklenen üretim modları."""
     MOD_A = "mod_a"
     MOD_B = "mod_b"
+    BUG_REPORT = "bug_report"
 
 
 class PlanType(str, Enum):
@@ -50,6 +50,46 @@ class GenerateRequest(BaseModel):
         max_length=5000,
         description="Mod B için kabul kriterleri",
     )
+    title: Optional[str] = Field(
+        None,
+        min_length=3,
+        max_length=300,
+        description="Bug report için başlık",
+    )
+    summary: Optional[str] = Field(
+        None,
+        min_length=5,
+        max_length=1000,
+        description="Bug report için kısa özet",
+    )
+    steps_to_reproduce: Optional[str | list[str]] = Field(
+        None,
+        description="Bug report için yeniden üretme adımları",
+    )
+    actual_result: Optional[str] = Field(
+        None,
+        min_length=3,
+        max_length=3000,
+        description="Bug report için mevcut/gerçek sonuç",
+    )
+    expected_result: Optional[str] = Field(
+        None,
+        min_length=3,
+        max_length=3000,
+        description="Bug report için beklenen sonuç",
+    )
+    environment: Optional[str] = Field(
+        None,
+        min_length=2,
+        max_length=1000,
+        description="Bug report için ortam bilgisi",
+    )
+    severity: Optional[str] = Field(
+        None,
+        min_length=2,
+        max_length=50,
+        description="Bug report severity değeri (opsiyonel)",
+    )
 
     class Config:
         json_schema_extra = {
@@ -62,6 +102,19 @@ class GenerateRequest(BaseModel):
                     "mode": "mod_b",
                     "user_story": "As a user, I want to reset my password so that I can regain access to my account",
                     "acceptance_criteria": "Given a registered user, when they click 'Forgot Password' and enter their email, then they receive a reset link within 5 minutes",
+                },
+                {
+                    "mode": "bug_report",
+                    "title": "Login button stays disabled",
+                    "steps_to_reproduce": [
+                        "Open the login page",
+                        "Enter a valid email and password",
+                        "Try to click Login",
+                    ],
+                    "actual_result": "The Login button remains disabled.",
+                    "expected_result": "The user can submit the login form.",
+                    "environment": "Chrome 123, macOS",
+                    "severity": "High",
                 },
             ]
         }
@@ -89,17 +142,74 @@ class TestPlanSchema(BaseModel):
     approach: str
 
 
+class BugReportSchema(BaseModel):
+    """Bug report üretim çıktısı."""
+    title: str
+    summary: str
+    severity: str
+    priority: str
+    environment: str
+    steps_to_reproduce: list[str]
+    actual_result: str
+    expected_result: str
+    labels: list[str]
+
+
 class GenerateResponse(BaseModel):
     """POST /api/v1/generate yanıtı."""
     generation_id: int
     mode: GenerationMode
-    user_story: str
-    acceptance_criteria: list[str]
-    test_plan: TestPlanSchema
-    test_cases: list[TestCaseSchema]
-    tags: list[str]
+    user_story: Optional[str] = None
+    acceptance_criteria: list[str] = Field(default_factory=list)
+    test_plan: Optional[TestPlanSchema] = None
+    test_cases: list[TestCaseSchema] = Field(default_factory=list)
+    bug_report: Optional[BugReportSchema] = None
+    tags: list[str] = Field(default_factory=list)
+    markdown: Optional[str] = None
     watermark: Optional[str] = None
     created_at: str
+
+
+class HistoryItem(BaseModel):
+    """History liste elemanı."""
+    generation_id: int
+    mode: GenerationMode
+    input: dict[str, Any]
+    output_summary: str
+    created_at: str
+
+
+class HistoryListResponse(BaseModel):
+    """GET /api/v1/history yanıtı."""
+    items: list[HistoryItem]
+    count: int
+    plan: PlanType
+    limit: Optional[int] = None
+
+
+class HistoryDetailResponse(BaseModel):
+    """GET /api/v1/history/{id} yanıtı."""
+    generation_id: int
+    mode: GenerationMode
+    input: dict[str, Any]
+    output: dict[str, Any]
+    markdown: str
+    created_at: str
+
+
+class DeleteHistoryResponse(BaseModel):
+    """DELETE /api/v1/history/{id} yanıtı."""
+    deleted: bool
+    generation_id: int
+
+
+class UsageResponse(BaseModel):
+    """GET /api/v1/usage yanıtı."""
+    plan: PlanType
+    monthly_limit: int
+    usage_count: int
+    remaining: int
+    usage_reset_at: str
 
 
 class AuthValidateResponse(BaseModel):
