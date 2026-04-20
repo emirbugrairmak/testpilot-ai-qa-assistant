@@ -50,6 +50,15 @@ docker-compose up --build
 docker-compose down
 ```
 
+### Frontend Kullanım Akışı
+
+1. `docker-compose up --build` komutuyla servisleri başlat.
+2. Tarayıcıdan [http://localhost:3000](http://localhost:3000) adresine git.
+3. Login ekranında `tp_free_demo_key` veya `tp_premium_demo_key` gir.
+4. Dashboard üzerinden plan, usage ve son history kayıtlarını kontrol et.
+5. `New Mod A`, `New Mod B` veya `New Bug Report` ile generate ekranına geç.
+6. Formu doldurup sonucu aynı sayfada önizle.
+
 ---
 
 ## 🔑 Demo API Key'leri
@@ -234,6 +243,12 @@ TestPilot – AI QA Assistant/
 │   ├── Dockerfile
 │   ├── package.json
 │   └── src/
+│       ├── assets/
+│       ├── components/
+│       ├── hooks/
+│       ├── pages/
+│       ├── services/
+│       ├── types/
 │       ├── main.tsx
 │       └── App.tsx
 ├── mobile/                ← Flutter (iOS + Android)
@@ -250,8 +265,9 @@ TestPilot – AI QA Assistant/
 - [x] Faz 0 — Proje İskeleti + Docker
 - [x] Faz 1A — Backend Core (DB, Auth, Generate API, Mock LLM)
 - [x] Faz 1B — Backend Surface Completion (History, Export, Usage, Bug Report)
+- [x] Faz 2A — Frontend Foundation (Login, Dashboard, Generate)
 - [ ] Faz 1C — Backend LLM Entegrasyonu (Gemini)
-- [ ] Faz 2 — Frontend Web UI
+- [ ] Faz 2B — Frontend Polish + History/Export UI
 - [ ] Faz 3 — Flutter Mobil Uygulama
 - [ ] Faz 4 — Premium Özellikler
 - [ ] Faz 5 — Final Polish + Teslim

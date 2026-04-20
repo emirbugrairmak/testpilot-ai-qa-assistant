@@ -3,10 +3,22 @@
 @tailwind utilities;
 
 /* ── Global Styles ── */
+html {
+  background: #f8fafc;
+}
+
 body {
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
   padding: 0;
+  color: #0f172a;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }

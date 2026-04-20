@@ -1,69 +1,120 @@
+import { useEffect, useMemo, useState } from "react";
+import { Layout } from "./components/Layout";
+import { LoadingState } from "./components/LoadingState";
+import { useAuth } from "./hooks/useAuth";
+import { DashboardPage } from "./pages/DashboardPage";
+import { GeneratePage } from "./pages/GeneratePage";
+import { LoginPage } from "./pages/LoginPage";
+import type { GenerationMode } from "./types/api";
+
+type Route =
+  | { page: "login" }
+  | { page: "dashboard" }
+  | { page: "generate"; mode: GenerationMode };
+
 function App() {
-  return (
-    <div className="min-h-screen bg-navy-800 flex items-center justify-center">
-      <div className="text-center space-y-8">
-        {/* Logo / Brand */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-accent rounded-xl flex items-center justify-center shadow-lg shadow-sky-400/20">
-              <svg
-                className="w-7 h-7 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <h1 className="text-4xl font-extrabold text-white tracking-tight">
-              Test<span className="text-sky-400">Pilot</span>
-            </h1>
-          </div>
-          <p className="text-sky-200/70 text-lg font-medium">
-            AI QA Assistant
-          </p>
-        </div>
+  const { isAuthenticated, isRestoring } = useAuth();
+  const [route, setRoute] = useState<Route>(() => parseRoute());
 
-        {/* Status Card */}
-        <div className="bg-navy-700/50 backdrop-blur border border-navy-600/50 rounded-2xl p-8 max-w-md mx-auto shadow-xl">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse" />
-            <span className="text-emerald-400 font-semibold text-sm uppercase tracking-wider">
-              Online
-            </span>
-          </div>
-          <p className="text-white text-xl font-bold mb-2">
-            Phase 0 setup successful
-          </p>
-          <p className="text-navy-300 text-sm">
-            From idea to test cases, in minutes.
-          </p>
-        </div>
+  useEffect(() => {
+    function handleHashChange() {
+      setRoute(parseRoute());
+    }
 
-        {/* Tech Stack Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {["React", "TypeScript", "Tailwind", "FastAPI", "Docker"].map(
-            (tech) => (
-              <span
-                key={tech}
-                className="px-3 py-1 text-xs font-medium text-sky-300 bg-navy-700/60 border border-navy-600/40 rounded-full"
-              >
-                {tech}
-              </span>
-            )
-          )}
-        </div>
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
-        {/* Version */}
-        <p className="text-navy-500 text-xs">v0.1.0</p>
-      </div>
-    </div>
+  useEffect(() => {
+    if (isRestoring) {
+      return;
+    }
+
+    if (!isAuthenticated && route.page !== "login") {
+      navigate("login");
+      return;
+    }
+
+    if (isAuthenticated && route.page === "login") {
+      navigate("dashboard");
+    }
+  }, [isAuthenticated, isRestoring, route.page]);
+
+  const activeGenerateMode = useMemo(
+    () => (route.page === "generate" ? route.mode : "mod_a"),
+    [route],
   );
+
+  if (isRestoring) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <LoadingState label="Restoring session" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || route.page === "login") {
+    return <LoginPage onLoginSuccess={() => navigate("dashboard")} />;
+  }
+
+  return (
+    <Layout
+      page={route.page === "generate" ? "generate" : "dashboard"}
+      onNavigate={(page, mode = "mod_a") => {
+        if (page === "generate") {
+          navigate("generate", mode);
+          return;
+        }
+
+        navigate("dashboard");
+      }}
+    >
+      {route.page === "generate" ? (
+        <GeneratePage key={activeGenerateMode} initialMode={activeGenerateMode} />
+      ) : (
+        <DashboardPage
+          onNewGeneration={(mode) => navigate("generate", mode)}
+        />
+      )}
+    </Layout>
+  );
+}
+
+function navigate(page: "login"): void;
+function navigate(page: "dashboard"): void;
+function navigate(page: "generate", mode?: GenerationMode): void;
+function navigate(page: "login" | "dashboard" | "generate", mode = "mod_a") {
+  if (page === "generate") {
+    window.location.hash = `/generate?mode=${mode}`;
+    return;
+  }
+
+  window.location.hash = `/${page}`;
+}
+
+function parseRoute(): Route {
+  const hash = window.location.hash.replace(/^#/, "") || "/dashboard";
+  const [path, search = ""] = hash.split("?");
+
+  if (path === "/login") {
+    return { page: "login" };
+  }
+
+  if (path === "/generate") {
+    const params = new URLSearchParams(search);
+    const mode = normalizeMode(params.get("mode"));
+    return { page: "generate", mode };
+  }
+
+  return { page: "dashboard" };
+}
+
+function normalizeMode(value: string | null): GenerationMode {
+  if (value === "mod_b" || value === "bug_report") {
+    return value;
+  }
+
+  return "mod_a";
 }
 
 export default App;
