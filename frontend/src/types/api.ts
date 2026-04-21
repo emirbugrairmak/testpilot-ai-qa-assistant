@@ -1,6 +1,7 @@
 export type Plan = "free" | "premium";
 
 export type GenerationMode = "mod_a" | "mod_b" | "bug_report";
+export type ExportFormat = "json" | "markdown" | "csv" | "jira";
 
 export type AuthValidateResponse = {
   valid: boolean;
@@ -33,6 +34,11 @@ export type HistoryListResponse = {
   count: number;
   plan: Plan;
   limit?: number | null;
+};
+
+export type HistoryQueryParams = {
+  mode?: GenerationMode | "all";
+  q?: string;
 };
 
 export type TestPlan = {
@@ -98,4 +104,18 @@ export type GenerateResponse = {
   markdown?: string;
   watermark?: string;
   created_at: string;
+};
+
+export type HistoryDetailResponse = {
+  generation_id: number;
+  mode: GenerationMode;
+  input: Record<string, unknown>;
+  output: Omit<GenerateResponse, "generation_id">;
+  markdown: string;
+  created_at: string;
+};
+
+export type DeleteHistoryResponse = {
+  deleted: boolean;
+  generation_id: number;
 };

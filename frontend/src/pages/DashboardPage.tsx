@@ -9,12 +9,16 @@ import type { GenerationMode } from "../types/api";
 
 type DashboardPageProps = {
   onNewGeneration: (mode: GenerationMode) => void;
+  onOpenResult: (generationId: number) => void;
 };
 
-export function DashboardPage({ onNewGeneration }: DashboardPageProps) {
+export function DashboardPage({
+  onNewGeneration,
+  onOpenResult,
+}: DashboardPageProps) {
   const { isAuthenticated, user } = useAuth();
   const usageQuery = useUsage(isAuthenticated);
-  const historyQuery = useHistory(isAuthenticated);
+  const historyQuery = useHistory({}, isAuthenticated);
   const recentHistory = historyQuery.data?.items.slice(0, 5) ?? [];
 
   return (
@@ -95,7 +99,12 @@ export function DashboardPage({ onNewGeneration }: DashboardPageProps) {
             {recentHistory.length > 0 && (
               <div className="divide-y divide-slate-100">
                 {recentHistory.map((item) => (
-                  <article key={item.generation_id} className="py-4 first:pt-0">
+                  <button
+                    key={item.generation_id}
+                    type="button"
+                    onClick={() => onOpenResult(item.generation_id)}
+                    className="block w-full py-4 text-left first:pt-0"
+                  >
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-md bg-sky-50 px-2 py-1 text-xs font-bold text-sky-700">
                         {formatMode(item.mode)}
@@ -110,7 +119,7 @@ export function DashboardPage({ onNewGeneration }: DashboardPageProps) {
                     <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-700">
                       {item.output_summary}
                     </p>
-                  </article>
+                  </button>
                 ))}
               </div>
             )}

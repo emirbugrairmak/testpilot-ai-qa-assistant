@@ -4,12 +4,13 @@ import { useAuth } from "../hooks/useAuth";
 import type { GenerationMode } from "../types/api";
 import { PlanBadge } from "./PlanBadge";
 
-type Page = "dashboard" | "generate";
+type Page = "dashboard" | "generate" | "history" | "result" | "settings";
+type NavigationPage = "dashboard" | "generate" | "history" | "settings";
 
 type LayoutProps = {
   page: Page;
   children: ReactNode;
-  onNavigate: (page: Page, mode?: GenerationMode) => void;
+  onNavigate: (page: NavigationPage, mode?: GenerationMode) => void;
 };
 
 export function Layout({ page, children, onNavigate }: LayoutProps) {
@@ -34,7 +35,7 @@ export function Layout({ page, children, onNavigate }: LayoutProps) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <nav className="flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+            <nav className="flex flex-wrap rounded-lg border border-slate-200 bg-slate-50 p-1">
               <button
                 type="button"
                 onClick={() => onNavigate("dashboard")}
@@ -48,6 +49,20 @@ export function Layout({ page, children, onNavigate }: LayoutProps) {
                 className={navClass(page === "generate")}
               >
                 Generate
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("history")}
+                className={navClass(page === "history" || page === "result")}
+              >
+                History
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("settings")}
+                className={navClass(page === "settings")}
+              >
+                Settings
               </button>
             </nav>
 

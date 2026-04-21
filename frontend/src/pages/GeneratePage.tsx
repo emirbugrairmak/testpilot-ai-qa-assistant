@@ -1,29 +1,27 @@
-import { useState } from "react";
 import { ErrorAlert } from "../components/ErrorAlert";
+import { EmptyState } from "../components/EmptyState";
 import { GenerateForm } from "../components/GenerateForm";
 import { LoadingState } from "../components/LoadingState";
-import { OutputPreview } from "../components/OutputPreview";
 import { useGenerate } from "../hooks/useGenerate";
-import type { GenerateRequest, GenerateResponse, GenerationMode } from "../types/api";
+import type { GenerateRequest, GenerationMode } from "../types/api";
 
 type GeneratePageProps = {
   initialMode: GenerationMode;
+  onModeChange: (mode: GenerationMode) => void;
+  onResultReady: (generationId: number) => void;
 };
 
-export function GeneratePage({ initialMode }: GeneratePageProps) {
-  const [mode, setMode] = useState<GenerationMode>(initialMode);
-  const [result, setResult] = useState<GenerateResponse | null>(null);
+export function GeneratePage({
+  initialMode,
+  onModeChange,
+  onResultReady,
+}: GeneratePageProps) {
+  const mode = initialMode;
   const generateMutation = useGenerate();
 
-  function handleModeChange(nextMode: GenerationMode) {
-    setMode(nextMode);
-    setResult(null);
-  }
-
   function handleSubmit(payload: GenerateRequest) {
-    setResult(null);
     generateMutation.mutate(payload, {
-      onSuccess: (data) => setResult(data),
+      onSuccess: (data) => onResultReady(data.generation_id),
     });
   }
 
@@ -44,7 +42,7 @@ export function GeneratePage({ initialMode }: GeneratePageProps) {
           <GenerateForm
             mode={mode}
             isSubmitting={generateMutation.isPending}
-            onModeChange={handleModeChange}
+            onModeChange={onModeChange}
             onSubmit={handleSubmit}
           />
         </div>
@@ -67,13 +65,10 @@ export function GeneratePage({ initialMode }: GeneratePageProps) {
           />
         )}
 
-        {result ? (
-          <OutputPreview result={result} />
-        ) : (
-          <section className="rounded-lg border border-dashed border-slate-300 bg-white p-5 text-sm leading-6 text-slate-600">
-            Your generated test suite or bug report preview will appear here.
-          </section>
-        )}
+        <EmptyState
+          title="Result page"
+          description="After a successful generation, you will be taken to the result page where exports, markdown, and detailed blocks are available."
+        />
       </aside>
     </div>
   );

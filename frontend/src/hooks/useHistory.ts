@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchHistory } from "../services/api";
+import type { HistoryQueryParams } from "../types/api";
 
-export function useHistory(enabled: boolean) {
+export function useHistory(params: HistoryQueryParams, enabled: boolean) {
   return useQuery({
-    queryKey: ["history"],
-    queryFn: fetchHistory,
+    queryKey: ["history", params],
+    queryFn: () => fetchHistory(params),
     enabled,
   });
 }

@@ -2,9 +2,13 @@ import type { GenerateResponse } from "../types/api";
 
 type OutputPreviewProps = {
   result: GenerateResponse;
+  fullDetails?: boolean;
 };
 
-export function OutputPreview({ result }: OutputPreviewProps) {
+export function OutputPreview({
+  result,
+  fullDetails = false,
+}: OutputPreviewProps) {
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -24,15 +28,18 @@ export function OutputPreview({ result }: OutputPreviewProps) {
       </div>
 
       {result.bug_report ? (
-        <BugReportPreview result={result} />
+        <BugReportPreview result={result} fullDetails={fullDetails} />
       ) : (
-        <TestSuitePreview result={result} />
+        <TestSuitePreview result={result} fullDetails={fullDetails} />
       )}
     </section>
   );
 }
 
-function BugReportPreview({ result }: OutputPreviewProps) {
+function BugReportPreview({
+  result,
+  fullDetails,
+}: OutputPreviewProps) {
   const bugReport = result.bug_report;
 
   if (!bugReport) {
@@ -67,11 +74,34 @@ function BugReportPreview({ result }: OutputPreviewProps) {
         <TextBlock label="Actual result" value={bugReport.actual_result} />
         <TextBlock label="Expected result" value={bugReport.expected_result} />
       </div>
+
+      {fullDetails && bugReport.labels.length > 0 ? (
+        <div>
+          <h4 className="text-sm font-bold text-slate-800">Labels</h4>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {bugReport.labels.map((label) => (
+              <span
+                key={label}
+                className="rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function TestSuitePreview({ result }: OutputPreviewProps) {
+function TestSuitePreview({
+  result,
+  fullDetails,
+}: OutputPreviewProps) {
+  const visibleCases = fullDetails
+    ? result.test_cases ?? []
+    : result.test_cases?.slice(0, 4) ?? [];
+
   return (
     <div className="mt-5 space-y-5">
       {result.user_story && (
@@ -107,7 +137,7 @@ function TestSuitePreview({ result }: OutputPreviewProps) {
         <div>
           <h4 className="text-sm font-bold text-slate-800">Test cases</h4>
           <div className="mt-3 grid gap-3">
-            {result.test_cases.slice(0, 4).map((testCase) => (
+            {visibleCases.map((testCase) => (
               <article
                 key={testCase.id}
                 className="rounded-lg border border-slate-200 bg-white p-4"
@@ -123,9 +153,41 @@ function TestSuitePreview({ result }: OutputPreviewProps) {
                 <p className="mt-2 text-sm text-slate-700">
                   {testCase.expected_result}
                 </p>
+                {fullDetails ? (
+                  <>
+                    <p className="mt-2 text-sm text-slate-600">
+                      <span className="font-semibold text-slate-800">
+                        Preconditions:
+                      </span>{" "}
+                      {testCase.preconditions}
+                    </p>
+                    <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-700">
+                      {testCase.steps.map((step) => (
+                        <li key={step}>{step}</li>
+                      ))}
+                    </ol>
+                    {testCase.tags.length > 0 ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {testCase.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-md bg-sky-50 px-2 py-1 text-xs font-semibold text-sky-700"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
               </article>
             ))}
           </div>
+          {!fullDetails && (result.test_cases?.length ?? 0) > visibleCases.length ? (
+            <p className="mt-3 text-xs font-medium text-slate-500">
+              Open the result page to review the full test case list.
+            </p>
+          ) : null}
         </div>
       )}
     </div>

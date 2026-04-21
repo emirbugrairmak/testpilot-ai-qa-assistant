@@ -1,0 +1,122 @@
+import { EmptyState } from "../components/EmptyState";
+import { ErrorAlert } from "../components/ErrorAlert";
+import { ExportActions } from "../components/ExportActions";
+import { LoadingState } from "../components/LoadingState";
+import { OutputPreview } from "../components/OutputPreview";
+import { PlanBadge } from "../components/PlanBadge";
+import { useAuth } from "../hooks/useAuth";
+import { useHistoryDetail } from "../hooks/useHistoryDetail";
+import type { GenerateResponse } from "../types/api";
+
+type ResultPageProps = {
+  generationId: number;
+  onBackToHistory: () => void;
+};
+
+export function ResultPage({
+  generationId,
+  onBackToHistory,
+}: ResultPageProps) {
+  const { isAuthenticated, user } = useAuth();
+  const detailQuery = useHistoryDetail(generationId, isAuthenticated);
+
+  if (detailQuery.isLoading) {
+    return (
+      <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <LoadingState label="Loading result" />
+      </section>
+    );
+  }
+
+  if (detailQuery.isError) {
+    return (
+      <div className="space-y-4">
+        <ErrorAlert
+          message={
+            detailQuery.error instanceof Error
+              ? detailQuery.error.message
+              : "Could not load result."
+          }
+        />
+        <button
+          type="button"
+          onClick={onBackToHistory}
+          className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-bold text-white hover:bg-navy-700"
+        >
+          Back to history
+        </button>
+      </div>
+    );
+  }
+
+  if (!detailQuery.data || !user) {
+    return (
+      <EmptyState
+        title="Result not available"
+        description="The selected generation could not be opened."
+      />
+    );
+  }
+
+  const result: GenerateResponse = {
+    generation_id: detailQuery.data.generation_id,
+    ...detailQuery.data.output,
+    markdown: detailQuery.data.markdown,
+  };
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm font-bold uppercase text-sky-700">Result</p>
+              <PlanBadge plan={user.plan} />
+            </div>
+            <h1 className="mt-2 text-3xl font-extrabold text-navy-800">
+              Generation #{detailQuery.data.generation_id}
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Created {new Date(detailQuery.data.created_at).toLocaleString()}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onBackToHistory}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:border-sky-300 hover:text-sky-700"
+          >
+            Back to history
+          </button>
+        </div>
+      </section>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-6">
+          <OutputPreview result={result} fullDetails />
+
+          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-bold text-navy-800">Markdown preview</h2>
+            <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+              {detailQuery.data.markdown}
+            </pre>
+          </section>
+        </div>
+
+        <aside className="space-y-6">
+          <ExportActions
+            generationId={detailQuery.data.generation_id}
+            plan={user.plan}
+          />
+
+          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-bold text-navy-800">Input</h2>
+            <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+              {JSON.stringify(detailQuery.data.input, null, 2)}
+            </pre>
+          </section>
+        </aside>
+      </div>
+    </div>
+  );
+}

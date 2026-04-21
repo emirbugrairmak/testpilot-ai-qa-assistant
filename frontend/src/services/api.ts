@@ -1,8 +1,12 @@
 import type {
   AuthValidateResponse,
+  DeleteHistoryResponse,
+  ExportFormat,
   GenerateRequest,
   GenerateResponse,
+  HistoryDetailResponse,
   HistoryListResponse,
+  HistoryQueryParams,
   UsageResponse,
 } from "../types/api";
 
@@ -29,23 +33,27 @@ export function clearStoredApiKey() {
   localStorage.removeItem(API_KEY_STORAGE_KEY);
 }
 
-export async function apiRequest<T>(
-  path: string,
-  { apiKey = getStoredApiKey(), method = "GET", body }: RequestOptions = {},
-): Promise<T> {
+function buildAuthHeaders(apiKey = getStoredApiKey(), hasBody = false) {
   const headers = new Headers();
 
   if (apiKey) {
     headers.set("Authorization", `Bearer ${apiKey}`);
   }
 
-  if (body !== undefined) {
+  if (hasBody) {
     headers.set("Content-Type", "application/json");
   }
 
+  return headers;
+}
+
+export async function apiRequest<T>(
+  path: string,
+  { apiKey = getStoredApiKey(), method = "GET", body }: RequestOptions = {},
+): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
-    headers,
+    headers: buildAuthHeaders(apiKey, body !== undefined),
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
@@ -78,8 +86,31 @@ export function fetchUsage() {
   return apiRequest<UsageResponse>("/api/v1/usage");
 }
 
-export function fetchHistory() {
-  return apiRequest<HistoryListResponse>("/api/v1/history");
+export function fetchHistory(params: HistoryQueryParams = {}) {
+  const searchParams = new URLSearchParams();
+
+  if (params.mode && params.mode !== "all") {
+    searchParams.set("mode", params.mode);
+  }
+
+  if (params.q?.trim()) {
+    searchParams.set("q", params.q.trim());
+  }
+
+  const query = searchParams.toString();
+  const path = query ? `/api/v1/history?${query}` : "/api/v1/history";
+
+  return apiRequest<HistoryListResponse>(path);
+}
+
+export function fetchHistoryDetail(generationId: number) {
+  return apiRequest<HistoryDetailResponse>(`/api/v1/history/${generationId}`);
+}
+
+export function deleteHistoryItem(generationId: number) {
+  return apiRequest<DeleteHistoryResponse>(`/api/v1/history/${generationId}`, {
+    method: "DELETE",
+  });
 }
 
 export function generateArtifact(payload: GenerateRequest) {
@@ -87,4 +118,40 @@ export function generateArtifact(payload: GenerateRequest) {
     method: "POST",
     body: payload,
   });
+}
+
+export async function downloadExportFile(
+  generationId: number,
+  format: ExportFormat,
+  apiKey = getStoredApiKey(),
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/export/${generationId}/${format}`,
+    {
+      method: "GET",
+      headers: buildAuthHeaders(apiKey),
+    },
+  );
+
+  if (!response.ok) {
+    let message = "Export failed.";
+
+    try {
+      const errorBody = (await response.json()) as { detail?: string };
+      if (errorBody.detail) {
+        message = errorBody.detail;
+      }
+    } catch {
+      message = response.statusText || message;
+    }
+
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const disposition = response.headers.get("Content-Disposition") || "";
+  const filenameMatch = disposition.match(/filename="?(.*?)"?$/i);
+  const filename = filenameMatch?.[1] || `testpilot-export-${generationId}.${format}`;
+
+  return { blob, filename };
 }

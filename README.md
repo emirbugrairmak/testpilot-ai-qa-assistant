@@ -57,7 +57,10 @@ docker-compose down
 3. Login ekranında `tp_free_demo_key` veya `tp_premium_demo_key` gir.
 4. Dashboard üzerinden plan, usage ve son history kayıtlarını kontrol et.
 5. `New Mod A`, `New Mod B` veya `New Bug Report` ile generate ekranına geç.
-6. Formu doldurup sonucu aynı sayfada önizle.
+6. Formu doldurup submit et; başarılı üretim sonrası Result sayfasına yönlen.
+7. Result sayfasından JSON / Markdown export al; Premium hesapla CSV / Jira export da indir.
+8. History sayfasında filtreleme, arama, result açma ve silme akışını dene.
+9. Settings sayfasında plan, usage özeti, maskeli API key ve logout akışını kontrol et.
 
 ---
 
@@ -190,6 +193,8 @@ curl http://localhost:8000/api/v1/export/1/jira \
 | Jira export | ❌ 403 | ✅ |
 | Free watermark | ✅ | ❌ |
 
+Frontend tarafında free kullanıcı CSV veya Jira export butonuna basarsa net bir premium uyarısı gösterilir; backend kuralı frontend tarafından gevşetilmez.
+
 ### Usage Yanıtı
 
 `GET /api/v1/usage` aşağıdaki alanları döndürür:
@@ -266,8 +271,8 @@ TestPilot – AI QA Assistant/
 - [x] Faz 1A — Backend Core (DB, Auth, Generate API, Mock LLM)
 - [x] Faz 1B — Backend Surface Completion (History, Export, Usage, Bug Report)
 - [x] Faz 2A — Frontend Foundation (Login, Dashboard, Generate)
+- [x] Faz 2B — Frontend Completion (History, Result, Settings, Export UI)
 - [ ] Faz 1C — Backend LLM Entegrasyonu (Gemini)
-- [ ] Faz 2B — Frontend Polish + History/Export UI
 - [ ] Faz 3 — Flutter Mobil Uygulama
 - [ ] Faz 4 — Premium Özellikler
 - [ ] Faz 5 — Final Polish + Teslim

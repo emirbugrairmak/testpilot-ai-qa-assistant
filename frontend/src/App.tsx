@@ -4,13 +4,19 @@ import { LoadingState } from "./components/LoadingState";
 import { useAuth } from "./hooks/useAuth";
 import { DashboardPage } from "./pages/DashboardPage";
 import { GeneratePage } from "./pages/GeneratePage";
+import { HistoryPage } from "./pages/HistoryPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ResultPage } from "./pages/ResultPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import type { GenerationMode } from "./types/api";
 
 type Route =
   | { page: "login" }
   | { page: "dashboard" }
-  | { page: "generate"; mode: GenerationMode };
+  | { page: "generate"; mode: GenerationMode }
+  | { page: "history" }
+  | { page: "result"; generationId: number }
+  | { page: "settings" };
 
 function App() {
   const { isAuthenticated, isRestoring } = useAuth();
@@ -59,33 +65,76 @@ function App() {
 
   return (
     <Layout
-      page={route.page === "generate" ? "generate" : "dashboard"}
+      page={route.page}
       onNavigate={(page, mode = "mod_a") => {
         if (page === "generate") {
           navigate("generate", mode);
           return;
         }
 
+        if (page === "history") {
+          navigate("history");
+          return;
+        }
+
+        if (page === "settings") {
+          navigate("settings");
+          return;
+        }
+
         navigate("dashboard");
       }}
     >
-      {route.page === "generate" ? (
-        <GeneratePage key={activeGenerateMode} initialMode={activeGenerateMode} />
-      ) : (
+      {route.page === "dashboard" ? (
         <DashboardPage
           onNewGeneration={(mode) => navigate("generate", mode)}
+          onOpenResult={(generationId) => navigate("result", generationId)}
         />
-      )}
+      ) : null}
+
+      {route.page === "generate" ? (
+        <GeneratePage
+          key={activeGenerateMode}
+          initialMode={activeGenerateMode}
+          onModeChange={(mode) => navigate("generate", mode)}
+          onResultReady={(generationId) => navigate("result", generationId)}
+        />
+      ) : null}
+
+      {route.page === "history" ? (
+        <HistoryPage onOpenResult={(generationId) => navigate("result", generationId)} />
+      ) : null}
+
+      {route.page === "result" ? (
+        <ResultPage
+          generationId={route.generationId}
+          onBackToHistory={() => navigate("history")}
+        />
+      ) : null}
+
+      {route.page === "settings" ? <SettingsPage /> : null}
     </Layout>
   );
 }
 
 function navigate(page: "login"): void;
 function navigate(page: "dashboard"): void;
+function navigate(page: "history"): void;
+function navigate(page: "settings"): void;
 function navigate(page: "generate", mode?: GenerationMode): void;
-function navigate(page: "login" | "dashboard" | "generate", mode = "mod_a") {
+function navigate(page: "result", generationId: number): void;
+function navigate(
+  page: "login" | "dashboard" | "generate" | "history" | "result" | "settings",
+  value?: GenerationMode | number,
+) {
   if (page === "generate") {
+    const mode = (typeof value === "string" ? value : "mod_a") as GenerationMode;
     window.location.hash = `/generate?mode=${mode}`;
+    return;
+  }
+
+  if (page === "result") {
+    window.location.hash = `/result/${value}`;
     return;
   }
 
@@ -104,6 +153,21 @@ function parseRoute(): Route {
     const params = new URLSearchParams(search);
     const mode = normalizeMode(params.get("mode"));
     return { page: "generate", mode };
+  }
+
+  if (path === "/history") {
+    return { page: "history" };
+  }
+
+  if (path === "/settings") {
+    return { page: "settings" };
+  }
+
+  if (path.startsWith("/result/")) {
+    const generationId = Number(path.replace("/result/", ""));
+    if (Number.isFinite(generationId) && generationId > 0) {
+      return { page: "result", generationId };
+    }
   }
 
   return { page: "dashboard" };
