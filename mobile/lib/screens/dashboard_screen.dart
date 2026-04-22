@@ -14,15 +14,21 @@ class DashboardScreen extends StatefulWidget {
     required this.apiService,
     required this.apiKey,
     required this.authResponse,
-    required this.onLogout,
     required this.onOpenGenerate,
+    required this.onOpenHistory,
+    required this.onOpenSettings,
+    required this.onOpenResult,
+    required this.onLogout,
   });
 
   final ApiService apiService;
   final String apiKey;
   final AuthValidationResponse authResponse;
-  final Future<void> Function() onLogout;
   final void Function(GenerationMode mode) onOpenGenerate;
+  final VoidCallback onOpenHistory;
+  final VoidCallback onOpenSettings;
+  final void Function(int generationId) onOpenResult;
+  final Future<void> Function() onLogout;
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -83,6 +89,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text("Dashboard"),
         actions: [
+          IconButton(
+            tooltip: "History",
+            onPressed: widget.onOpenHistory,
+            icon: const Icon(Icons.history_rounded),
+          ),
+          IconButton(
+            tooltip: "Settings",
+            onPressed: widget.onOpenSettings,
+            icon: const Icon(Icons.settings_rounded),
+          ),
           IconButton(
             tooltip: "Refresh",
             onPressed: _isLoading
@@ -152,6 +168,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     subtitle: "Issue notes to bug template",
                     icon: Icons.bug_report_rounded,
                     onTap: () => widget.onOpenGenerate(GenerationMode.bugReport),
+                  ),
+                  const SizedBox(height: 12),
+                  _QuickActionTile(
+                    label: "Open history",
+                    subtitle: "Review past generations",
+                    icon: Icons.history_rounded,
+                    onTap: widget.onOpenHistory,
                   ),
                 ],
               ),
@@ -239,17 +262,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .map(
             (item) => ListTile(
               contentPadding: EdgeInsets.zero,
+              onTap: () => widget.onOpenResult(item.generationId),
               title: Text(
                 item.outputSummary,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: Text(
-                "${item.mode} • ${item.createdAt}",
+                "${item.mode.label} • ${item.createdAt}",
               ),
               leading: CircleAvatar(
                 child: Text(item.generationId.toString()),
               ),
+              trailing: const Icon(Icons.chevron_right_rounded),
             ),
           )
           .toList(),

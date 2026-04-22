@@ -1,3 +1,5 @@
+import "generation_models.dart";
+
 class HistoryItem {
   const HistoryItem({
     required this.generationId,
@@ -7,14 +9,14 @@ class HistoryItem {
   });
 
   final int generationId;
-  final String mode;
+  final GenerationMode mode;
   final String outputSummary;
   final String createdAt;
 
   factory HistoryItem.fromJson(Map<String, dynamic> json) {
     return HistoryItem(
       generationId: json["generation_id"] as int? ?? 0,
-      mode: json["mode"] as String? ?? "mod_a",
+      mode: generationModeFromApi(json["mode"] as String? ?? "mod_a"),
       outputSummary: json["output_summary"] as String? ?? "",
       createdAt: json["created_at"] as String? ?? "",
     );

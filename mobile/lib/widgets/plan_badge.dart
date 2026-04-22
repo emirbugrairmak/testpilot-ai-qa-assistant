@@ -18,8 +18,8 @@ class PlanBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isPremium
-            ? AppColors.accent.withOpacity(0.14)
-            : AppColors.sky.withOpacity(0.14),
+            ? AppColors.accent.withValues(alpha: 0.14)
+            : AppColors.sky.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

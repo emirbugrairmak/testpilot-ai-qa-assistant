@@ -12,12 +12,18 @@ class GenerateScreen extends StatefulWidget {
     required this.apiKey,
     required this.initialMode,
     required this.onBack,
+    required this.onOpenHistory,
+    required this.onOpenSettings,
+    required this.onOpenResult,
   });
 
   final ApiService apiService;
   final String apiKey;
   final GenerationMode initialMode;
   final VoidCallback onBack;
+  final VoidCallback onOpenHistory;
+  final VoidCallback onOpenSettings;
+  final void Function(GenerationDetail detail) onOpenResult;
 
   @override
   State<GenerateScreen> createState() => _GenerateScreenState();
@@ -78,9 +84,16 @@ class _GenerateScreenState extends State<GenerateScreen> {
         return;
       }
 
+      final detail = GenerationDetail.fromGenerate(
+        input: payload,
+        result: result,
+      );
+
       setState(() {
         _result = result;
       });
+
+      widget.onOpenResult(detail);
     } catch (error) {
       if (!mounted) {
         return;
@@ -137,6 +150,18 @@ class _GenerateScreenState extends State<GenerateScreen> {
           onPressed: widget.onBack,
           icon: const Icon(Icons.arrow_back_rounded),
         ),
+        actions: [
+          IconButton(
+            tooltip: "History",
+            onPressed: widget.onOpenHistory,
+            icon: const Icon(Icons.history_rounded),
+          ),
+          IconButton(
+            tooltip: "Settings",
+            onPressed: widget.onOpenSettings,
+            icon: const Icon(Icons.settings_rounded),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -248,7 +273,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _severity,
+            initialValue: _severity,
             items: const [
               DropdownMenuItem(value: "Critical", child: Text("Critical")),
               DropdownMenuItem(value: "High", child: Text("High")),
