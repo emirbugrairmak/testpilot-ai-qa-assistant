@@ -25,7 +25,8 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
         Tam response dict (generation_id dahil)
     """
     # ── 1. LLM ile üret ────────────────────────────
-    result = generate_with_llm(mode, inputs)
+    plan = key_info.get("plan", "free")
+    result = generate_with_llm(mode, inputs, plan=plan)
 
     # ── 2. Watermark ekle (free plan) ──────────────
     watermark = None
@@ -37,10 +38,11 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
 
     # ── 4. Output dict oluştur ─────────────────────
     if mode == "bug_report":
+        br = result["bug_report"]
         output = {
             "mode": mode,
-            "bug_report": result["bug_report"],
-            "tags": result["bug_report"].get("labels", []),
+            "bug_report": br,
+            "tags": br.get("labels", ["bug"]),
             "watermark": watermark,
             "created_at": created_at,
         }

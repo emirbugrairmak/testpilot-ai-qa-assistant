@@ -12,7 +12,12 @@ services:
     environment:
       - ENVIRONMENT=development
       - DATABASE_PATH=data/testpilot.db
+      # LLM Provider: "mock" (default) veya "gemini"
       - LLM_PROVIDER=mock
+      # Gemini: .env dosyasından okunur veya buraya direkt yazılır
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
+      - LLM_FALLBACK_TO_MOCK=${LLM_FALLBACK_TO_MOCK:-true}
     restart: unless-stopped
 
   frontend:

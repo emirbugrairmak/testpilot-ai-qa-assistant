@@ -31,9 +31,18 @@ class Settings:
     FREE_MONTHLY_LIMIT: int = 30
     PREMIUM_MONTHLY_LIMIT: int = 200
 
-    # ── LLM (ileride Gemini entegrasyonu için) ──────
+    # ── LLM ─────────────────────────────────────────
+    # "mock" → deterministik mock generator (test / geliştirme)
+    # "gemini" → gerçek Gemini API (GEMINI_API_KEY gerekli)
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "mock")
+
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "mock")  # "mock" | "gemini"
+
+    # Kullanılacak Gemini modeli
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+
+    # True ise Gemini başarısız olursa mock'a düşer (güvenli fallback)
+    LLM_FALLBACK_TO_MOCK: bool = os.getenv("LLM_FALLBACK_TO_MOCK", "true").lower() == "true"
 
 
 settings = Settings()

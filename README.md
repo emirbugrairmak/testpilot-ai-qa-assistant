@@ -13,7 +13,7 @@ TestPilot, yazılım geliştirme sürecinde test hazırlama işini hızlandıran
 | **Backend** | Python · FastAPI · SQLite |
 | **Frontend** | TypeScript · React · Tailwind CSS · React Query |
 | **Mobil** | Flutter (iOS + Android) |
-| **LLM** | Google Gemini API (şu an mock modunda) |
+| **LLM** | Google Gemini API (`gemini-2.0-flash`) · Mock fallback |
 | **DevOps** | Docker · Docker Compose · Git · GitHub |
 
 ---
@@ -61,6 +61,58 @@ docker-compose down
 7. Result sayfasından JSON / Markdown export al; Premium hesapla CSV / Jira export da indir.
 8. History sayfasında filtreleme, arama, result açma ve silme akışını dene.
 9. Settings sayfasında plan, usage özeti, maskeli API key ve logout akışını kontrol et.
+
+---
+
+## 🤖 Gemini LLM Kurulumu
+
+TestPilot, varsayılan olarak **mock generator** ile çalışır (API key gerektirmez).
+Gerçek AI çıktısı için Google Gemini API'ye bağlanabilirsin.
+
+### Adım 1 — API Key Al
+
+[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) adresinden **ücretsiz** API key alabilirsin.
+`gemini-2.0-flash` modeli free tier'da kullanılabilir.
+
+### Adım 2 — .env Dosyasını Oluştur
+
+```bash
+cd backend
+cp .env.example .env
+# .env içinde GEMINI_API_KEY= satırını doldur
+```
+
+### Adım 3 — Gemini'yi Etkinleştir
+
+`.env` veya `docker-compose.yml` içinde:
+
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_actual_api_key_here
+GEMINI_MODEL=gemini-2.0-flash        # varsayılan
+LLM_FALLBACK_TO_MOCK=true            # Gemini hata verirse mock'a düş
+```
+
+### Mock ↔ Gemini Geçişi
+
+| `LLM_PROVIDER` | `GEMINI_API_KEY` | Davranış |
+|----------------|------------------|----------|
+| `mock` | herhangi | Deterministik mock generator |
+| `gemini` | boş | Uyarı log'u → mock'a düş |
+| `gemini` | dolu | Gerçek Gemini API çağrısı |
+
+### Kullanılabilir Modeller
+
+| Model | Hız | Kalite | Free Tier |
+|-------|-----|--------|-----------|
+| `gemini-2.0-flash` | ⚡⚡⚡ | ★★★★ | ✅ |
+| `gemini-2.5-flash` | ⚡⚡ | ★★★★★ | ✅ |
+| `gemini-1.5-pro` | ⚡ | ★★★★★ | Sınırlı |
+
+### Fallback Davranışı
+
+- `LLM_FALLBACK_TO_MOCK=true` (varsayılan): Gemini API hatası → mock generator devreye girer, istek başarıyla tamamlanır, `WARNING` log yazılır.
+- `LLM_FALLBACK_TO_MOCK=false`: Gemini hatası → `503 Service Unavailable` döner.
 
 ---
 
