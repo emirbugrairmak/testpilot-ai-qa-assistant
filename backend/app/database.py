@@ -41,8 +41,9 @@ CREATE TABLE IF NOT EXISTS custom_templates (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     api_key_id      INTEGER NOT NULL,
     name            TEXT    NOT NULL,
-    template_json   TEXT    NOT NULL DEFAULT '{}',
+    prompt_text     TEXT    NOT NULL DEFAULT '',
     created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT    NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (api_key_id) REFERENCES api_keys(id)
 );
 """
@@ -138,6 +139,41 @@ def _migrate_generations_bug_report_mode(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_custom_templates(conn: sqlite3.Connection) -> None:
+    """Eski custom_templates şemasını (template_json) yeni şemaya (prompt_text, updated_at) taşı."""
+    row = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'custom_templates'"
+    ).fetchone()
+    if not row:
+        return  # Tablo yok, SCHEMA_SQL ile oluşturulacak
+
+    sql = row["sql"] or ""
+    if "prompt_text" in sql:
+        return  # Zaten yeni şema
+
+    # Eski şemadan yeni şemaya geç (veri korunur)
+    conn.executescript(
+        """
+        CREATE TABLE custom_templates_new (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            api_key_id  INTEGER NOT NULL,
+            name        TEXT    NOT NULL,
+            prompt_text TEXT    NOT NULL DEFAULT '',
+            created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+            updated_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (api_key_id) REFERENCES api_keys(id)
+        );
+
+        INSERT INTO custom_templates_new (id, api_key_id, name, created_at, updated_at)
+        SELECT id, api_key_id, name, created_at, created_at
+        FROM custom_templates;
+
+        DROP TABLE custom_templates;
+        ALTER TABLE custom_templates_new RENAME TO custom_templates;
+        """
+    )
+
+
 def init_db() -> None:
     """Tabloları oluştur ve seed data ekle.
 
@@ -151,7 +187,9 @@ def init_db() -> None:
     with get_db() as conn:
         conn.executescript(SCHEMA_SQL)
         _migrate_generations_bug_report_mode(conn)
+        _migrate_custom_templates(conn)
         _seed_api_keys(conn)
         conn.commit()
 
     print(f"✅ Database initialized: {db_path}")
+

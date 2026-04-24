@@ -91,6 +91,11 @@ class GenerateRequest(BaseModel):
         description="Bug report severity değeri (opsiyonel)",
     )
 
+    template_id: Optional[int] = Field(
+        None,
+        description="Premium: kullanmak istediğiniz template ID'si",
+    )
+
     class Config:
         json_schema_extra = {
             "examples": [
@@ -223,6 +228,73 @@ class AuthValidateResponse(BaseModel):
     usage_resets_at: str
 
 
+# ── Template Schemas ────────────────────────────────────
+
+class TemplateCreate(BaseModel):
+    """POST /api/v1/templates isteği."""
+    name: str = Field(..., min_length=1, max_length=200, description="Template adı")
+    prompt_text: str = Field(..., min_length=10, max_length=10000, description="Prompt metni")
+
+
+class TemplateUpdate(BaseModel):
+    """PUT /api/v1/templates/{id} isteği."""
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    prompt_text: Optional[str] = Field(None, min_length=10, max_length=10000)
+
+
+class TemplateResponse(BaseModel):
+    """Tekil template yanıtı."""
+    id: int
+    name: str
+    prompt_text: str
+    created_at: str
+    updated_at: str
+
+
+class TemplateListResponse(BaseModel):
+    """GET /api/v1/templates yanıtı."""
+    items: list[TemplateResponse]
+    count: int
+
+
+# ── Batch Schemas ───────────────────────────────────────
+
+class BatchItem(BaseModel):
+    """Batch içindeki tek bir üretim girdisi."""
+    feature_idea: Optional[str] = Field(None, min_length=5, max_length=2000)
+    user_story: Optional[str] = Field(None, min_length=10, max_length=3000)
+    acceptance_criteria: Optional[str] = Field(None, min_length=10, max_length=5000)
+    template_id: Optional[int] = None
+
+
+class BatchGenerateRequest(BaseModel):
+    """POST /api/v1/generate/batch isteği."""
+    mode: GenerationMode = Field(..., description="mod_a veya mod_b (batch bug_report desteklenmiyor)")
+    items: list[BatchItem] = Field(..., min_length=1, max_length=10, description="Max 10 öğe")
+    template_id: Optional[int] = Field(None, description="Tüm batch için ortak template (item seviyesinde override edilebilir)")
+
+
+class BatchResultItem(BaseModel):
+    """Batch sonuçlarından tek bir öğe."""
+    index: int
+    success: bool
+    generation_id: Optional[int] = None
+    result: Optional[dict[str, Any]] = None
+    error: Optional[str] = None
+
+
+class BatchGenerateResponse(BaseModel):
+    """POST /api/v1/generate/batch yanıtı."""
+    mode: GenerationMode
+    total_items: int
+    success_count: int
+    failed_count: int
+    results: list[BatchResultItem]
+
+
+# ── Error ───────────────────────────────────────────────
+
 class ErrorResponse(BaseModel):
     """Hata yanıtı."""
     detail: str
+

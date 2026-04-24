@@ -26,7 +26,13 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
     """
     # ── 1. LLM ile üret ────────────────────────────
     plan = key_info.get("plan", "free")
-    result = generate_with_llm(mode, inputs, plan=plan)
+
+    # Template hint'i inputs'tan çıkar (DB'ye kaydedilmeyecek)
+    inputs_for_db = {k: v for k, v in inputs.items() if k != "custom_template_hint"}
+    template_hint = inputs.get("custom_template_hint")
+
+    result = generate_with_llm(mode, inputs_for_db, plan=plan, template_hint=template_hint)
+
 
     # ── 2. Watermark ekle (free plan) ──────────────
     watermark = None
@@ -67,7 +73,7 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
 
     # ── 6. Veritabanına kaydet ─────────────────────
     output_json_str = json.dumps(output, ensure_ascii=False)
-    input_json_str = json.dumps(inputs, ensure_ascii=False)
+    input_json_str = json.dumps(inputs_for_db, ensure_ascii=False)
 
     with get_db() as conn:
         cursor = conn.execute(

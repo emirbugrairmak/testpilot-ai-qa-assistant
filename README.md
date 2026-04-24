@@ -215,24 +215,102 @@ curl http://localhost:8000/api/v1/export/1/jira \
   -OJ
 ```
 
+**Batch Mod A — Toplu Feature Testi (Premium):**
+```bash
+curl -X POST http://localhost:8000/api/v1/generate/batch \
+  -H "Authorization: Bearer tp_premium_demo_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "mod_a",
+    "items": [
+      {"feature_idea": "Password reset via email"},
+      {"feature_idea": "Two-factor authentication setup"}
+    ]
+  }'
+```
+
+**Batch Mod B — Toplu Story Testi (Premium):**
+```bash
+curl -X POST http://localhost:8000/api/v1/generate/batch \
+  -H "Authorization: Bearer tp_premium_demo_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "mod_b",
+    "items": [
+      {
+        "user_story": "As a user I want to update my profile",
+        "acceptance_criteria": "Given auth user, When they submit form, Then profile updates"
+      }
+    ]
+  }'
+```
+
+**Custom Template Oluştur (Premium):**
+```bash
+curl -X POST http://localhost:8000/api/v1/templates \
+  -H "Authorization: Bearer tp_premium_demo_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Security Focus",
+    "prompt_text": "Always include at least 2 security test cases: authentication and authorization."
+  }'
+```
+
+**Template Listesi (Premium):**
+```bash
+curl http://localhost:8000/api/v1/templates \
+  -H "Authorization: Bearer tp_premium_demo_key"
+```
+
+**Template Güncelle (Premium):**
+```bash
+curl -X PUT http://localhost:8000/api/v1/templates/1 \
+  -H "Authorization: Bearer tp_premium_demo_key" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Security Focus v2", "prompt_text": "Include XSS and SQLi test cases."}'
+```
+
+**Template Sil (Premium):**
+```bash
+curl -X DELETE http://localhost:8000/api/v1/templates/1 \
+  -H "Authorization: Bearer tp_premium_demo_key"
+```
+
+**Template ile Generate (Premium):**
+```bash
+curl -X POST http://localhost:8000/api/v1/generate \
+  -H "Authorization: Bearer tp_premium_demo_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "mod_a",
+    "feature_idea": "User profile settings",
+    "template_id": 1
+  }'
+```
+
 ---
 
-## 📡 API Endpoint'leri
+
 
 | Method | Endpoint | Açıklama | Auth |
 |--------|----------|----------|------|
 | `GET` | `/health` | Servis sağlık kontrolü | ❌ |
 | `GET` | `/docs` | Swagger API dokümantasyonu | ❌ |
 | `POST` | `/api/v1/auth/validate` | API key doğrulama + plan bilgisi | ✅ Bearer |
-| `POST` | `/api/v1/generate` | Test üretimi (`mod_a`, `mod_b`) ve bug report üretimi (`bug_report`) | ✅ Bearer |
-| `GET` | `/api/v1/history` | Generation geçmişi; `mode` ve `q` query desteği vardır | ✅ Bearer |
+| `POST` | `/api/v1/generate` | Test üretimi (mod_a, mod_b, bug_report); opsiyonel `template_id` | ✅ Bearer |
+| `POST` | `/api/v1/generate/batch` | Batch test üretimi (mod_a, mod_b) — **Premium only** | ✅ Bearer |
+| `GET` | `/api/v1/history` | Generation geçmişi; `mode` ve `q` query desteği | ✅ Bearer |
 | `GET` | `/api/v1/history/{id}` | Tek generation detayı | ✅ Bearer |
 | `DELETE` | `/api/v1/history/{id}` | Tek generation kaydını siler | ✅ Bearer |
 | `GET` | `/api/v1/export/{id}/json` | JSON export | ✅ Bearer |
 | `GET` | `/api/v1/export/{id}/markdown` | Markdown export | ✅ Bearer |
-| `GET` | `/api/v1/export/{id}/csv` | CSV export | ✅ Bearer + Premium |
-| `GET` | `/api/v1/export/{id}/jira` | Jira-friendly text export | ✅ Bearer + Premium |
+| `GET` | `/api/v1/export/{id}/csv` | CSV export — **Premium only** | ✅ Bearer |
+| `GET` | `/api/v1/export/{id}/jira` | Jira-friendly text export — **Premium only** | ✅ Bearer |
 | `GET` | `/api/v1/usage` | Plan, aylık limit, kullanım ve kalan hak bilgisi | ✅ Bearer |
+| `GET` | `/api/v1/templates` | Custom template listesi — **Premium only** | ✅ Bearer |
+| `POST` | `/api/v1/templates` | Yeni template oluştur — **Premium only** | ✅ Bearer |
+| `PUT` | `/api/v1/templates/{id}` | Template güncelle — **Premium only** | ✅ Bearer |
+| `DELETE` | `/api/v1/templates/{id}` | Template sil — **Premium only** | ✅ Bearer |
 
 ### Free / Premium Kuralları
 
@@ -243,6 +321,9 @@ curl http://localhost:8000/api/v1/export/1/jira \
 | Markdown export | ✅ | ✅ |
 | CSV export | ❌ 403 | ✅ |
 | Jira export | ❌ 403 | ✅ |
+| Custom templates | ❌ 403 | ✅ |
+| Template ile generate | ❌ 403 | ✅ |
+| Batch generate | ❌ 403 | ✅ |
 | Free watermark | ✅ | ❌ |
 
 Frontend tarafında free kullanıcı CSV veya Jira export butonuna basarsa net bir premium uyarısı gösterilir; backend kuralı frontend tarafından gevşetilmez.
@@ -282,14 +363,16 @@ TestPilot – AI QA Assistant/
 │       ├── routers/
 │       │   ├── auth.py
 │       │   ├── export.py
-│       │   ├── generate.py
+│       │   ├── generate.py      ← single + batch
 │       │   ├── history.py
+│       │   ├── templates.py     ← YENİ
 │       │   └── usage.py
 │       ├── services/
 │       │   ├── export_service.py
 │       │   ├── generation_service.py
 │       │   ├── history_service.py
-│       │   └── llm_service.py
+│       │   ├── llm_service.py
+│       │   └── template_service.py  ← YENİ
 │       ├── prompts/
 │       │   ├── bug_report_prompt.py
 │       │   ├── mod_a_prompt.py
@@ -324,9 +407,9 @@ TestPilot – AI QA Assistant/
 - [x] Faz 1B — Backend Surface Completion (History, Export, Usage, Bug Report)
 - [x] Faz 2A — Frontend Foundation (Login, Dashboard, Generate)
 - [x] Faz 2B — Frontend Completion (History, Result, Settings, Export UI)
-- [ ] Faz 1C — Backend LLM Entegrasyonu (Gemini)
+- [x] Faz 4A — Real Gemini Integration (google-genai SDK, mock fallback)
+- [x] Faz 4B — Premium Backend Features (Batch, Custom Templates, Template+Generate)
 - [ ] Faz 3 — Flutter Mobil Uygulama
-- [ ] Faz 4 — Premium Özellikler
 - [ ] Faz 5 — Final Polish + Teslim
 
 ---

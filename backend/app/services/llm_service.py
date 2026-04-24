@@ -25,13 +25,14 @@ logger = logging.getLogger(__name__)
 
 # ── Public Interface ────────────────────────────────────
 
-def generate_with_llm(mode: str, inputs: dict, plan: str = "free") -> dict:
+def generate_with_llm(mode: str, inputs: dict, plan: str = "free", template_hint: str | None = None) -> dict:
     """LLM ile üretim yap.
 
     Args:
-        mode  : "mod_a", "mod_b" veya "bug_report"
-        inputs: Mod'a göre değişen input dict
-        plan  : "free" veya "premium" (prompt kalitesini etkiler)
+        mode         : "mod_a", "mod_b" veya "bug_report"
+        inputs       : Mod'a göre değişen input dict
+        plan         : "free" veya "premium" (prompt kalitesini etkiler)
+        template_hint: Premium custom template metni (opsiyonel)
 
     Returns:
         Üretilmiş artifacts dict
@@ -41,7 +42,7 @@ def generate_with_llm(mode: str, inputs: dict, plan: str = "free") -> dict:
     """
     if settings.LLM_PROVIDER == "gemini" and settings.GEMINI_API_KEY:
         try:
-            return _generate_with_gemini(mode, inputs, plan)
+            return _generate_with_gemini(mode, inputs, plan, template_hint)
         except Exception as exc:
             if settings.LLM_FALLBACK_TO_MOCK:
                 logger.warning(
@@ -62,7 +63,7 @@ def generate_with_llm(mode: str, inputs: dict, plan: str = "free") -> dict:
 
 # ── Gemini Provider ─────────────────────────────────────
 
-def _generate_with_gemini(mode: str, inputs: dict, plan: str) -> dict:
+def _generate_with_gemini(mode: str, inputs: dict, plan: str, template_hint: str | None = None) -> dict:
     """Gerçek Gemini API çağrısı.
 
     google-genai SDK kullanır.
@@ -80,7 +81,7 @@ def _generate_with_gemini(mode: str, inputs: dict, plan: str) -> dict:
 
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-    system_prompt, user_prompt = _build_prompts(mode, inputs, plan)
+    system_prompt, user_prompt = _build_prompts(mode, inputs, plan, template_hint)
 
     config = genai_types.GenerateContentConfig(
         system_instruction=system_prompt,
@@ -117,8 +118,11 @@ def _generate_with_gemini(mode: str, inputs: dict, plan: str) -> dict:
         return _parse_and_validate(mode, retry_response.text.strip(), plan, inputs)
 
 
-def _build_prompts(mode: str, inputs: dict, plan: str) -> tuple[str, str]:
-    """Mode ve plan'a göre system + user prompt döndür."""
+def _build_prompts(mode: str, inputs: dict, plan: str, template_hint: str | None = None) -> tuple[str, str]:
+    """Mode ve plan'a göre system + user prompt döndür.
+
+    template_hint varsa user prompt'un sonuna eklenir.
+    """
     from app.prompts.mod_a_prompt import (
         MOD_A_SYSTEM_PROMPT_FREE,
         MOD_A_SYSTEM_PROMPT_PREMIUM,
@@ -169,7 +173,15 @@ def _build_prompts(mode: str, inputs: dict, plan: str) -> tuple[str, str]:
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
+    # Template hint varsa user prompt'a ekle
+    if template_hint:
+        user = (
+            user
+            + f"\n\nAdditional context / custom instructions from user template:\n{template_hint}"
+        )
+
     return system, user
+
 
 
 def _extract_json(text: str) -> dict:
