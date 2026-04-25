@@ -1,10 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react";
-import type { GenerateRequest, GenerationMode } from "../types/api";
+import type { GenerateRequest, GenerationMode, Template } from "../types/api";
 import { ModeSelector } from "./ModeSelector";
 
 type GenerateFormProps = {
   mode: GenerationMode;
   isSubmitting: boolean;
+  isPremium: boolean;
+  templates: Template[];
+  isTemplatesLoading: boolean;
+  templatesError?: string | null;
   onModeChange: (mode: GenerationMode) => void;
   onSubmit: (payload: GenerateRequest) => void;
 };
@@ -16,6 +20,10 @@ const labelClass = "text-sm font-semibold text-slate-700";
 export function GenerateForm({
   mode,
   isSubmitting,
+  isPremium,
+  templates,
+  isTemplatesLoading,
+  templatesError,
   onModeChange,
   onSubmit,
 }: GenerateFormProps) {
@@ -28,6 +36,7 @@ export function GenerateForm({
   const [expectedResult, setExpectedResult] = useState("");
   const [environment, setEnvironment] = useState("");
   const [severity, setSeverity] = useState("Medium");
+  const [templateId, setTemplateId] = useState("");
 
   useEffect(() => {
     setFeatureIdea("");
@@ -41,27 +50,44 @@ export function GenerateForm({
     setSeverity("Medium");
   }, [mode]);
 
+  useEffect(() => {
+    if (!templates.some((template) => String(template.id) === templateId)) {
+      setTemplateId("");
+    }
+  }, [templateId, templates]);
+
+  function withTemplate<T extends GenerateRequest>(payload: T): T {
+    if (!isPremium || !templateId) {
+      return payload;
+    }
+
+    return {
+      ...payload,
+      template_id: Number(templateId),
+    };
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (mode === "mod_a") {
-      onSubmit({
+      onSubmit(withTemplate({
         mode,
         feature_idea: featureIdea.trim(),
-      });
+      }));
       return;
     }
 
     if (mode === "mod_b") {
-      onSubmit({
+      onSubmit(withTemplate({
         mode,
         user_story: userStory.trim(),
         acceptance_criteria: acceptanceCriteria.trim(),
-      });
+      }));
       return;
     }
 
-    onSubmit({
+    onSubmit(withTemplate({
       mode,
       title: bugTitle.trim(),
       steps_to_reproduce: steps
@@ -72,12 +98,54 @@ export function GenerateForm({
       expected_result: expectedResult.trim(),
       environment: environment.trim(),
       severity,
-    });
+    }));
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <ModeSelector value={mode} onChange={onModeChange} />
+
+      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <label htmlFor="template_id" className={labelClass}>
+          Custom template
+        </label>
+
+        {isPremium ? (
+          <>
+            <select
+              id="template_id"
+              className={inputClass}
+              value={templateId}
+              onChange={(event) => setTemplateId(event.target.value)}
+              disabled={isSubmitting || isTemplatesLoading || templates.length === 0}
+            >
+              <option value="">
+                {isTemplatesLoading
+                  ? "Loading templates"
+                  : templates.length === 0
+                    ? "No templates yet"
+                    : "No template"}
+              </option>
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+            {templatesError ? (
+              <p className="text-sm font-medium text-red-700">{templatesError}</p>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Premium templates add your prompt instructions to this generation.
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
+            Custom templates are available on Premium plans only.
+          </p>
+        )}
+      </div>
 
       {mode === "mod_a" && (
         <div className="space-y-2">

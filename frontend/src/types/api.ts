@@ -75,11 +75,13 @@ export type GenerateRequest =
   | {
       mode: "mod_a";
       feature_idea: string;
+      template_id?: number;
     }
   | {
       mode: "mod_b";
       user_story: string;
       acceptance_criteria: string;
+      template_id?: number;
     }
   | {
       mode: "bug_report";
@@ -90,6 +92,7 @@ export type GenerateRequest =
       expected_result: string;
       environment: string;
       severity?: string;
+      template_id?: number;
     };
 
 export type GenerateResponse = {
@@ -118,4 +121,55 @@ export type HistoryDetailResponse = {
 export type DeleteHistoryResponse = {
   deleted: boolean;
   generation_id: number;
+};
+
+export type Template = {
+  id: number;
+  name: string;
+  prompt_text: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TemplateListResponse = {
+  items: Template[];
+  count: number;
+};
+
+export type TemplatePayload = {
+  name: string;
+  prompt_text: string;
+};
+
+export type BatchGenerateItem =
+  | {
+      feature_idea: string;
+      template_id?: number;
+    }
+  | {
+      user_story: string;
+      acceptance_criteria: string;
+      template_id?: number;
+    };
+
+export type BatchGenerateRequest = {
+  mode: "mod_a" | "mod_b";
+  items: BatchGenerateItem[];
+  template_id?: number;
+};
+
+export type BatchResultItem = {
+  index: number;
+  success: boolean;
+  generation_id?: number | null;
+  result?: GenerateResponse | Record<string, unknown> | null;
+  error?: string | null;
+};
+
+export type BatchGenerateResponse = {
+  mode: "mod_a" | "mod_b";
+  total_items: number;
+  success_count: number;
+  failed_count: number;
+  results: BatchResultItem[];
 };

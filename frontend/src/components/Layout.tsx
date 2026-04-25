@@ -4,8 +4,21 @@ import { useAuth } from "../hooks/useAuth";
 import type { GenerationMode } from "../types/api";
 import { PlanBadge } from "./PlanBadge";
 
-type Page = "dashboard" | "generate" | "history" | "result" | "settings";
-type NavigationPage = "dashboard" | "generate" | "history" | "settings";
+type Page =
+  | "dashboard"
+  | "generate"
+  | "templates"
+  | "batch"
+  | "history"
+  | "result"
+  | "settings";
+type NavigationPage =
+  | "dashboard"
+  | "generate"
+  | "templates"
+  | "batch"
+  | "history"
+  | "settings";
 
 type LayoutProps = {
   page: Page;
@@ -49,6 +62,20 @@ export function Layout({ page, children, onNavigate }: LayoutProps) {
                 className={navClass(page === "generate")}
               >
                 Generate
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("templates")}
+                className={navClass(page === "templates")}
+              >
+                Templates
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("batch")}
+                className={navClass(page === "batch")}
+              >
+                Batch Generate
               </button>
               <button
                 type="button"

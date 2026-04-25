@@ -57,10 +57,21 @@ docker-compose down
 3. Login ekranında `tp_free_demo_key` veya `tp_premium_demo_key` gir.
 4. Dashboard üzerinden plan, usage ve son history kayıtlarını kontrol et.
 5. `New Mod A`, `New Mod B` veya `New Bug Report` ile generate ekranına geç.
-6. Formu doldurup submit et; başarılı üretim sonrası Result sayfasına yönlen.
-7. Result sayfasından JSON / Markdown export al; Premium hesapla CSV / Jira export da indir.
-8. History sayfasında filtreleme, arama, result açma ve silme akışını dene.
-9. Settings sayfasında plan, usage özeti, maskeli API key ve logout akışını kontrol et.
+6. Premium hesapla Templates sayfasında custom template oluştur, düzenle veya sil.
+7. Generate ekranında Premium hesapla custom template seçerek single generate çalıştır; Free hesapta template alanında premium uyarısı görünür.
+8. Premium hesapla Batch Generate sayfasında Mod A veya Mod B için birden fazla item girip toplu üretim yap; Free hesapta premium uyarısı görünür.
+9. Formu doldurup submit et; başarılı single üretim sonrası Result sayfasına yönlen.
+10. Batch sonuçlarında başarılı item'ların `generation_id` bilgilerini ve Result linklerini kontrol et.
+11. Result sayfasından JSON / Markdown export al; Premium hesapla CSV / Jira export da indir.
+12. History sayfasında filtreleme, arama, result açma ve silme akışını dene.
+13. Settings sayfasında plan, usage özeti, maskeli API key ve logout akışını kontrol et.
+
+### Web Premium Özellik Akışı
+
+- **Custom templates:** `tp_premium_demo_key` ile giriş yaptıktan sonra `Templates` menüsünden template listesi görüntülenir. Aynı ekranda yeni template oluşturma, mevcut template'i düzenleme ve silme işlemleri yapılır.
+- **Template ile single generate:** `Generate` ekranında Premium kullanıcılar kendi template'lerini seçebilir. Seçilen template backend'e `template_id` olarak gönderilir. Free kullanıcı aynı alanda Premium uyarısı görür ve template gönderemez.
+- **Batch generate:** `Batch Generate` ekranı Premium kullanıcılar için Mod A ve Mod B destekler. Birden fazla item eklenebilir, isteğe bağlı ortak template seçilebilir ve submit sonrası batch response içinde her item'ın başarı/hata durumu ile başarılı kayıtların `generation_id` bilgisi görünür.
+- **Premium-only davranış:** Free kullanıcı `Templates` ve `Batch Generate` sayfalarında net Premium uyarısı görür; frontend backend yetki kurallarını gevşetmez.
 
 ---
 
@@ -409,6 +420,7 @@ TestPilot – AI QA Assistant/
 - [x] Faz 2B — Frontend Completion (History, Result, Settings, Export UI)
 - [x] Faz 4A — Real Gemini Integration (google-genai SDK, mock fallback)
 - [x] Faz 4B — Premium Backend Features (Batch, Custom Templates, Template+Generate)
+- [x] Faz 4C — Premium Web UI (Templates, Batch Generate, Template+Generate UI)
 - [ ] Faz 3 — Flutter Mobil Uygulama
 - [ ] Faz 5 — Final Polish + Teslim
 

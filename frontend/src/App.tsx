@@ -2,18 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import { Layout } from "./components/Layout";
 import { LoadingState } from "./components/LoadingState";
 import { useAuth } from "./hooks/useAuth";
+import { BatchGeneratePage } from "./pages/BatchGeneratePage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { GeneratePage } from "./pages/GeneratePage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ResultPage } from "./pages/ResultPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { TemplatesPage } from "./pages/TemplatesPage";
 import type { GenerationMode } from "./types/api";
 
 type Route =
   | { page: "login" }
   | { page: "dashboard" }
   | { page: "generate"; mode: GenerationMode }
+  | { page: "templates" }
+  | { page: "batch" }
   | { page: "history" }
   | { page: "result"; generationId: number }
   | { page: "settings" };
@@ -77,6 +81,16 @@ function App() {
           return;
         }
 
+        if (page === "templates") {
+          navigate("templates");
+          return;
+        }
+
+        if (page === "batch") {
+          navigate("batch");
+          return;
+        }
+
         if (page === "settings") {
           navigate("settings");
           return;
@@ -105,6 +119,14 @@ function App() {
         <HistoryPage onOpenResult={(generationId) => navigate("result", generationId)} />
       ) : null}
 
+      {route.page === "templates" ? <TemplatesPage /> : null}
+
+      {route.page === "batch" ? (
+        <BatchGeneratePage
+          onOpenResult={(generationId) => navigate("result", generationId)}
+        />
+      ) : null}
+
       {route.page === "result" ? (
         <ResultPage
           generationId={route.generationId}
@@ -120,11 +142,21 @@ function App() {
 function navigate(page: "login"): void;
 function navigate(page: "dashboard"): void;
 function navigate(page: "history"): void;
+function navigate(page: "templates"): void;
+function navigate(page: "batch"): void;
 function navigate(page: "settings"): void;
 function navigate(page: "generate", mode?: GenerationMode): void;
 function navigate(page: "result", generationId: number): void;
 function navigate(
-  page: "login" | "dashboard" | "generate" | "history" | "result" | "settings",
+  page:
+    | "login"
+    | "dashboard"
+    | "generate"
+    | "templates"
+    | "batch"
+    | "history"
+    | "result"
+    | "settings",
   value?: GenerationMode | number,
 ) {
   if (page === "generate") {
@@ -157,6 +189,14 @@ function parseRoute(): Route {
 
   if (path === "/history") {
     return { page: "history" };
+  }
+
+  if (path === "/templates") {
+    return { page: "templates" };
+  }
+
+  if (path === "/batch") {
+    return { page: "batch" };
   }
 
   if (path === "/settings") {

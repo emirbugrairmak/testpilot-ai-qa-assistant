@@ -1,5 +1,7 @@
 import type {
   AuthValidateResponse,
+  BatchGenerateRequest,
+  BatchGenerateResponse,
   DeleteHistoryResponse,
   ExportFormat,
   GenerateRequest,
@@ -7,6 +9,9 @@ import type {
   HistoryDetailResponse,
   HistoryListResponse,
   HistoryQueryParams,
+  Template,
+  TemplateListResponse,
+  TemplatePayload,
   UsageResponse,
 } from "../types/api";
 
@@ -17,7 +22,7 @@ const API_KEY_STORAGE_KEY = "testpilot_api_key";
 
 type RequestOptions = {
   apiKey?: string | null;
-  method?: "GET" | "POST" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
 };
 
@@ -72,6 +77,10 @@ export async function apiRequest<T>(
     throw new Error(message);
   }
 
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   return (await response.json()) as T;
 }
 
@@ -115,6 +124,43 @@ export function deleteHistoryItem(generationId: number) {
 
 export function generateArtifact(payload: GenerateRequest) {
   return apiRequest<GenerateResponse>("/api/v1/generate", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function fetchTemplates() {
+  return apiRequest<TemplateListResponse>("/api/v1/templates");
+}
+
+export function createTemplate(payload: TemplatePayload) {
+  return apiRequest<Template>("/api/v1/templates", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function updateTemplate({
+  id,
+  payload,
+}: {
+  id: number;
+  payload: TemplatePayload;
+}) {
+  return apiRequest<Template>(`/api/v1/templates/${id}`, {
+    method: "PUT",
+    body: payload,
+  });
+}
+
+export function deleteTemplate(id: number) {
+  return apiRequest<void>(`/api/v1/templates/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export function batchGenerate(payload: BatchGenerateRequest) {
+  return apiRequest<BatchGenerateResponse>("/api/v1/generate/batch", {
     method: "POST",
     body: payload,
   });

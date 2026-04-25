@@ -2,7 +2,9 @@ import { ErrorAlert } from "../components/ErrorAlert";
 import { EmptyState } from "../components/EmptyState";
 import { GenerateForm } from "../components/GenerateForm";
 import { LoadingState } from "../components/LoadingState";
+import { useAuth } from "../hooks/useAuth";
 import { useGenerate } from "../hooks/useGenerate";
+import { useTemplates } from "../hooks/useTemplates";
 import type { GenerateRequest, GenerationMode } from "../types/api";
 
 type GeneratePageProps = {
@@ -17,7 +19,10 @@ export function GeneratePage({
   onResultReady,
 }: GeneratePageProps) {
   const mode = initialMode;
+  const { user } = useAuth();
+  const isPremium = user?.plan === "premium";
   const generateMutation = useGenerate();
+  const templatesQuery = useTemplates(isPremium);
 
   function handleSubmit(payload: GenerateRequest) {
     generateMutation.mutate(payload, {
@@ -42,6 +47,16 @@ export function GeneratePage({
           <GenerateForm
             mode={mode}
             isSubmitting={generateMutation.isPending}
+            isPremium={isPremium}
+            templates={templatesQuery.data?.items ?? []}
+            isTemplatesLoading={templatesQuery.isLoading}
+            templatesError={
+              templatesQuery.isError
+                ? templatesQuery.error instanceof Error
+                  ? templatesQuery.error.message
+                  : "Could not load templates."
+                : null
+            }
             onModeChange={onModeChange}
             onSubmit={handleSubmit}
           />
