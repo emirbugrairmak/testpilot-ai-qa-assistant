@@ -1,233 +1,246 @@
-# TestPilot – AI QA Assistant
+# TestPilot - AI QA Assistant
 
-> **From idea to test cases, in minutes.**
+TestPilot, feature idea, user story/acceptance criteria veya bug bilgisi girilerek test planı, test case seti ve bug report taslağı üreten demo seviyesinde bir AI QA asistanıdır. Proje FastAPI backend, React web arayüzü, Flutter mobil uygulama iskeleti ve Docker Compose çalışma düzeninden oluşur.
 
-TestPilot, yazılım geliştirme sürecinde test hazırlama işini hızlandıran bir AI QA asistanıdır. Kullanıcı bir özellik fikri ya da hazır user story/AC girerek otomatik test planı, test senaryoları ve bug report taslağı üretebilir.
+## Proje Özeti
 
----
+- Backend, demo API key tabanlı auth, kullanım limiti, history, export, custom template ve batch generate akışlarını sağlar.
+- Web uygulaması login, dashboard, generate, result, history, settings, templates ve batch generate ekranlarını içerir.
+- Mobil uygulama Flutter ile login, dashboard, generate, result, history, settings ve export paylaşım akışlarını demo seviyesinde sunar.
+- LLM katmanı varsayılan olarak deterministik mock generator ile çalışır; `gemini` provider seçilirse Google Gemini API kullanılabilir.
 
-## 🏗️ Teknoloji Stack
+## Özellikler
+
+| Özellik | Free | Premium |
+| --- | --- | --- |
+| Mod A: feature idea -> test çıktısı | Var | Var |
+| Mod B: user story + AC -> test çıktısı | Var | Var |
+| Bug report üretimi | Var | Var |
+| Usage/limit takibi | 30/ay | 200/ay |
+| History | Son 15 kayıt | Tüm kayıtlar |
+| JSON export | Var | Var |
+| Markdown export | Var | Var |
+| CSV export | Yok | Var |
+| Jira-friendly export | Yok | Var |
+| Custom templates | Yok | Var |
+| Template ile generate | Yok | Var |
+| Batch generate | Yok | Var |
+| Free watermark | Var | Yok |
+
+Demo API key'leri backend ilk açıldığında seed edilir:
+
+```text
+tp_free_demo_key
+tp_premium_demo_key
+```
+
+## Teknolojiler
 
 | Katman | Teknoloji |
-|--------|-----------|
-| **Backend** | Python · FastAPI · SQLite |
-| **Frontend** | TypeScript · React · Tailwind CSS · React Query |
-| **Mobil** | Flutter (iOS + Android) |
-| **LLM** | Google Gemini API (`gemini-2.0-flash`) · Mock fallback |
-| **DevOps** | Docker · Docker Compose · Git · GitHub |
+| --- | --- |
+| Backend | Python 3.12, FastAPI, SQLite, python-dotenv |
+| LLM | Mock generator, Google Gemini API (`google-genai`) |
+| Web | React, TypeScript, Vite, Tailwind CSS, React Query |
+| Mobile | Flutter, Dart, http, shared_preferences, share_plus |
+| DevOps | Docker, Docker Compose |
 
----
+## Klasör Yapısı
 
-## 🚀 Hızlı Başlangıç
-
-### Gereksinimler
-
-- [Docker](https://docs.docker.com/get-docker/) ve [Docker Compose](https://docs.docker.com/compose/install/) yüklü olmalı.
-
-### Kurulum ve Çalıştırma
-
-```bash
-# 1. Repoyu klonla
-git clone <REPO_URL>
-cd "TestPilot – AI QA Assistant"
-
-# 2. Tüm servisleri başlat
-docker-compose up --build
+```text
+TestPilot - AI QA Assistant/
+├── .env.example              # Docker Compose için env örneği
+├── docker-compose.yml
+├── README.md
+├── backend/
+│   ├── .env.example          # Local backend çalıştırma için env örneği
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── app/
+│       ├── main.py
+│       ├── config.py
+│       ├── database.py
+│       ├── models/
+│       ├── prompts/
+│       ├── routers/
+│       ├── services/
+│       └── utils/
+├── frontend/
+│   ├── Dockerfile
+│   ├── package.json
+│   └── src/
+│       ├── components/
+│       ├── hooks/
+│       ├── pages/
+│       ├── services/
+│       └── types/
+└── mobile/
+    ├── README.md
+    ├── pubspec.yaml
+    ├── lib/
+    ├── android/
+    ├── ios/
+    └── test/
 ```
 
-### Erişim
+## Local Kurulum
 
-| Servis | URL |
-|--------|-----|
-| **Frontend (React)** | [http://localhost:3000](http://localhost:3000) |
-| **Backend API** | [http://localhost:8000](http://localhost:8000) |
-| **API Docs (Swagger)** | [http://localhost:8000/docs](http://localhost:8000/docs) |
-| **Health Check** | [http://localhost:8000/health](http://localhost:8000/health) |
-
-### Durdurma
-
-```bash
-docker-compose down
-```
-
-### Frontend Kullanım Akışı
-
-1. `docker-compose up --build` komutuyla servisleri başlat.
-2. Tarayıcıdan [http://localhost:3000](http://localhost:3000) adresine git.
-3. Login ekranında `tp_free_demo_key` veya `tp_premium_demo_key` gir.
-4. Dashboard üzerinden plan, usage ve son history kayıtlarını kontrol et.
-5. `New Mod A`, `New Mod B` veya `New Bug Report` ile generate ekranına geç.
-6. Premium hesapla Templates sayfasında custom template oluştur, düzenle veya sil.
-7. Generate ekranında Premium hesapla custom template seçerek single generate çalıştır; Free hesapta template alanında premium uyarısı görünür.
-8. Premium hesapla Batch Generate sayfasında Mod A veya Mod B için birden fazla item girip toplu üretim yap; Free hesapta premium uyarısı görünür.
-9. Formu doldurup submit et; başarılı single üretim sonrası Result sayfasına yönlen.
-10. Batch sonuçlarında başarılı item'ların `generation_id` bilgilerini ve Result linklerini kontrol et.
-11. Result sayfasından JSON / Markdown export al; Premium hesapla CSV / Jira export da indir.
-12. History sayfasında filtreleme, arama, result açma ve silme akışını dene.
-13. Settings sayfasında plan, usage özeti, maskeli API key ve logout akışını kontrol et.
-
-### Web Premium Özellik Akışı
-
-- **Custom templates:** `tp_premium_demo_key` ile giriş yaptıktan sonra `Templates` menüsünden template listesi görüntülenir. Aynı ekranda yeni template oluşturma, mevcut template'i düzenleme ve silme işlemleri yapılır.
-- **Template ile single generate:** `Generate` ekranında Premium kullanıcılar kendi template'lerini seçebilir. Seçilen template backend'e `template_id` olarak gönderilir. Free kullanıcı aynı alanda Premium uyarısı görür ve template gönderemez.
-- **Batch generate:** `Batch Generate` ekranı Premium kullanıcılar için Mod A ve Mod B destekler. Birden fazla item eklenebilir, isteğe bağlı ortak template seçilebilir ve submit sonrası batch response içinde her item'ın başarı/hata durumu ile başarılı kayıtların `generation_id` bilgisi görünür.
-- **Premium-only davranış:** Free kullanıcı `Templates` ve `Batch Generate` sayfalarında net Premium uyarısı görür; frontend backend yetki kurallarını gevşetmez.
-
----
-
-## 🤖 Gemini LLM Kurulumu
-
-TestPilot, varsayılan olarak **mock generator** ile çalışır (API key gerektirmez).
-Gerçek AI çıktısı için Google Gemini API'ye bağlanabilirsin.
-
-### Adım 1 — API Key Al
-
-[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) adresinden **ücretsiz** API key alabilirsin.
-`gemini-2.0-flash` modeli free tier'da kullanılabilir.
-
-### Adım 2 — .env Dosyasını Oluştur
+Backend:
 
 ```bash
 cd backend
 cp .env.example .env
-# .env içinde GEMINI_API_KEY= satırını doldur
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Adım 3 — Gemini'yi Etkinleştir
+Web:
 
-`.env` veya `docker-compose.yml` içinde:
+```bash
+cd frontend
+npm install
+npm run dev -- --host 0.0.0.0 --port 3000
+```
+
+Mobil:
+
+```bash
+cd mobile
+flutter pub get
+flutter analyze
+flutter run
+```
+
+Android emulator varsayılan backend adresi `http://10.0.2.2:8000` olarak ayarlıdır. iOS simulator veya gerçek cihaz için gerekirse:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://localhost:8000
+```
+
+Gerçek cihazda `localhost` yerine geliştirme makinesinin yerel ağ IP adresi gerekebilir.
+
+## Docker ile Çalıştırma
+
+Varsayılan mock LLM ile:
+
+```bash
+docker compose up --build
+```
+
+Eski Compose sürümü kullanıyorsan aynı komut `docker-compose up --build` olarak çalıştırılabilir.
+
+Erişim adresleri:
+
+| Servis | URL |
+| --- | --- |
+| Web | http://localhost:3000 |
+| Backend API | http://localhost:8000 |
+| Swagger | http://localhost:8000/docs |
+| Health | http://localhost:8000/health |
+
+Durdurma:
+
+```bash
+docker compose down
+```
+
+Docker ile Gemini kullanmak için repo kökünde `.env` oluştur:
+
+```bash
+cp .env.example .env
+```
+
+Ardından `.env` içinde:
 
 ```bash
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=your_actual_api_key_here
-GEMINI_MODEL=gemini-2.0-flash        # varsayılan
-LLM_FALLBACK_TO_MOCK=true            # Gemini hata verirse mock'a düş
+GEMINI_MODEL=gemini-2.0-flash
+LLM_FALLBACK_TO_MOCK=true
 ```
 
-### Mock ↔ Gemini Geçişi
+Sonra servisleri yeniden başlat:
+
+```bash
+docker compose up --build
+```
+
+## Gemini Env Ayarı
+
+Backend local çalıştırmada `backend/.env` okunur:
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+Temel davranış:
 
 | `LLM_PROVIDER` | `GEMINI_API_KEY` | Davranış |
-|----------------|------------------|----------|
-| `mock` | herhangi | Deterministik mock generator |
-| `gemini` | boş | Uyarı log'u → mock'a düş |
-| `gemini` | dolu | Gerçek Gemini API çağrısı |
+| --- | --- | --- |
+| `mock` | Boş veya dolu | Deterministik mock çıktı üretir |
+| `gemini` | Boş | Uyarı log'u yazar, fallback açıksa mock'a düşer |
+| `gemini` | Dolu | Gemini API ile üretim dener |
 
-### Kullanılabilir Modeller
+`LLM_FALLBACK_TO_MOCK=true` ise Gemini hatalarında demo akışı bozulmadan mock çıktı döner. `false` yapılırsa Gemini hatası `503 Service Unavailable` olarak döner.
 
-| Model | Hız | Kalite | Free Tier |
-|-------|-----|--------|-----------|
-| `gemini-2.0-flash` | ⚡⚡⚡ | ★★★★ | ✅ |
-| `gemini-2.5-flash` | ⚡⚡ | ★★★★★ | ✅ |
-| `gemini-1.5-pro` | ⚡ | ★★★★★ | Sınırlı |
+## Backend Endpoint Özeti
 
-### Fallback Davranışı
+| Method | Endpoint | Açıklama | Auth |
+| --- | --- | --- | --- |
+| `GET` | `/health` | Servis sağlık kontrolü | Yok |
+| `GET` | `/docs` | Swagger UI | Yok |
+| `POST` | `/api/v1/auth/validate` | API key doğrulama | Bearer |
+| `POST` | `/api/v1/generate` | Mod A, Mod B veya bug report üretimi | Bearer |
+| `POST` | `/api/v1/generate/batch` | Toplu Mod A/Mod B üretimi | Premium |
+| `GET` | `/api/v1/history` | History listeleme, `mode` ve `q` filtresi | Bearer |
+| `GET` | `/api/v1/history/{id}` | Tek kayıt detayı | Bearer |
+| `DELETE` | `/api/v1/history/{id}` | Tek kayıt silme | Bearer |
+| `GET` | `/api/v1/export/{id}/json` | JSON export | Bearer |
+| `GET` | `/api/v1/export/{id}/markdown` | Markdown export | Bearer |
+| `GET` | `/api/v1/export/{id}/csv` | CSV export | Premium |
+| `GET` | `/api/v1/export/{id}/jira` | Jira-friendly text export | Premium |
+| `GET` | `/api/v1/usage` | Plan ve kullanım özeti | Bearer |
+| `GET` | `/api/v1/templates` | Template listesi | Premium |
+| `POST` | `/api/v1/templates` | Template oluşturma | Premium |
+| `PUT` | `/api/v1/templates/{id}` | Template güncelleme | Premium |
+| `DELETE` | `/api/v1/templates/{id}` | Template silme | Premium |
 
-- `LLM_FALLBACK_TO_MOCK=true` (varsayılan): Gemini API hatası → mock generator devreye girer, istek başarıyla tamamlanır, `WARNING` log yazılır.
-- `LLM_FALLBACK_TO_MOCK=false`: Gemini hatası → `503 Service Unavailable` döner.
+Hızlı backend testleri:
 
----
-
-## 🔑 Demo API Key'leri
-
-Backend ilk başlatıldığında iki test API key'i otomatik oluşturulur:
-
-| Key | Plan | Aylık Limit |
-|-----|------|-------------|
-| `tp_free_demo_key` | Free | 30 üretim |
-| `tp_premium_demo_key` | Premium | 200 üretim |
-
-### Test Curl Komutları
-
-**Auth Doğrulama (Free Anahtar):**
 ```bash
+curl http://localhost:8000/health
+
 curl -X POST http://localhost:8000/api/v1/auth/validate \
   -H "Authorization: Bearer tp_free_demo_key"
-```
 
-**Mod A — Feature Idea'dan Test Üretimi:**
-```bash
-curl -X POST http://localhost:8000/api/v1/generate \
-  -H "Authorization: Bearer tp_premium_demo_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "mode": "mod_a",
-    "feature_idea": "User login with email and password"
-  }'
-```
-
-**Mod B — User Story + AC'den Test Üretimi:**
-```bash
-curl -X POST http://localhost:8000/api/v1/generate \
-  -H "Authorization: Bearer tp_premium_demo_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "mode": "mod_b",
-    "user_story": "As a user, I want to reset my password so that I can regain access to my account",
-    "acceptance_criteria": "Given a registered user, when they click Forgot Password and enter their email, then they receive a reset link within 5 minutes"
-  }'
-```
-
-**Bug Report Üretimi:**
-```bash
 curl -X POST http://localhost:8000/api/v1/generate \
   -H "Authorization: Bearer tp_free_demo_key" \
   -H "Content-Type: application/json" \
   -d '{
-    "mode": "bug_report",
-    "title": "Login button stays disabled",
-    "steps_to_reproduce": [
-      "Open the login page",
-      "Enter a valid email and password",
-      "Try to click Login"
-    ],
-    "actual_result": "The Login button remains disabled.",
-    "expected_result": "The user can submit the login form.",
-    "environment": "Chrome 123, macOS",
-    "severity": "High"
+    "mode": "mod_a",
+    "feature_idea": "User can reset password by email"
   }'
-```
 
-**History Listeleme:**
-```bash
 curl http://localhost:8000/api/v1/history \
   -H "Authorization: Bearer tp_free_demo_key"
-```
 
-**History Arama / Mode Filtresi:**
-```bash
-curl "http://localhost:8000/api/v1/history?mode=bug_report&q=Login" \
-  -H "Authorization: Bearer tp_free_demo_key"
-```
-
-**Usage Bilgisi:**
-```bash
 curl http://localhost:8000/api/v1/usage \
   -H "Authorization: Bearer tp_free_demo_key"
 ```
 
-**Export Örnekleri:**
+Premium batch/template kontrolü:
+
 ```bash
-# JSON ve Markdown: Free + Premium
-curl http://localhost:8000/api/v1/export/1/json \
-  -H "Authorization: Bearer tp_free_demo_key" \
-  -OJ
-
-curl http://localhost:8000/api/v1/export/1/markdown \
-  -H "Authorization: Bearer tp_free_demo_key" \
-  -OJ
-
-# CSV ve Jira: sadece Premium
-curl http://localhost:8000/api/v1/export/1/csv \
+curl -X POST http://localhost:8000/api/v1/templates \
   -H "Authorization: Bearer tp_premium_demo_key" \
-  -OJ
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Security Focus",
+    "prompt_text": "Include authentication and authorization test coverage."
+  }'
 
-curl http://localhost:8000/api/v1/export/1/jira \
-  -H "Authorization: Bearer tp_premium_demo_key" \
-  -OJ
-```
-
-**Batch Mod A — Toplu Feature Testi (Premium):**
-```bash
 curl -X POST http://localhost:8000/api/v1/generate/batch \
   -H "Authorization: Bearer tp_premium_demo_key" \
   -H "Content-Type: application/json" \
@@ -240,192 +253,110 @@ curl -X POST http://localhost:8000/api/v1/generate/batch \
   }'
 ```
 
-**Batch Mod B — Toplu Story Testi (Premium):**
+## Web Kullanım Akışı
+
+1. Backend ve web servislerini başlat.
+2. `http://localhost:3000` adresini aç.
+3. `tp_free_demo_key` veya `tp_premium_demo_key` ile giriş yap.
+4. Dashboard'da plan, usage ve son history kayıtlarını kontrol et.
+5. Generate ekranında Mod A, Mod B veya Bug Report seçip üretim yap.
+6. Result ekranında çıktıyı incele ve export seçeneklerini dene.
+7. History ekranında arama, mode filtresi, detay açma ve silme akışını kontrol et.
+8. Premium key ile Templates ve Batch Generate ekranlarını dene.
+9. Settings ekranında maskeli API key, kullanım özeti ve logout akışını kontrol et.
+
+## Mobile Kullanım Akışı
+
+1. Backend'i local veya Docker ile çalıştır.
+2. `cd mobile && flutter run` komutunu çalıştır.
+3. Emulator/simulator için doğru `API_BASE_URL` değerini kullan.
+4. Demo API key ile login ol.
+5. Dashboard, generate, result, history ve settings ekranlarını sırayla kontrol et.
+6. JSON/Markdown export paylaşım akışını dene.
+7. Premium key ile CSV/Jira export davranışını doğrula.
+
+## Son Kullanıcı Kontrol Listesi
+
+Backend:
+
 ```bash
-curl -X POST http://localhost:8000/api/v1/generate/batch \
-  -H "Authorization: Bearer tp_premium_demo_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "mode": "mod_b",
-    "items": [
-      {
-        "user_story": "As a user I want to update my profile",
-        "acceptance_criteria": "Given auth user, When they submit form, Then profile updates"
-      }
-    ]
-  }'
+cd backend
+python -m compileall app
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+curl http://localhost:8000/health
 ```
 
-**Custom Template Oluştur (Premium):**
+Web:
+
 ```bash
-curl -X POST http://localhost:8000/api/v1/templates \
-  -H "Authorization: Bearer tp_premium_demo_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Security Focus",
-    "prompt_text": "Always include at least 2 security test cases: authentication and authorization."
-  }'
+cd frontend
+npm run build
+npm run dev -- --host 0.0.0.0 --port 3000
 ```
 
-**Template Listesi (Premium):**
+Mobile:
+
 ```bash
-curl http://localhost:8000/api/v1/templates \
-  -H "Authorization: Bearer tp_premium_demo_key"
+cd mobile
+flutter pub get
+flutter analyze
+flutter run
 ```
 
-**Template Güncelle (Premium):**
+Gemini:
+
 ```bash
-curl -X PUT http://localhost:8000/api/v1/templates/1 \
-  -H "Authorization: Bearer tp_premium_demo_key" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Security Focus v2", "prompt_text": "Include XSS and SQLi test cases."}'
+# Backend local için backend/.env, Docker için repo kökündeki .env dosyasında:
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_actual_api_key_here
+LLM_FALLBACK_TO_MOCK=false
 ```
 
-**Template Sil (Premium):**
+Sonra bir `POST /api/v1/generate` isteği çalıştır. Geçerli key ve network varsa Gemini çıktısı döner; key veya API tarafı hatalıysa fallback kapalıyken `503` beklenir.
+
+Docker:
+
 ```bash
-curl -X DELETE http://localhost:8000/api/v1/templates/1 \
-  -H "Authorization: Bearer tp_premium_demo_key"
+docker compose up --build
+curl http://localhost:8000/health
+docker compose down
 ```
 
-**Template ile Generate (Premium):**
-```bash
-curl -X POST http://localhost:8000/api/v1/generate \
-  -H "Authorization: Bearer tp_premium_demo_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "mode": "mod_a",
-    "feature_idea": "User profile settings",
-    "template_id": 1
-  }'
-```
+## Proje Durumu
 
----
+Tam çalışan alanlar:
 
+- Backend auth, usage, generate, history, export, template ve batch endpoint'leri.
+- Mock LLM ile API key gerektirmeyen deterministik demo üretimi.
+- Web uygulamasında free/premium ayrımı, generate, history, export, templates ve batch UI akışları.
+- Flutter mobil uygulamasında temel login, dashboard, generate, result, history, settings ve export paylaşım akışları.
+- Docker Compose ile backend + web servislerinin birlikte ayağa kalkması.
 
+Demo seviyesinde olan alanlar:
 
-| Method | Endpoint | Açıklama | Auth |
-|--------|----------|----------|------|
-| `GET` | `/health` | Servis sağlık kontrolü | ❌ |
-| `GET` | `/docs` | Swagger API dokümantasyonu | ❌ |
-| `POST` | `/api/v1/auth/validate` | API key doğrulama + plan bilgisi | ✅ Bearer |
-| `POST` | `/api/v1/generate` | Test üretimi (mod_a, mod_b, bug_report); opsiyonel `template_id` | ✅ Bearer |
-| `POST` | `/api/v1/generate/batch` | Batch test üretimi (mod_a, mod_b) — **Premium only** | ✅ Bearer |
-| `GET` | `/api/v1/history` | Generation geçmişi; `mode` ve `q` query desteği | ✅ Bearer |
-| `GET` | `/api/v1/history/{id}` | Tek generation detayı | ✅ Bearer |
-| `DELETE` | `/api/v1/history/{id}` | Tek generation kaydını siler | ✅ Bearer |
-| `GET` | `/api/v1/export/{id}/json` | JSON export | ✅ Bearer |
-| `GET` | `/api/v1/export/{id}/markdown` | Markdown export | ✅ Bearer |
-| `GET` | `/api/v1/export/{id}/csv` | CSV export — **Premium only** | ✅ Bearer |
-| `GET` | `/api/v1/export/{id}/jira` | Jira-friendly text export — **Premium only** | ✅ Bearer |
-| `GET` | `/api/v1/usage` | Plan, aylık limit, kullanım ve kalan hak bilgisi | ✅ Bearer |
-| `GET` | `/api/v1/templates` | Custom template listesi — **Premium only** | ✅ Bearer |
-| `POST` | `/api/v1/templates` | Yeni template oluştur — **Premium only** | ✅ Bearer |
-| `PUT` | `/api/v1/templates/{id}` | Template güncelle — **Premium only** | ✅ Bearer |
-| `DELETE` | `/api/v1/templates/{id}` | Template sil — **Premium only** | ✅ Bearer |
+- API key sistemi gerçek kullanıcı yönetimi yerine seed edilmiş demo key'lere dayanır.
+- SQLite local/demo kullanım için uygundur; production DB migrasyon/backup stratejisi yoktur.
+- Gemini entegrasyonu opsiyoneldir; mock fallback demo güvenilirliği için varsayılan açık gelir.
+- Mobil uygulama temel ürün akışını gösterir; store release, cihaz matrisi ve geniş kapsamlı UI testleri yapılmamıştır.
 
-### Free / Premium Kuralları
+Opsiyonel veya sınırlı alanlar:
 
-| Özellik | Free | Premium |
-|---------|------|---------|
-| History liste | Son 15 kayıt | Tüm kayıtlar |
-| JSON export | ✅ | ✅ |
-| Markdown export | ✅ | ✅ |
-| CSV export | ❌ 403 | ✅ |
-| Jira export | ❌ 403 | ✅ |
-| Custom templates | ❌ 403 | ✅ |
-| Template ile generate | ❌ 403 | ✅ |
-| Batch generate | ❌ 403 | ✅ |
-| Free watermark | ✅ | ❌ |
+- Ödeme sistemi, admin panel, advanced analytics ve landing page yoktur.
+- Rate limit, audit log, role management ve multi-tenant yönetim production seviyesinde değildir.
+- Batch generate sequential çalışır; büyük ölçekli queue/worker mimarisi yoktur.
 
-Frontend tarafında free kullanıcı CSV veya Jira export butonuna basarsa net bir premium uyarısı gösterilir; backend kuralı frontend tarafından gevşetilmez.
+## Bilinen Sınırlamalar
 
-### Usage Yanıtı
+- Free ve premium planlar demo API key üzerinden ayrılır.
+- Export dosyaları backend'de kalıcı dosya olarak saklanmaz; response olarak üretilir.
+- Docker Compose development server'ları çalıştırır; production image optimizasyonu hedeflenmemiştir.
+- Mobile varsayılan API adresi Android emulator içindir; iOS/gerçek cihazda override gerekebilir.
+- Gemini kullanımı için internet erişimi ve geçerli Google API key gerekir.
 
-`GET /api/v1/usage` aşağıdaki alanları döndürür:
+## Faz 5A Notu
 
-```json
-{
-  "plan": "free",
-  "monthly_limit": 30,
-  "usage_count": 4,
-  "remaining": 26,
-  "usage_reset_at": "2026-05-01T00:00:00"
-}
-```
+Bu tur final teslim öncesi polish/readiness kapsamındadır. Yeni büyük özellik, ödeme sistemi, admin panel, landing page, advanced analytics veya yeni AI mimarisi eklenmemiştir.
 
----
+## Geliştirici
 
-## 📁 Proje Yapısı
-
-```
-TestPilot – AI QA Assistant/
-├── docker-compose.yml
-├── backend/               ← Python / FastAPI
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── data/              ← SQLite veritabanı (gitignore)
-│   └── app/
-│       ├── main.py
-│       ├── config.py
-│       ├── database.py
-│       ├── models/
-│       │   ├── db_models.py
-│       │   └── schemas.py
-│       ├── routers/
-│       │   ├── auth.py
-│       │   ├── export.py
-│       │   ├── generate.py      ← single + batch
-│       │   ├── history.py
-│       │   ├── templates.py     ← YENİ
-│       │   └── usage.py
-│       ├── services/
-│       │   ├── export_service.py
-│       │   ├── generation_service.py
-│       │   ├── history_service.py
-│       │   ├── llm_service.py
-│       │   └── template_service.py  ← YENİ
-│       ├── prompts/
-│       │   ├── bug_report_prompt.py
-│       │   ├── mod_a_prompt.py
-│       │   └── mod_b_prompt.py
-│       └── utils/
-│           └── auth.py
-├── frontend/              ← React / TypeScript / Tailwind
-│   ├── Dockerfile
-│   ├── package.json
-│   └── src/
-│       ├── assets/
-│       ├── components/
-│       ├── hooks/
-│       ├── pages/
-│       ├── services/
-│       ├── types/
-│       ├── main.tsx
-│       └── App.tsx
-├── mobile/                ← Flutter (iOS + Android)
-├── logo/                  ← Logo dosyaları
-├── stories/               ← Instagram story görselleri
-├── proje.md               ← Fikir onay dokümanı
-└── README.md
-```
-
----
-
-## 📋 Proje Durumu
-
-- [x] Faz 0 — Proje İskeleti + Docker
-- [x] Faz 1A — Backend Core (DB, Auth, Generate API, Mock LLM)
-- [x] Faz 1B — Backend Surface Completion (History, Export, Usage, Bug Report)
-- [x] Faz 2A — Frontend Foundation (Login, Dashboard, Generate)
-- [x] Faz 2B — Frontend Completion (History, Result, Settings, Export UI)
-- [x] Faz 4A — Real Gemini Integration (google-genai SDK, mock fallback)
-- [x] Faz 4B — Premium Backend Features (Batch, Custom Templates, Template+Generate)
-- [x] Faz 4C — Premium Web UI (Templates, Batch Generate, Template+Generate UI)
-- [ ] Faz 3 — Flutter Mobil Uygulama
-- [ ] Faz 5 — Final Polish + Teslim
-
----
-
-## 👤 Geliştirici
-
-**Emir Buğra Irmak** — 21253061
+Emir Buğra Irmak - 21253061
