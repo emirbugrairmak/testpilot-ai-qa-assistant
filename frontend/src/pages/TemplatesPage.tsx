@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { LoadingState } from "../components/LoadingState";
@@ -23,6 +24,7 @@ export function TemplatesPage() {
   const updateMutation = useUpdateTemplate();
   const deleteMutation = useDeleteTemplate();
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Template | null>(null);
   const [name, setName] = useState("");
   const [promptText, setPromptText] = useState("");
 
@@ -75,17 +77,17 @@ export function TemplatesPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function handleDelete(template: Template) {
-    const confirmed = window.confirm(`"${template.name}" Template'i silinsin mi?`);
-    if (!confirmed) {
+  function handleDeleteConfirm() {
+    if (!deleteTarget) {
       return;
     }
 
-    deleteMutation.mutate(template.id, {
+    deleteMutation.mutate(deleteTarget.id, {
       onSuccess: () => {
-        if (editingTemplate?.id === template.id) {
+        if (editingTemplate?.id === deleteTarget.id) {
           setEditingTemplate(null);
         }
+        setDeleteTarget(null);
       },
     });
   }
@@ -246,7 +248,7 @@ export function TemplatesPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDelete(template)}
+                      onClick={() => setDeleteTarget(template)}
                       disabled={deleteMutation.isPending}
                       className="rounded-lg border border-red-200 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -259,6 +261,16 @@ export function TemplatesPage() {
           ) : null}
         </div>
       </section>
+
+      {deleteTarget ? (
+        <ConfirmDialog
+          title={`"${deleteTarget.name}" Template'i silinsin mi?`}
+          description="Bu Template, Generate ve Batch Generate ekranlarında artık kullanılamayacak."
+          isPending={deleteMutation.isPending}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDeleteConfirm}
+        />
+      ) : null}
     </div>
   );
 }

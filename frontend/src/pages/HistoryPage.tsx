@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { LoadingState } from "../components/LoadingState";
 import { useAuth } from "../hooks/useAuth";
 import { useDeleteHistory } from "../hooks/useDeleteHistory";
 import { useHistory } from "../hooks/useHistory";
-import type { GenerationMode } from "../types/api";
+import type { GenerationMode, HistoryItem } from "../types/api";
 
 type HistoryPageProps = {
   onOpenResult: (generationId: number) => void;
@@ -14,6 +15,7 @@ type HistoryPageProps = {
 export function HistoryPage({ onOpenResult }: HistoryPageProps) {
   const { isAuthenticated } = useAuth();
   const [draftQuery, setDraftQuery] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<HistoryItem | null>(null);
   const [filters, setFilters] = useState<{
     mode: GenerationMode | "all";
     q: string;
@@ -33,13 +35,14 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
     }));
   }
 
-  function handleDelete(generationId: number) {
-    const confirmed = window.confirm("Bu üretim geçmişten silinsin mi?");
-    if (!confirmed) {
+  function handleDeleteConfirm() {
+    if (!deleteTarget) {
       return;
     }
 
-    deleteMutation.mutate(generationId);
+    deleteMutation.mutate(deleteTarget.generation_id, {
+      onSuccess: () => setDeleteTarget(null),
+    });
   }
 
   return (
@@ -151,7 +154,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
                     className="text-left"
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-md bg-sky-50 px-2 py-1 text-xs font-bold text-sky-700">
+                      <span className={modeBadgeClass(item.mode)}>
                         {formatMode(item.mode)}
                       </span>
                       <span className="text-xs font-semibold text-slate-500">
@@ -176,7 +179,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDelete(item.generation_id)}
+                      onClick={() => setDeleteTarget(item)}
                       disabled={deleteMutation.isPending}
                       className="rounded-lg border border-red-200 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -189,8 +192,32 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
           ) : null}
         </div>
       </section>
+
+      {deleteTarget ? (
+        <ConfirmDialog
+          title={`Üretim #${deleteTarget.generation_id} silinsin mi?`}
+          description={`${formatMode(deleteTarget.mode)} kaydı History'den kalıcı olarak silinecek.`}
+          isPending={deleteMutation.isPending}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDeleteConfirm}
+        />
+      ) : null}
     </div>
   );
+}
+
+function modeBadgeClass(mode: GenerationMode) {
+  const base = "rounded-md px-2 py-1 text-xs font-bold";
+
+  if (mode === "mod_a") {
+    return `${base} bg-sky-50 text-sky-700 ring-1 ring-sky-100`;
+  }
+
+  if (mode === "mod_b") {
+    return `${base} bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100`;
+  }
+
+  return `${base} bg-amber-50 text-amber-700 ring-1 ring-amber-100`;
 }
 
 function formatMode(mode: GenerationMode) {
