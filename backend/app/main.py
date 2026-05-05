@@ -54,10 +54,27 @@ app.include_router(templates.router, prefix="/api/v1")
 @app.get("/health", tags=["System"])
 async def health_check():
     """Servis sağlık kontrolü."""
+    configured_provider = settings.LLM_PROVIDER.lower()
+    if configured_provider == "gemini" and settings.GEMINI_API_KEY:
+        effective_provider = "gemini"
+    elif configured_provider == "gemini" and settings.LLM_FALLBACK_TO_MOCK:
+        effective_provider = "mock"
+    elif configured_provider == "gemini":
+        effective_provider = "unavailable"
+    else:
+        effective_provider = "mock"
+
     return {
         "status": "healthy",
         "service": "TestPilot API",
         "version": "0.1.0",
+        "ai": {
+            "configured_provider": configured_provider,
+            "effective_provider": effective_provider,
+            "model": settings.GEMINI_MODEL if effective_provider == "gemini" else "mock",
+            "fallback_to_mock": settings.LLM_FALLBACK_TO_MOCK,
+            "gemini_key_configured": bool(settings.GEMINI_API_KEY),
+        },
     }
 
 

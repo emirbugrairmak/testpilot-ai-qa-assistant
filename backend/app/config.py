@@ -26,6 +26,9 @@ class Settings:
 
     # ── Database ────────────────────────────────────
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", "data/testpilot.db")
+    DEMO_RESET_ON_STARTUP: bool = (
+        os.getenv("DEMO_RESET_ON_STARTUP", "true").lower() == "true"
+    )
 
     # ── Usage Limits ────────────────────────────────
     FREE_MONTHLY_LIMIT: int = 30
@@ -41,8 +44,10 @@ class Settings:
     # Kullanılacak Gemini modeli
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
-    # True ise Gemini başarısız olursa mock'a düşer (güvenli fallback)
-    LLM_FALLBACK_TO_MOCK: bool = os.getenv("LLM_FALLBACK_TO_MOCK", "true").lower() == "true"
+    # True ise Gemini başarısız olursa mock'a düşer. Demo güvenilirliği için görünür tutulur.
+    LLM_FALLBACK_TO_MOCK: bool = (
+        os.getenv("LLM_FALLBACK_TO_MOCK", "false").lower() == "true"
+    )
 
 
 settings = Settings()

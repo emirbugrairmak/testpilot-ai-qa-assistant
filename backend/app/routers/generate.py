@@ -169,11 +169,17 @@ def generate(
     check_usage_limit(key_info)
 
     # ── 4. Generate ───────────────────────────────────
-    result = run_generation(
-        mode=request.mode.value,
-        inputs=inputs,
-        key_info=key_info,
-    )
+    try:
+        result = run_generation(
+            mode=request.mode.value,
+            inputs=inputs,
+            key_info=key_info,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
 
     # ── 5. Increment usage counter ────────────────────
     increment_usage(key_info["id"])

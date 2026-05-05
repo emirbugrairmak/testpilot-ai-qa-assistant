@@ -21,6 +21,19 @@ export type UsageResponse = {
   usage_reset_at: string;
 };
 
+export type SystemStatusResponse = {
+  status: string;
+  service: string;
+  version: string;
+  ai: {
+    configured_provider: "mock" | "gemini" | string;
+    effective_provider: "mock" | "gemini" | string;
+    model: string;
+    fallback_to_mock: boolean;
+    gemini_key_configured: boolean;
+  };
+};
+
 export type HistoryItem = {
   generation_id: number;
   mode: GenerationMode;

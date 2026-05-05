@@ -40,7 +40,9 @@ def generate_with_llm(mode: str, inputs: dict, plan: str = "free", template_hint
     Raises:
         RuntimeError: Hem Gemini hem fallback başarısız olursa
     """
-    if settings.LLM_PROVIDER == "gemini" and settings.GEMINI_API_KEY:
+    provider = settings.LLM_PROVIDER.lower()
+
+    if provider == "gemini" and settings.GEMINI_API_KEY:
         try:
             return _generate_with_gemini(mode, inputs, plan, template_hint)
         except Exception as exc:
@@ -55,8 +57,14 @@ def generate_with_llm(mode: str, inputs: dict, plan: str = "free", template_hint
                 "Set LLM_FALLBACK_TO_MOCK=true to enable mock fallback."
             ) from exc
 
-    if settings.LLM_PROVIDER == "gemini" and not settings.GEMINI_API_KEY:
-        logger.warning("LLM_PROVIDER=gemini but GEMINI_API_KEY is empty, using mock.")
+    if provider == "gemini" and not settings.GEMINI_API_KEY:
+        if settings.LLM_FALLBACK_TO_MOCK:
+            logger.warning("LLM_PROVIDER=gemini but GEMINI_API_KEY is empty, using mock.")
+            return _generate_mock(mode, inputs, plan)
+        raise RuntimeError(
+            "LLM_PROVIDER=gemini but GEMINI_API_KEY is empty. "
+            "Add a Gemini API key or set LLM_PROVIDER=mock for deterministic demo output."
+        )
 
     return _generate_mock(mode, inputs, plan)
 

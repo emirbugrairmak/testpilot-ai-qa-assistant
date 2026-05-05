@@ -7,7 +7,7 @@ TestPilot, feature idea, user story/acceptance criteria veya bug bilgisi giriler
 - Backend, demo API key tabanlı auth, kullanım limiti, history, export, custom template ve batch generate akışlarını sağlar.
 - Web uygulaması login, dashboard, generate, result, history, settings, templates ve batch generate ekranlarını içerir.
 - Mobil uygulama Flutter ile login, dashboard, generate, result, history, settings ve export paylaşım akışlarını demo seviyesinde sunar.
-- LLM katmanı varsayılan olarak deterministik mock generator ile çalışır; `gemini` provider seçilirse Google Gemini API kullanılabilir.
+- LLM katmanı varsayılan olarak deterministik mock generator ile çalışır; `gemini` provider seçilirse Google Gemini API kullanılabilir. Aktif AI motoru `/health` yanıtında ve web dashboard'daki küçük durum etiketinde görünür.
 
 ## Özellikler
 
@@ -33,6 +33,8 @@ Demo API key'leri backend ilk açıldığında seed edilir:
 tp_free_demo_key
 tp_premium_demo_key
 ```
+
+Varsayılan demo davranışında bu iki erişim anahtarının usage ve history verisi backend başlangıcında temizlenir. Böylece Free ve Premium çalışma alanları ilk girişte `0` usage ve boş recent history ile öngörülebilir başlar. Restart sonrası local demo geçmişini korumak istersen `DEMO_RESET_ON_STARTUP=false` kullan.
 
 ## Teknolojiler
 
@@ -157,7 +159,8 @@ Ardından `.env` içinde:
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=your_actual_api_key_here
 GEMINI_MODEL=gemini-2.0-flash
-LLM_FALLBACK_TO_MOCK=true
+LLM_FALLBACK_TO_MOCK=false
+DEMO_RESET_ON_STARTUP=true
 ```
 
 Sonra servisleri yeniden başlat:
@@ -180,16 +183,30 @@ Temel davranış:
 | `LLM_PROVIDER` | `GEMINI_API_KEY` | Davranış |
 | --- | --- | --- |
 | `mock` | Boş veya dolu | Deterministik mock çıktı üretir |
-| `gemini` | Boş | Uyarı log'u yazar, fallback açıksa mock'a düşer |
+| `gemini` | Boş | Fallback kapalıysa `/health` içinde `unavailable` görünür ve üretim 503 döner |
 | `gemini` | Dolu | Gemini API ile üretim dener |
 
-`LLM_FALLBACK_TO_MOCK=true` ise Gemini hatalarında demo akışı bozulmadan mock çıktı döner. `false` yapılırsa Gemini hatası `503 Service Unavailable` olarak döner.
+`LLM_FALLBACK_TO_MOCK=false` varsayılandır. Bu ayarda Gemini hatası `503 Service Unavailable` olarak döner; böylece gerçek Gemini çıktısı ile mock çıktı sessizce karışmaz. `true` yapılırsa Gemini hatalarında üretim akışı mock ile devam eder ve web dashboard'da fallback açık görünür.
+
+`GET /health` yanıtındaki `ai` alanı aktif motoru gösterir:
+
+```json
+{
+  "ai": {
+    "configured_provider": "gemini",
+    "effective_provider": "gemini",
+    "model": "gemini-2.0-flash",
+    "fallback_to_mock": false,
+    "gemini_key_configured": true
+  }
+}
+```
 
 ## Backend Endpoint Özeti
 
 | Method | Endpoint | Açıklama | Auth |
 | --- | --- | --- | --- |
-| `GET` | `/health` | Servis sağlık kontrolü | Yok |
+| `GET` | `/health` | Servis ve AI motoru sağlık/durum kontrolü | Yok |
 | `GET` | `/docs` | Swagger UI | Yok |
 | `POST` | `/api/v1/auth/validate` | API key doğrulama | Bearer |
 | `POST` | `/api/v1/generate` | Mod A, Mod B veya bug report üretimi | Bearer |

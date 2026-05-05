@@ -9,6 +9,7 @@ import type {
   HistoryDetailResponse,
   HistoryListResponse,
   HistoryQueryParams,
+  SystemStatusResponse,
   Template,
   TemplateListResponse,
   TemplatePayload,
@@ -93,6 +94,12 @@ export function validateApiKey(apiKey: string) {
 
 export function fetchUsage() {
   return apiRequest<UsageResponse>("/api/v1/usage");
+}
+
+export function fetchSystemStatus() {
+  return apiRequest<SystemStatusResponse>("/health", {
+    apiKey: null,
+  });
 }
 
 export function fetchHistory(params: HistoryQueryParams = {}) {

@@ -107,6 +107,33 @@ def _seed_api_keys(conn: sqlite3.Connection) -> None:
         )
 
 
+def _reset_demo_state(conn: sqlite3.Connection) -> None:
+    """Demo çalışma alanlarını temiz ve öngörülebilir başlangıca al."""
+    reset_at = _next_month_reset()
+    demo_keys = [key for key, *_ in SEED_KEYS]
+    placeholders = ", ".join("?" for _ in demo_keys)
+
+    rows = conn.execute(
+        f"SELECT id FROM api_keys WHERE key IN ({placeholders})",
+        demo_keys,
+    ).fetchall()
+    demo_key_ids = [row["id"] for row in rows]
+    if not demo_key_ids:
+        return
+
+    id_placeholders = ", ".join("?" for _ in demo_key_ids)
+    conn.execute(
+        f"DELETE FROM generations WHERE api_key_id IN ({id_placeholders})",
+        demo_key_ids,
+    )
+    conn.execute(
+        f"""UPDATE api_keys
+            SET usage_count = 0, usage_reset_at = ?
+            WHERE id IN ({id_placeholders})""",
+        [reset_at, *demo_key_ids],
+    )
+
+
 def _migrate_generations_bug_report_mode(conn: sqlite3.Connection) -> None:
     """Eski Phase 1A generations CHECK constraint'ini bug_report ile genişlet."""
     row = conn.execute(
@@ -189,7 +216,8 @@ def init_db() -> None:
         _migrate_generations_bug_report_mode(conn)
         _migrate_custom_templates(conn)
         _seed_api_keys(conn)
+        if settings.DEMO_RESET_ON_STARTUP:
+            _reset_demo_state(conn)
         conn.commit()
 
     print(f"✅ Database initialized: {db_path}")
-

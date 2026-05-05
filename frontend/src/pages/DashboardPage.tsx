@@ -4,6 +4,7 @@ import { PlanBadge } from "../components/PlanBadge";
 import { UsageCard } from "../components/UsageCard";
 import { useAuth } from "../hooks/useAuth";
 import { useHistory } from "../hooks/useHistory";
+import { useSystemStatus } from "../hooks/useSystemStatus";
 import { useUsage } from "../hooks/useUsage";
 import type { GenerationMode } from "../types/api";
 
@@ -19,7 +20,9 @@ export function DashboardPage({
   const { isAuthenticated, user } = useAuth();
   const usageQuery = useUsage(isAuthenticated);
   const historyQuery = useHistory({}, isAuthenticated);
+  const systemStatusQuery = useSystemStatus();
   const recentHistory = historyQuery.data?.items.slice(0, 5) ?? [];
+  const aiStatus = systemStatusQuery.data?.ai;
 
   return (
     <div className="space-y-8">
@@ -30,6 +33,7 @@ export function DashboardPage({
               Dashboard
             </h1>
             {user && <PlanBadge plan={user.plan} />}
+            {aiStatus ? <AiStatusBadge ai={aiStatus} /> : null}
           </div>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
             Track usage, review recent generations, and start a new QA run.
@@ -128,6 +132,40 @@ export function DashboardPage({
       </div>
     </div>
   );
+}
+
+function AiStatusBadge({
+  ai,
+}: {
+  ai: {
+    effective_provider: string;
+    model: string;
+    fallback_to_mock: boolean;
+  };
+}) {
+  const providerLabel = formatProviderLabel(ai.effective_provider);
+  const fallbackLabel = ai.fallback_to_mock ? "fallback on" : "fallback off";
+
+  return (
+    <span
+      className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
+      title={`Model: ${ai.model} · ${fallbackLabel}`}
+    >
+      AI engine: {providerLabel} · {fallbackLabel}
+    </span>
+  );
+}
+
+function formatProviderLabel(provider: string) {
+  if (provider === "gemini") {
+    return "Gemini";
+  }
+
+  if (provider === "unavailable") {
+    return "Unavailable";
+  }
+
+  return "Mock";
 }
 
 function ActionButton({
