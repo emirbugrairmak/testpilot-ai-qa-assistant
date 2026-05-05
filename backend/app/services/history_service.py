@@ -54,7 +54,7 @@ def list_generations(
             "mode": row["mode"],
             "input": _loads(row["input_json"]),
             "output_summary": _summarize_output(output),
-            "created_at": row["created_at"],
+            "created_at": output.get("created_at") or row["created_at"],
         })
 
     return {
@@ -78,13 +78,15 @@ def get_generation_detail(api_key_id: int, generation_id: int) -> dict | None:
     if not row:
         return None
 
+    output = _loads(row["output_json"])
+
     return {
         "generation_id": row["id"],
         "mode": row["mode"],
         "input": _loads(row["input_json"]),
-        "output": _loads(row["output_json"]),
+        "output": output,
         "markdown": row["output_md"],
-        "created_at": row["created_at"],
+        "created_at": output.get("created_at") or row["created_at"],
     }
 
 

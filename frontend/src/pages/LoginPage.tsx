@@ -8,9 +8,24 @@ type LoginPageProps = {
   onLoginSuccess: () => void;
 };
 
+const accessOptions = [
+  {
+    key: "tp_free_demo_key",
+    title: "Deneme erişimi",
+    plan: "Free çalışma alanı",
+    description: "Aylık 30 üretim, Markdown/JSON dışa aktarma ve son 15 kayıt.",
+  },
+  {
+    key: "tp_premium_demo_key",
+    title: "Profesyonel erişim",
+    plan: "Premium çalışma alanı",
+    description: "Yüksek limit, sınırsız history, CSV/Jira export ve template akışları.",
+  },
+];
+
 export function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const { login, isLoggingIn, loginError, clearLoginError } = useAuth();
-  const [apiKey, setApiKey] = useState("tp_free_demo_key");
+  const [apiKey, setApiKey] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -41,16 +56,17 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
           <div className="max-w-2xl">
             <h1 className="text-4xl font-extrabold leading-tight text-navy-800">
-              Turn product notes into QA artifacts with a clean workflow.
+              QA çalışmalarınızı tek bir erişim anahtarıyla başlatın.
             </h1>
             <p className="mt-4 text-lg leading-8 text-slate-600">
-              Validate your API key, check usage, review recent generations,
-              and create test cases or bug reports from one focused workspace.
+              TestPilot, çalışma alanı anahtarınızı doğrular; kullanım limitinizi,
+              geçmiş üretimlerinizi ve AI destekli test çıktılarınızı aynı
+              profesyonel akışta toplar.
             </p>
           </div>
 
           <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
-            {["Mod A", "Mod B", "Bug Report"].map((item) => (
+            {["Fikirden test planı", "Story'den test case", "Bug report"].map((item) => (
               <div
                 key={item}
                 className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
@@ -63,9 +79,15 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
         <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <div>
-            <h2 className="text-2xl font-bold text-navy-800">Sign in</h2>
+            <p className="text-sm font-bold uppercase text-sky-700">
+              Çalışma alanı erişimi
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-navy-800">
+              Erişim anahtarınızı doğrulayın
+            </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Use one of the demo API keys or paste your own key.
+              Davet, trial veya ekip anahtarınızı girin. Anahtar planınızı ve
+              kullanım haklarınızı belirler; ayrı bir kayıt adımı gerekmez.
             </p>
           </div>
 
@@ -75,15 +97,16 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
                 htmlFor="api_key"
                 className="text-sm font-semibold text-slate-700"
               >
-                API key
+                Erişim anahtarı
               </label>
               <input
                 id="api_key"
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                 value={apiKey}
                 onChange={(event) => setApiKey(event.target.value)}
-                placeholder="tp_free_demo_key"
+                placeholder="Çalışma alanı erişim anahtarınızı girin"
                 required
+                type="password"
               />
             </div>
 
@@ -94,16 +117,55 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               disabled={isLoggingIn}
               className="inline-flex w-full justify-center rounded-lg bg-accent-500 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLoggingIn ? "Validating" : "Continue"}
+              {isLoggingIn ? "Doğrulanıyor" : "Çalışma alanına devam et"}
             </button>
 
-            {isLoggingIn && <LoadingState label="Checking API key" />}
+            {isLoggingIn && <LoadingState label="Erişim anahtarı kontrol ediliyor" />}
           </form>
 
-          <div className="mt-6 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
-            <p className="font-bold text-slate-800">Demo keys</p>
-            <p className="mt-2 font-mono text-xs">tp_free_demo_key</p>
-            <p className="mt-1 font-mono text-xs">tp_premium_demo_key</p>
+          <div className="mt-6 space-y-3">
+            <div>
+              <p className="font-bold text-slate-800">Hazır erişim seçenekleri</p>
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                Ürün akışını incelemek için bir çalışma alanı tipi seçin.
+              </p>
+            </div>
+
+            {accessOptions.map((option) => {
+              const selected = apiKey === option.key;
+
+              return (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => {
+                    clearLoginError();
+                    setApiKey(option.key);
+                  }}
+                  aria-pressed={selected}
+                  className={`w-full rounded-lg border px-4 py-3 text-left transition ${
+                    selected
+                      ? "border-sky-300 bg-sky-50 ring-2 ring-sky-100"
+                      : "border-slate-200 bg-slate-50 hover:border-sky-200 hover:bg-white"
+                  }`}
+                >
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-bold text-navy-800">
+                      {option.title}
+                    </span>
+                    <span className="rounded-md bg-white px-2 py-1 text-xs font-bold text-slate-600">
+                      {selected ? "Seçildi" : "Seç"}
+                    </span>
+                  </span>
+                  <span className="mt-1 block text-xs font-semibold uppercase text-sky-700">
+                    {option.plan}
+                  </span>
+                  <span className="mt-2 block text-sm leading-6 text-slate-600">
+                    {option.description}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </section>
       </div>

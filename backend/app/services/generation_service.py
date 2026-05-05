@@ -78,9 +78,16 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
     with get_db() as conn:
         cursor = conn.execute(
             """INSERT INTO generations
-               (api_key_id, mode, input_json, output_json, output_md)
-               VALUES (?, ?, ?, ?, ?)""",
-            (key_info["id"], mode, input_json_str, output_json_str, output_md),
+               (api_key_id, mode, input_json, output_json, output_md, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                key_info["id"],
+                mode,
+                input_json_str,
+                output_json_str,
+                output_md,
+                created_at,
+            ),
         )
         generation_id = cursor.lastrowid
 
