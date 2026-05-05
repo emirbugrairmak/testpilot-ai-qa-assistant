@@ -23,7 +23,7 @@ export function ResultPage({
   if (detailQuery.isLoading) {
     return (
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <LoadingState label="Loading result" />
+        <LoadingState label="Sonuç yükleniyor" />
       </section>
     );
   }
@@ -35,7 +35,7 @@ export function ResultPage({
           message={
             detailQuery.error instanceof Error
               ? detailQuery.error.message
-              : "Could not load result."
+              : "Sonuç yüklenemedi."
           }
         />
         <button
@@ -43,7 +43,7 @@ export function ResultPage({
           onClick={onBackToHistory}
           className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-bold text-white hover:bg-navy-700"
         >
-          Back to history
+          History'ye dön
         </button>
       </div>
     );
@@ -52,8 +52,8 @@ export function ResultPage({
   if (!detailQuery.data || !user) {
     return (
       <EmptyState
-        title="Result not available"
-        description="The selected generation could not be opened."
+        title="Sonuç kullanılamıyor"
+        description="Seçili üretim açılamadı."
       />
     );
   }
@@ -70,14 +70,15 @@ export function ResultPage({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <p className="text-sm font-bold uppercase text-sky-700">Result</p>
+              <p className="text-sm font-bold uppercase text-sky-700">Sonuç</p>
               <PlanBadge plan={user.plan} />
             </div>
             <h1 className="mt-2 text-3xl font-extrabold text-navy-800">
-              Generation #{detailQuery.data.generation_id}
+              Üretim #{detailQuery.data.generation_id}
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Created {new Date(detailQuery.data.created_at).toLocaleString()}
+              Oluşturulma zamanı:{" "}
+              {new Date(detailQuery.data.created_at).toLocaleString("tr-TR")}
             </p>
           </div>
 
@@ -86,7 +87,7 @@ export function ResultPage({
             onClick={onBackToHistory}
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:border-sky-300 hover:text-sky-700"
           >
-            Back to history
+            History'ye dön
           </button>
         </div>
       </section>
@@ -96,7 +97,7 @@ export function ResultPage({
           <OutputPreview result={result} fullDetails />
 
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-bold text-navy-800">Markdown preview</h2>
+            <h2 className="text-lg font-bold text-navy-800">Markdown önizleme</h2>
             <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">
               {detailQuery.data.markdown}
             </pre>
@@ -110,7 +111,7 @@ export function ResultPage({
           />
 
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-bold text-navy-800">Input</h2>
+            <h2 className="text-lg font-bold text-navy-800">Girdi</h2>
             <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">
               {JSON.stringify(detailQuery.data.input, null, 2)}
             </pre>

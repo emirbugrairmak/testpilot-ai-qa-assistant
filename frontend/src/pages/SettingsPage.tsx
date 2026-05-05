@@ -13,34 +13,34 @@ export function SettingsPage() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <div>
-          <p className="text-sm font-bold uppercase text-sky-700">Settings</p>
+          <p className="text-sm font-bold uppercase text-sky-700">Ayarlar</p>
           <h1 className="mt-2 text-3xl font-extrabold text-navy-800">
-            Account and usage
+            Hesap ve kullanım
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Review your current plan, API key status, and usage summary.
+            Mevcut planınızı, erişim anahtarı durumunu ve kullanım özetinizi inceleyin.
           </p>
         </div>
 
         <div className="grid gap-4">
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-500">Current plan</p>
+            <p className="text-sm font-semibold text-slate-500">Mevcut plan</p>
             <div className="mt-3">
               {user ? <PlanBadge plan={user.plan} /> : null}
             </div>
           </div>
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-500">Stored API key</p>
+            <p className="text-sm font-semibold text-slate-500">Kayıtlı erişim anahtarı</p>
             <p className="mt-3 font-mono text-sm font-semibold text-navy-800">
               {maskApiKey(apiKey)}
             </p>
           </div>
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-500">Demo help</p>
+            <p className="text-sm font-semibold text-slate-500">Plan özeti</p>
             <p className="mt-3 text-sm leading-6 text-slate-700">
-              Free plan supports JSON and Markdown exports. Premium adds CSV and Jira exports, plus unlimited history.
+              Free planı JSON ve Markdown Export destekler. Premium; CSV/Jira Export ve sınırsız History ekler.
             </p>
           </div>
         </div>
@@ -50,18 +50,18 @@ export function SettingsPage() {
           onClick={logout}
           className="rounded-lg bg-accent-500 px-4 py-3 text-sm font-bold text-white hover:bg-accent-600"
         >
-          Logout
+          Çıkış yap
         </button>
       </section>
 
       <aside className="space-y-4">
-        {usageQuery.isLoading ? <LoadingState label="Loading usage" /> : null}
+        {usageQuery.isLoading ? <LoadingState label="Kullanım bilgisi yükleniyor" /> : null}
         {usageQuery.isError ? (
           <ErrorAlert
             message={
               usageQuery.error instanceof Error
                 ? usageQuery.error.message
-                : "Could not load usage."
+                : "Kullanım bilgisi yüklenemedi."
             }
           />
         ) : null}
@@ -73,7 +73,7 @@ export function SettingsPage() {
 
 function maskApiKey(value: string | null) {
   if (!value) {
-    return "No API key stored";
+    return "Kayıtlı erişim anahtarı yok";
   }
 
   if (value.length <= 8) {

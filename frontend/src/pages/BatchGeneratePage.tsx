@@ -89,11 +89,10 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
       <section className="rounded-lg border border-amber-200 bg-amber-50 p-6 shadow-sm">
         <p className="text-sm font-bold uppercase text-amber-700">Premium</p>
         <h1 className="mt-2 text-3xl font-extrabold text-amber-950">
-          Batch Generate is Premium only
+          Batch Generate yalnızca Premium planda kullanılabilir
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-amber-800">
-          Upgrade to Premium to generate multiple Mod A or Mod B outputs in a
-          single request.
+          Tek istekte birden fazla Mod A veya Mod B çıktısı üretmek için Premium gerekir.
         </p>
       </section>
     );
@@ -104,17 +103,17 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-sm font-bold uppercase text-sky-700">Batch Generate</p>
         <h1 className="mt-2 text-3xl font-extrabold text-navy-800">
-          Generate multiple QA outputs
+          Birden fazla QA çıktısı üret
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-          Premium batch generation supports Mod A and Mod B with up to 10 items.
+          Premium Batch Generate, en fazla 10 öğe için Mod A ve Mod B akışlarını destekler.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <div className="grid gap-4 md:grid-cols-[180px_minmax(0,1fr)]">
             <div className="space-y-2">
               <label htmlFor="batch_mode" className={labelClass}>
-                Mode
+                Mod
               </label>
               <select
                 id="batch_mode"
@@ -129,7 +128,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
 
             <div className="space-y-2">
               <label htmlFor="batch_template_id" className={labelClass}>
-                Custom template
+                Custom Template
               </label>
               <select
                 id="batch_template_id"
@@ -144,10 +143,10 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
               >
                 <option value="">
                   {templatesQuery.isLoading
-                    ? "Loading templates"
+                    ? "Templates yükleniyor"
                     : (templatesQuery.data?.items.length ?? 0) === 0
-                      ? "No templates yet"
-                      : "No template"}
+                      ? "Henüz Template yok"
+                      : "Template kullanma"}
                 </option>
                 {(templatesQuery.data?.items ?? []).map((template) => (
                   <option key={template.id} value={template.id}>
@@ -159,7 +158,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                 <p className="text-sm font-medium text-red-700">
                   {templatesQuery.error instanceof Error
                     ? templatesQuery.error.message
-                    : "Could not load templates."}
+                    : "Templates yüklenemedi."}
                 </p>
               ) : null}
             </div>
@@ -173,7 +172,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
               >
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <h2 className="text-sm font-bold text-navy-800">
-                    Item {index + 1}
+                    Öğe {index + 1}
                   </h2>
                   <button
                     type="button"
@@ -181,14 +180,14 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                     disabled={rows.length === 1 || batchMutation.isPending}
                     className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:border-red-200 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Remove
+                    Kaldır
                   </button>
                 </div>
 
                 {mode === "mod_a" ? (
                   <div className="space-y-2">
                     <label htmlFor={`feature_idea_${row.id}`} className={labelClass}>
-                      Feature idea
+                      Özellik fikri
                     </label>
                     <textarea
                       id={`feature_idea_${row.id}`}
@@ -200,7 +199,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                       onChange={(event) =>
                         updateRow(row.id, { featureIdea: event.target.value })
                       }
-                      placeholder="Password reset via email"
+                      placeholder="E-posta ile şifre sıfırlama"
                     />
                   </div>
                 ) : (
@@ -222,7 +221,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                         onChange={(event) =>
                           updateRow(row.id, { userStory: event.target.value })
                         }
-                        placeholder="As a user, I want to update my profile."
+                        placeholder="Bir kullanıcı olarak, profilimi güncellemek istiyorum."
                       />
                     </div>
 
@@ -231,7 +230,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                         htmlFor={`acceptance_criteria_${row.id}`}
                         className={labelClass}
                       >
-                        Acceptance criteria
+                        AC
                       </label>
                       <textarea
                         id={`acceptance_criteria_${row.id}`}
@@ -245,7 +244,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                             acceptanceCriteria: event.target.value,
                           })
                         }
-                        placeholder="Given an authenticated user, when they save changes, then the profile updates."
+                        placeholder="Giriş yapmış kullanıcı değişiklikleri kaydettiğinde profil güncellenmelidir."
                       />
                     </div>
                   </div>
@@ -261,14 +260,14 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
               disabled={rows.length >= 10 || batchMutation.isPending}
               className="rounded-lg border border-slate-300 px-4 py-3 text-sm font-bold text-slate-700 hover:border-sky-300 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Add item
+              Öğe ekle
             </button>
             <button
               type="submit"
               disabled={batchMutation.isPending}
               className="rounded-lg bg-accent-500 px-4 py-3 text-sm font-bold text-white hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {batchMutation.isPending ? "Generating" : "Run batch"}
+              {batchMutation.isPending ? "Üretiliyor" : "Batch Generate başlat"}
             </button>
           </div>
         </form>
@@ -277,7 +276,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
       <aside className="space-y-4">
         {batchMutation.isPending ? (
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <LoadingState label="Running batch" />
+            <LoadingState label="Batch Generate çalışıyor" />
           </section>
         ) : null}
 
@@ -286,7 +285,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
             message={
               batchMutation.error instanceof Error
                 ? batchMutation.error.message
-                : "Batch generation failed."
+                : "Batch Generate başarısız oldu."
             }
           />
         ) : null}
@@ -296,15 +295,15 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-navy-800">
-                  Batch response
+                  Batch Generate sonucu
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  {batchMutation.data.success_count} succeeded,{" "}
-                  {batchMutation.data.failed_count} failed.
+                  {batchMutation.data.success_count} başarılı,{" "}
+                  {batchMutation.data.failed_count} başarısız.
                 </p>
               </div>
               <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                {batchMutation.data.total_items} items
+                {batchMutation.data.total_items} öğe
               </span>
             </div>
 
@@ -319,10 +318,10 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                           : "rounded-md bg-red-50 px-2 py-1 text-xs font-bold text-red-700"
                       }
                     >
-                      {item.success ? "Success" : "Failed"}
+                      {item.success ? "Başarılı" : "Başarısız"}
                     </span>
                     <span className="text-xs font-semibold text-slate-500">
-                      Item {item.index + 1}
+                      Öğe {item.index + 1}
                     </span>
                   </div>
 
@@ -332,13 +331,13 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                       onClick={() => onOpenResult(item.generation_id!)}
                       className="mt-2 text-sm font-bold text-sky-700 hover:text-sky-900"
                     >
-                      Open generation #{item.generation_id}
+                      Üretimi aç #{item.generation_id}
                     </button>
                   ) : null}
 
                   {!item.success ? (
                     <p className="mt-2 text-sm leading-6 text-red-700">
-                      {item.error || "This item failed."}
+                      {item.error || "Bu öğe başarısız oldu."}
                     </p>
                   ) : null}
                 </article>
@@ -347,9 +346,9 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
           </section>
         ) : (
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-bold text-navy-800">Results</h2>
+            <h2 className="text-xl font-bold text-navy-800">Sonuçlar</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Submit a batch to see each item status and successful generation IDs.
+              Her öğenin durumunu ve başarılı üretim numaralarını görmek için Batch Generate başlatın.
             </p>
           </section>
         )}

@@ -13,13 +13,13 @@ const accessOptions = [
     key: "tp_free_demo_key",
     title: "Deneme erişimi",
     plan: "Free çalışma alanı",
-    description: "Aylık 30 üretim, Markdown/JSON dışa aktarma ve son 15 kayıt.",
+    description: "Aylık 30 üretim, Markdown/JSON dışa aktarımı ve son 15 kayıt.",
   },
   {
     key: "tp_premium_demo_key",
     title: "Profesyonel erişim",
     plan: "Premium çalışma alanı",
-    description: "Yüksek limit, sınırsız history, CSV/Jira export ve template akışları.",
+    description: "Yüksek limit, sınırsız History, CSV/Jira Export ve Template akışları.",
   },
 ];
 
@@ -49,7 +49,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
                 TestPilot
               </p>
               <p className="text-base font-semibold text-sky-700">
-                AI QA Assistant
+                AI QA Asistanı
               </p>
             </div>
           </div>
@@ -60,13 +60,13 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
             </h1>
             <p className="mt-4 text-lg leading-8 text-slate-600">
               TestPilot, çalışma alanı anahtarınızı doğrular; kullanım limitinizi,
-              geçmiş üretimlerinizi ve AI destekli test çıktılarınızı aynı
+              History kayıtlarınızı ve AI destekli test çıktılarınızı aynı
               profesyonel akışta toplar.
             </p>
           </div>
 
           <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
-            {["Fikirden test planı", "Story'den test case", "Bug report"].map((item) => (
+            {["Fikirden Test Cases", "User Story'den Test Cases", "Bug Report"].map((item) => (
               <div
                 key={item}
                 className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
@@ -86,7 +86,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               Erişim anahtarınızı doğrulayın
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Davet, trial veya ekip anahtarınızı girin. Anahtar planınızı ve
+              Davet, deneme veya ekip anahtarınızı girin. Anahtar planınızı ve
               kullanım haklarınızı belirler; ayrı bir kayıt adımı gerekmez.
             </p>
           </div>

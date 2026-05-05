@@ -13,17 +13,17 @@ const modes: Array<{
   {
     value: "mod_a",
     title: "Mod A",
-    description: "Feature idea to test suite",
+    description: "Özellik fikrinden Test Cases üretir",
   },
   {
     value: "mod_b",
     title: "Mod B",
-    description: "Story and AC to test cases",
+    description: "User Story ve AC'den Test Cases üretir",
   },
   {
     value: "bug_report",
     title: "Bug Report",
-    description: "Issue notes to bug template",
+    description: "Hata notlarından Bug Report taslağı üretir",
   },
 ];
 

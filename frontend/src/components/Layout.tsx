@@ -42,7 +42,7 @@ export function Layout({ page, children, onNavigate }: LayoutProps) {
             <div>
               <p className="text-lg font-extrabold text-navy-800">TestPilot</p>
               <p className="text-sm font-medium text-slate-500">
-                From idea to test cases, in minutes.
+                Fikirden test senaryolarına, dakikalar içinde.
               </p>
             </div>
           </div>
@@ -54,14 +54,14 @@ export function Layout({ page, children, onNavigate }: LayoutProps) {
                 onClick={() => onNavigate("dashboard")}
                 className={navClass(page === "dashboard")}
               >
-                Dashboard
+                Panel
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate("generate")}
                 className={navClass(page === "generate")}
               >
-                Generate
+                Üret
               </button>
               <button
                 type="button"
@@ -89,7 +89,7 @@ export function Layout({ page, children, onNavigate }: LayoutProps) {
                 onClick={() => onNavigate("settings")}
                 className={navClass(page === "settings")}
               >
-                Settings
+                Ayarlar
               </button>
             </nav>
 
@@ -100,7 +100,7 @@ export function Layout({ page, children, onNavigate }: LayoutProps) {
               onClick={logout}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 hover:border-accent-300 hover:text-accent-700"
             >
-              Logout
+              Çıkış
             </button>
           </div>
         </div>

@@ -76,7 +76,7 @@ export function TemplatesPage() {
   }
 
   function handleDelete(template: Template) {
-    const confirmed = window.confirm(`Delete template "${template.name}"?`);
+    const confirmed = window.confirm(`"${template.name}" Template'i silinsin mi?`);
     if (!confirmed) {
       return;
     }
@@ -93,8 +93,8 @@ export function TemplatesPage() {
   if (!isPremium) {
     return (
       <PremiumWarning
-        title="Custom templates are Premium only"
-        description="Upgrade to Premium to create reusable prompt templates and apply them during generation."
+        title="Custom Templates yalnızca Premium planda kullanılabilir"
+        description="Yeniden kullanılabilir Prompt Templates oluşturmak ve üretim sırasında kullanmak için Premium gerekir."
       />
     );
   }
@@ -104,16 +104,16 @@ export function TemplatesPage() {
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-sm font-bold uppercase text-sky-700">Templates</p>
         <h1 className="mt-2 text-3xl font-extrabold text-navy-800">
-          {editingTemplate ? "Edit template" : "Create template"}
+          {editingTemplate ? "Template'i düzenle" : "Template oluştur"}
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Save reusable instructions for premium generate workflows.
+          Premium üretim akışlarında kullanmak üzere tekrar kullanılabilir Template yönergeleri kaydedin.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-2">
             <label htmlFor="template_name" className={labelClass}>
-              Name
+              Ad
             </label>
             <input
               id="template_name"
@@ -123,13 +123,13 @@ export function TemplatesPage() {
               maxLength={200}
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Security focus"
+              placeholder="Güvenlik odağı"
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="prompt_text" className={labelClass}>
-              Prompt text
+              Prompt metni
             </label>
             <textarea
               id="prompt_text"
@@ -140,7 +140,7 @@ export function TemplatesPage() {
               rows={9}
               value={promptText}
               onChange={(event) => setPromptText(event.target.value)}
-              placeholder="Always include accessibility, security, and edge-case coverage."
+              placeholder="Erişilebilirlik, güvenlik ve edge-case kapsamını her zaman ekle."
             />
           </div>
 
@@ -153,10 +153,10 @@ export function TemplatesPage() {
               className="rounded-lg bg-accent-500 px-4 py-3 text-sm font-bold text-white hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving
-                ? "Saving"
+                ? "Kaydediliyor"
                 : editingTemplate
-                  ? "Update template"
-                  : "Create template"}
+                  ? "Template'i güncelle"
+                  : "Template oluştur"}
             </button>
 
             {editingTemplate ? (
@@ -165,7 +165,7 @@ export function TemplatesPage() {
                 onClick={() => setEditingTemplate(null)}
                 className="rounded-lg border border-slate-300 px-4 py-3 text-sm font-bold text-slate-700 hover:border-sky-300 hover:text-sky-700"
               >
-                Cancel
+                İptal
               </button>
             ) : null}
           </div>
@@ -176,22 +176,22 @@ export function TemplatesPage() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-bold text-navy-800">
-              Your templates
+              Templates
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Select a template from Generate or Batch Generate.
+              Üretim veya Batch Generate ekranında kullanmak için bir Template seçin.
             </p>
           </div>
           {templatesQuery.data ? (
             <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-              {templatesQuery.data.count} templates
+              {templatesQuery.data.count} Template
             </span>
           ) : null}
         </div>
 
         <div className="mt-5">
           {templatesQuery.isLoading ? (
-            <LoadingState label="Loading templates" />
+            <LoadingState label="Templates yükleniyor" />
           ) : null}
 
           {templatesQuery.isError ? (
@@ -199,15 +199,15 @@ export function TemplatesPage() {
               message={
                 templatesQuery.error instanceof Error
                   ? templatesQuery.error.message
-                  : "Could not load templates."
+                  : "Templates yüklenemedi."
               }
             />
           ) : null}
 
           {templatesQuery.data && templatesQuery.data.items.length === 0 ? (
             <EmptyState
-              title="No templates yet"
-              description="Create your first custom template to reuse it during premium generation."
+              title="Henüz Template yok"
+              description="Premium üretimlerde yeniden kullanmak için ilk Custom Template'inizi oluşturun."
             />
           ) : null}
 
@@ -231,7 +231,8 @@ export function TemplatesPage() {
                       {template.prompt_text}
                     </p>
                     <p className="mt-2 text-xs font-medium text-slate-400">
-                      Updated {new Date(template.updated_at).toLocaleString()}
+                      Güncellendi:{" "}
+                      {new Date(template.updated_at).toLocaleString("tr-TR")}
                     </p>
                   </div>
 
@@ -241,7 +242,7 @@ export function TemplatesPage() {
                       onClick={() => handleEdit(template)}
                       className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 hover:border-sky-300 hover:text-sky-700"
                     >
-                      Edit
+                      Düzenle
                     </button>
                     <button
                       type="button"
@@ -249,7 +250,7 @@ export function TemplatesPage() {
                       disabled={deleteMutation.isPending}
                       className="rounded-lg border border-red-200 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Delete
+                      Sil
                     </button>
                   </div>
                 </article>

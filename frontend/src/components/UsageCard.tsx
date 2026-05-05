@@ -14,7 +14,7 @@ export function UsageCard({ usage }: UsageCardProps) {
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-slate-500">Monthly usage</p>
+          <p className="text-sm font-semibold text-slate-500">Aylık kullanım</p>
           <p className="mt-2 text-3xl font-bold text-navy-800">
             {usage.usage_count}
             <span className="text-base font-semibold text-slate-500">
@@ -24,7 +24,7 @@ export function UsageCard({ usage }: UsageCardProps) {
           </p>
         </div>
         <div className="rounded-md bg-sky-50 px-3 py-2 text-right">
-          <p className="text-xs font-semibold text-slate-500">Remaining</p>
+          <p className="text-xs font-semibold text-slate-500">Kalan</p>
           <p className="text-lg font-bold text-sky-700">{usage.remaining}</p>
         </div>
       </div>
@@ -37,7 +37,8 @@ export function UsageCard({ usage }: UsageCardProps) {
       </div>
 
       <p className="mt-3 text-xs font-medium text-slate-500">
-        Resets at {new Date(usage.usage_reset_at).toLocaleDateString()}
+        Yenilenme tarihi:{" "}
+        {new Date(usage.usage_reset_at).toLocaleDateString("tr-TR")}
       </p>
     </section>
   );

@@ -30,21 +30,21 @@ export function DashboardPage({
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl font-extrabold text-navy-800">
-              Dashboard
+              Panel
             </h1>
             {user && <PlanBadge plan={user.plan} />}
             {aiStatus ? <AiStatusBadge ai={aiStatus} /> : null}
           </div>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Track usage, review recent generations, and start a new QA run.
+            Kullanımı takip edin, son üretimleri inceleyin ve yeni bir QA çalışması başlatın.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <ActionButton label="New Mod A" onClick={() => onNewGeneration("mod_a")} />
-          <ActionButton label="New Mod B" onClick={() => onNewGeneration("mod_b")} />
+          <ActionButton label="Yeni Mod A" onClick={() => onNewGeneration("mod_a")} />
+          <ActionButton label="Yeni Mod B" onClick={() => onNewGeneration("mod_b")} />
           <ActionButton
-            label="New Bug Report"
+            label="Yeni Bug Report"
             onClick={() => onNewGeneration("bug_report")}
           />
         </div>
@@ -52,13 +52,13 @@ export function DashboardPage({
 
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         <div>
-          {usageQuery.isLoading && <LoadingState label="Loading usage" />}
+          {usageQuery.isLoading && <LoadingState label="Kullanım bilgisi yükleniyor" />}
           {usageQuery.isError && (
             <ErrorAlert
               message={
                 usageQuery.error instanceof Error
                   ? usageQuery.error.message
-                  : "Could not load usage."
+                  : "Kullanım bilgisi yüklenemedi."
               }
             />
           )}
@@ -69,34 +69,34 @@ export function DashboardPage({
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-bold text-navy-800">
-                Recent history
+                Son History
               </h2>
               <p className="mt-1 text-sm text-slate-500">
-                Latest generations for this API key.
+                Bu erişim anahtarıyla yapılan son üretimler.
               </p>
             </div>
             {historyQuery.data && (
               <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                {historyQuery.data.count} records
+                {historyQuery.data.count} kayıt
               </span>
             )}
           </div>
 
           <div className="mt-5">
-            {historyQuery.isLoading && <LoadingState label="Loading history" />}
+            {historyQuery.isLoading && <LoadingState label="History yükleniyor" />}
             {historyQuery.isError && (
               <ErrorAlert
                 message={
                   historyQuery.error instanceof Error
                     ? historyQuery.error.message
-                    : "Could not load history."
+                    : "History yüklenemedi."
                 }
               />
             )}
 
             {historyQuery.data && recentHistory.length === 0 && (
               <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
-                No generations yet. Start with Mod A, Mod B, or a bug report.
+                Henüz üretim yok. Mod A, Mod B veya Bug Report ile başlayın.
               </p>
             )}
 
@@ -144,7 +144,7 @@ function AiStatusBadge({
   };
 }) {
   const providerLabel = formatProviderLabel(ai.effective_provider);
-  const fallbackLabel = ai.fallback_to_mock ? "fallback on" : "fallback off";
+  const fallbackLabel = ai.fallback_to_mock ? "fallback açık" : "fallback kapalı";
 
   return (
     <span
@@ -162,7 +162,7 @@ function formatProviderLabel(provider: string) {
   }
 
   if (provider === "unavailable") {
-    return "Unavailable";
+    return "Hazır değil";
   }
 
   return "Mock";

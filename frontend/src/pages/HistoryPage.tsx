@@ -34,7 +34,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
   }
 
   function handleDelete(generationId: number) {
-    const confirmed = window.confirm("Delete this generation from history?");
+    const confirmed = window.confirm("Bu üretim geçmişten silinsin mi?");
     if (!confirmed) {
       return;
     }
@@ -49,16 +49,16 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
           <div>
             <p className="text-sm font-bold uppercase text-sky-700">History</p>
             <h1 className="mt-2 text-3xl font-extrabold text-navy-800">
-              Review previous runs
+              Önceki History kayıtlarını inceleyin
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Filter by mode, search output text, open results, or delete a record.
+              Moda göre filtreleyin, metin içinde arayın, sonuçları açın veya kayıtları silin.
             </p>
           </div>
 
           {historyQuery.data?.limit ? (
             <div className="rounded-lg bg-sky-50 px-4 py-3 text-sm font-medium text-sky-700">
-              Free plan history is limited to the last {historyQuery.data.limit} records.
+              Free planında History son {historyQuery.data.limit} kayıtla sınırlıdır.
             </div>
           ) : null}
         </div>
@@ -77,7 +77,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
             }
             className="rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
           >
-            <option value="all">All modes</option>
+            <option value="all">Tüm modlar</option>
             <option value="mod_a">Mod A</option>
             <option value="mod_b">Mod B</option>
             <option value="bug_report">Bug Report</option>
@@ -86,7 +86,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
           <input
             value={draftQuery}
             onChange={(event) => setDraftQuery(event.target.value)}
-            placeholder="Search in input or output"
+            placeholder="Girdi veya çıktıda ara"
             className="rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
           />
 
@@ -94,7 +94,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
             type="submit"
             className="rounded-lg bg-navy-800 px-4 py-3 text-sm font-bold text-white hover:bg-navy-700"
           >
-            Search
+            Ara
           </button>
         </form>
       </section>
@@ -104,37 +104,37 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
           message={
             deleteMutation.error instanceof Error
               ? deleteMutation.error.message
-              : "Delete failed."
+              : "Silme işlemi başarısız oldu."
           }
         />
       ) : null}
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-bold text-navy-800">Results</h2>
+          <h2 className="text-xl font-bold text-navy-800">Sonuçlar</h2>
           {historyQuery.data ? (
             <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-              {historyQuery.data.count} records
+              {historyQuery.data.count} kayıt
             </span>
           ) : null}
         </div>
 
         <div className="mt-5">
-          {historyQuery.isLoading ? <LoadingState label="Loading history" /> : null}
+          {historyQuery.isLoading ? <LoadingState label="History yükleniyor" /> : null}
           {historyQuery.isError ? (
             <ErrorAlert
               message={
                 historyQuery.error instanceof Error
                   ? historyQuery.error.message
-                  : "Could not load history."
+                  : "History yüklenemedi."
               }
             />
           ) : null}
 
           {historyQuery.data && historyQuery.data.items.length === 0 ? (
             <EmptyState
-              title="No matching history"
-              description="Try another mode filter or a different search phrase."
+              title="Eşleşen History kaydı yok"
+              description="Başka bir mod filtresi veya farklı bir arama ifadesi deneyin."
             />
           ) : null}
 
@@ -172,7 +172,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
                       onClick={() => onOpenResult(item.generation_id)}
                       className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 hover:border-sky-300 hover:text-sky-700"
                     >
-                      Open
+                      Aç
                     </button>
                     <button
                       type="button"
@@ -180,7 +180,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
                       disabled={deleteMutation.isPending}
                       className="rounded-lg border border-red-200 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Delete
+                      Sil
                     </button>
                   </div>
                 </article>

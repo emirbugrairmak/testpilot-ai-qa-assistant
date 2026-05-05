@@ -34,12 +34,12 @@ export function GeneratePage({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,520px)]">
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <div>
-          <p className="text-sm font-bold uppercase text-sky-700">Generate</p>
+          <p className="text-sm font-bold uppercase text-sky-700">Üretim</p>
           <h1 className="mt-2 text-3xl font-extrabold text-navy-800">
-            Create QA output
+            QA çıktısı oluştur
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Pick a mode, fill the fields, and preview the generated artifact.
+            Bir mod seçin, alanları doldurun ve oluşturulan çıktıyı inceleyin.
           </p>
         </div>
 
@@ -54,7 +54,7 @@ export function GeneratePage({
               templatesQuery.isError
                 ? templatesQuery.error instanceof Error
                   ? templatesQuery.error.message
-                  : "Could not load templates."
+                  : "Templates yüklenemedi."
                 : null
             }
             onModeChange={onModeChange}
@@ -66,7 +66,7 @@ export function GeneratePage({
       <aside className="space-y-4">
         {generateMutation.isPending && (
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <LoadingState label="Generating output" />
+            <LoadingState label="Çıktı üretiliyor" />
           </section>
         )}
 
@@ -75,14 +75,14 @@ export function GeneratePage({
             message={
               generateMutation.error instanceof Error
                 ? generateMutation.error.message
-                : "Generation failed."
+                : "Üretim başarısız oldu."
             }
           />
         )}
 
         <EmptyState
-          title="Result page"
-          description="After a successful generation, you will be taken to the result page where exports, markdown, and detailed blocks are available."
+          title="Sonuç sayfası"
+          description="Başarılı üretimden sonra Export, Markdown ve detay bloklarının yer aldığı sonuç sayfasına yönlendirileceksiniz."
         />
       </aside>
     </div>

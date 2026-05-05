@@ -58,7 +58,7 @@ function App() {
   if (isRestoring) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <LoadingState label="Restoring session" />
+        <LoadingState label="Oturum geri yükleniyor" />
       </div>
     );
   }

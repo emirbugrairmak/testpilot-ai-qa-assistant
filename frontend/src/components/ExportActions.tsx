@@ -27,7 +27,7 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
     setMessage(null);
 
     if (premiumOnly && plan === "free") {
-      setMessage("CSV and Jira exports are available on the premium plan.");
+      setMessage("CSV ve Jira Export seçenekleri Premium planda kullanılabilir.");
       return;
     }
 
@@ -35,11 +35,11 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
       { generationId, format },
       {
         onSuccess: (filename) => {
-          setMessage(`Download started: ${filename}`);
+          setMessage(`İndirme başladı: ${filename}`);
         },
         onError: (error) => {
           setMessage(
-            error instanceof Error ? error.message : "Export could not be completed.",
+            error instanceof Error ? error.message : "Export tamamlanamadı.",
           );
         },
       },
@@ -52,11 +52,11 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
         <div>
           <h2 className="text-lg font-bold text-navy-800">Export</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Download the current result in the format you need.
+            Mevcut sonucu ihtiyacınız olan formatta indirin.
           </p>
         </div>
         {downloadMutation.isPending && (
-          <span className="text-sm font-semibold text-sky-700">Preparing file</span>
+          <span className="text-sm font-semibold text-sky-700">Dosya hazırlanıyor</span>
         )}
       </div>
 
@@ -72,7 +72,7 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
               {option.label}
             </span>
             <span className="mt-1 block text-xs text-slate-500">
-              {option.premiumOnly ? "Premium export" : "Available on all plans"}
+              {option.premiumOnly ? "Premium Export" : "Tüm planlarda kullanılabilir"}
             </span>
           </button>
         ))}
@@ -80,7 +80,7 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
 
       {message ? (
         <div className="mt-4">
-          {message.startsWith("Download started") ? (
+          {message.startsWith("İndirme başladı") ? (
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
               {message}
             </div>

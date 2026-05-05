@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries();
     },
     onError: (error) => {
-      setLoginError(error instanceof Error ? error.message : "Invalid API key");
+      setLoginError(error instanceof Error ? error.message : "Geçersiz erişim anahtarı");
     },
   });
 

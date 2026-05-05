@@ -64,12 +64,12 @@ export async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    let message = "Something went wrong. Please try again.";
+    let message = "Bir sorun oluştu. Lütfen tekrar deneyin.";
 
     try {
       const errorBody = (await response.json()) as { detail?: string };
       if (errorBody.detail) {
-        message = errorBody.detail;
+        message = localizeApiError(errorBody.detail);
       }
     } catch {
       message = response.statusText || message;
@@ -187,12 +187,12 @@ export async function downloadExportFile(
   );
 
   if (!response.ok) {
-    let message = "Export failed.";
+    let message = "Export başarısız oldu.";
 
     try {
       const errorBody = (await response.json()) as { detail?: string };
       if (errorBody.detail) {
-        message = errorBody.detail;
+        message = localizeApiError(errorBody.detail);
       }
     } catch {
       message = response.statusText || message;
@@ -207,4 +207,19 @@ export async function downloadExportFile(
   const filename = filenameMatch?.[1] || `testpilot-export-${generationId}.${format}`;
 
   return { blob, filename };
+}
+
+function localizeApiError(message: string) {
+  const knownMessages: Record<string, string> = {
+    "Invalid or inactive API key": "Geçersiz veya pasif erişim anahtarı.",
+    "Generation not found": "Üretim bulunamadı.",
+    "This export format is available for premium plans only":
+      "Bu Export formatı yalnızca Premium planda kullanılabilir.",
+    "Batch generation is available for Premium plan users only.":
+      "Batch Generate yalnızca Premium plan kullanıcıları için kullanılabilir.",
+    "Batch mode is not supported for bug_report. Use single /generate instead.":
+      "Bug Report için Batch Generate desteklenmez. Tekli üretim ekranını kullanın.",
+  };
+
+  return knownMessages[message] ?? message;
 }

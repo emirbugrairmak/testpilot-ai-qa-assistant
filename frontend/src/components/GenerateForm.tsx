@@ -107,7 +107,7 @@ export function GenerateForm({
 
       <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4">
         <label htmlFor="template_id" className={labelClass}>
-          Custom template
+          Custom Template
         </label>
 
         {isPremium ? (
@@ -121,10 +121,10 @@ export function GenerateForm({
             >
               <option value="">
                 {isTemplatesLoading
-                  ? "Loading templates"
+                  ? "Templates yükleniyor"
                   : templates.length === 0
-                    ? "No templates yet"
-                    : "No template"}
+                    ? "Henüz Template yok"
+                    : "Template kullanma"}
               </option>
               {templates.map((template) => (
                 <option key={template.id} value={template.id}>
@@ -136,13 +136,13 @@ export function GenerateForm({
               <p className="text-sm font-medium text-red-700">{templatesError}</p>
             ) : (
               <p className="text-sm text-slate-500">
-                Premium templates add your prompt instructions to this generation.
+                Premium Templates, kayıtlı yönergelerinizi bu üretime ekler.
               </p>
             )}
           </>
         ) : (
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
-            Custom templates are available on Premium plans only.
+            Custom Templates yalnızca Premium planda kullanılabilir.
           </p>
         )}
       </div>
@@ -150,7 +150,7 @@ export function GenerateForm({
       {mode === "mod_a" && (
         <div className="space-y-2">
           <label htmlFor="feature_idea" className={labelClass}>
-            Feature idea
+            Özellik fikri
           </label>
           <textarea
             id="feature_idea"
@@ -160,7 +160,7 @@ export function GenerateForm({
             required
             value={featureIdea}
             onChange={(event) => setFeatureIdea(event.target.value)}
-            placeholder="User login with email and password"
+            placeholder="Kullanıcı e-posta ve şifre ile giriş yapabilsin"
           />
         </div>
       )}
@@ -179,13 +179,13 @@ export function GenerateForm({
               required
               value={userStory}
               onChange={(event) => setUserStory(event.target.value)}
-              placeholder="As a user, I want to reset my password so that I can regain access."
+              placeholder="Bir kullanıcı olarak, hesabıma tekrar erişebilmek için şifremi sıfırlamak istiyorum."
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="acceptance_criteria" className={labelClass}>
-              Acceptance criteria
+              AC
             </label>
             <textarea
               id="acceptance_criteria"
@@ -195,7 +195,7 @@ export function GenerateForm({
               required
               value={acceptanceCriteria}
               onChange={(event) => setAcceptanceCriteria(event.target.value)}
-              placeholder="Given a registered user, when they request a password reset, then a reset email is sent."
+              placeholder="Kayıtlı kullanıcı şifre sıfırlama talep ettiğinde, sıfırlama e-postası gönderilmelidir."
             />
           </div>
         </div>
@@ -206,7 +206,7 @@ export function GenerateForm({
           <div className="grid gap-4 md:grid-cols-[1fr_180px]">
             <div className="space-y-2">
               <label htmlFor="bug_title" className={labelClass}>
-                Title
+                Başlık
               </label>
               <input
                 id="bug_title"
@@ -215,7 +215,7 @@ export function GenerateForm({
                 required
                 value={bugTitle}
                 onChange={(event) => setBugTitle(event.target.value)}
-                placeholder="Login button stays disabled"
+                placeholder="Giriş butonu pasif kalıyor"
               />
             </div>
 
@@ -229,17 +229,17 @@ export function GenerateForm({
                 value={severity}
                 onChange={(event) => setSeverity(event.target.value)}
               >
-                <option>Critical</option>
-                <option>High</option>
-                <option>Medium</option>
-                <option>Low</option>
+                <option value="Critical">Kritik</option>
+                <option value="High">Yüksek</option>
+                <option value="Medium">Orta</option>
+                <option value="Low">Düşük</option>
               </select>
             </div>
           </div>
 
           <div className="space-y-2">
             <label htmlFor="steps" className={labelClass}>
-              Steps to reproduce
+              Yeniden üretme adımları
             </label>
             <textarea
               id="steps"
@@ -248,14 +248,14 @@ export function GenerateForm({
               required
               value={steps}
               onChange={(event) => setSteps(event.target.value)}
-              placeholder={"Open the login page\nEnter a valid email and password\nTry to click Login"}
+              placeholder={"Giriş sayfasını aç\nGeçerli e-posta ve şifre gir\nGiriş butonuna tıkla"}
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label htmlFor="actual_result" className={labelClass}>
-                Actual result
+                Gerçekleşen sonuç
               </label>
               <textarea
                 id="actual_result"
@@ -264,13 +264,13 @@ export function GenerateForm({
                 required
                 value={actualResult}
                 onChange={(event) => setActualResult(event.target.value)}
-                placeholder="The Login button remains disabled."
+                placeholder="Giriş butonu pasif kalıyor."
               />
             </div>
 
             <div className="space-y-2">
               <label htmlFor="expected_result" className={labelClass}>
-                Expected result
+                Beklenen sonuç
               </label>
               <textarea
                 id="expected_result"
@@ -279,14 +279,14 @@ export function GenerateForm({
                 required
                 value={expectedResult}
                 onChange={(event) => setExpectedResult(event.target.value)}
-                placeholder="The user can submit the login form."
+                placeholder="Kullanıcı giriş formunu gönderebilmelidir."
               />
             </div>
           </div>
 
           <div className="space-y-2">
             <label htmlFor="environment" className={labelClass}>
-              Environment
+              Ortam
             </label>
             <input
               id="environment"
@@ -305,7 +305,7 @@ export function GenerateForm({
         disabled={isSubmitting}
         className="inline-flex w-full justify-center rounded-lg bg-accent-500 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
       >
-        {isSubmitting ? "Generating" : "Generate"}
+        {isSubmitting ? "Üretiliyor" : "Üret"}
       </button>
     </form>
   );
