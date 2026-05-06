@@ -92,6 +92,19 @@ export function ResultPage({
         </div>
       </section>
 
+      {(result.plan_stamp || result.watermark) && (
+        <section className="rounded-lg border border-sky-200 bg-sky-50 px-5 py-4 shadow-sm">
+          <p className="text-sm font-bold text-sky-800">
+            {result.plan_stamp?.label ?? "TestPilot Free"}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-sky-700">
+            {result.plan_stamp?.notice ??
+              "Bu içerik TestPilot Free plan ile üretildi."}{" "}
+            Premium exportlarda bu damga yer almaz.
+          </p>
+        </section>
+      )}
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
           <OutputPreview result={result} fullDetails />

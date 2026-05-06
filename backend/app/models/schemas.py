@@ -173,6 +173,7 @@ class GenerateResponse(BaseModel):
     tags: list[str] = Field(default_factory=list)
     markdown: Optional[str] = None
     watermark: Optional[str] = None
+    plan_stamp: Optional[dict[str, str]] = None
     created_at: str
 
 

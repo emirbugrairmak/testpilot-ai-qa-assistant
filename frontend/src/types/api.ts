@@ -120,6 +120,11 @@ export type GenerateResponse = {
   tags?: string[];
   markdown?: string;
   watermark?: string;
+  plan_stamp?: {
+    plan: "free";
+    label: string;
+    notice: string;
+  } | null;
   created_at: string;
 };
 

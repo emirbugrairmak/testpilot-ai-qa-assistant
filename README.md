@@ -27,6 +27,11 @@ TestPilot, feature idea, user story/acceptance criteria veya bug bilgisi giriler
 | Batch generate | Yok | Var |
 | Free watermark | Var | Yok |
 
+Free plan üretimlerinde sonuç ekranında sade bir `TestPilot Free` plan damgası
+gösterilir. JSON export içinde bu bilgi yapısal `plan_stamp` alanı olarak yer alır;
+Markdown export ise aynı bilgiyi plan satırı ve footer notu olarak taşır. Premium
+çıktılarda bu damga yer almaz.
+
 Demo API key'leri backend ilk açıldığında seed edilir:
 
 ```text
