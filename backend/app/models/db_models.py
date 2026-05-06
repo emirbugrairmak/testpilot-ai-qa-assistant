@@ -18,6 +18,7 @@ class ApiKey:
     key: str
     plan: str                           # "free" | "premium"
     owner_name: str
+    issued_via: str                     # "free_access" | "premium_simulation" | "seed"
     is_active: bool
     monthly_limit: int
     usage_count: int

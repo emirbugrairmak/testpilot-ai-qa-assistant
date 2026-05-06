@@ -1,14 +1,17 @@
 import type {
+  AccessKeyCreateResponse,
   AuthValidateResponse,
   BatchGenerateRequest,
   BatchGenerateResponse,
   DeleteHistoryResponse,
   ExportFormat,
+  FreeAccessCreateRequest,
   GenerateRequest,
   GenerateResponse,
   HistoryDetailResponse,
   HistoryListResponse,
   HistoryQueryParams,
+  PremiumAccessCreateRequest,
   SystemStatusResponse,
   Template,
   TemplateListResponse,
@@ -113,6 +116,22 @@ export function validateApiKey(apiKey: string) {
   return apiRequest<AuthValidateResponse>("/api/v1/auth/validate", {
     apiKey,
     method: "POST",
+  });
+}
+
+export function createFreeAccess(payload: FreeAccessCreateRequest = {}) {
+  return apiRequest<AccessKeyCreateResponse>("/api/v1/auth/access/free", {
+    apiKey: null,
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function createPremiumAccess(payload: PremiumAccessCreateRequest) {
+  return apiRequest<AccessKeyCreateResponse>("/api/v1/auth/access/premium", {
+    apiKey: null,
+    method: "POST",
+    body: payload,
   });
 }
 

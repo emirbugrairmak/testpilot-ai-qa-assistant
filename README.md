@@ -2,9 +2,11 @@
 
 TestPilot, feature idea, user story/acceptance criteria veya bug bilgisi girilerek test planı, test case seti ve bug report taslağı üreten demo seviyesinde bir AI QA asistanıdır. Proje FastAPI backend, React web arayüzü, Flutter mobil uygulama iskeleti ve Docker Compose çalışma düzeninden oluşur.
 
+Kimlik modeli access key tabanlıdır. Web uygulamasında kullanıcı mevcut access key ile dönebilir, yeni Free access key oluşturabilir veya gerçek ödeme almayan Premium satın alma simülasyonu sonrası Premium access key edinebilir. Email/password, signup/login hesabı veya JWT sistemi yoktur.
+
 ## Proje Özeti
 
-- Backend, demo API key tabanlı auth, kullanım limiti, history, export, custom template ve batch generate akışlarını sağlar.
+- Backend, access key tabanlı auth, kullanım limiti, history, export, custom template ve batch generate akışlarını sağlar.
 - Web uygulaması login, dashboard, generate, result, history, settings, templates ve batch generate ekranlarını içerir.
 - Mobil uygulama Flutter ile login, dashboard, generate, result, history, settings ve export paylaşım akışlarını demo seviyesinde sunar.
 - LLM katmanı varsayılan olarak deterministik mock generator ile çalışır; `gemini` provider seçilirse Google Gemini API kullanılabilir. Aktif AI motoru `/health` yanıtında ve web dashboard'daki küçük durum etiketinde görünür.
@@ -32,7 +34,17 @@ gösterilir. JSON export içinde bu bilgi yapısal `plan_stamp` alanı olarak ye
 Markdown export ise aynı bilgiyi plan satırı ve footer notu olarak taşır. Premium
 çıktılarda bu damga yer almaz.
 
-Demo API key'leri backend ilk açıldığında seed edilir:
+## Access Key ile Plan Edinme
+
+TestPilot'ta çalışma alanı sahipliği `api_keys` tablosundaki access key üzerinden yürür. Hangi Bearer token ile giriş yapılırsa o key'in planı, usage sayacı, history kayıtları, custom template kayıtları ve batch generate sonuçları kullanılır. Aynı key ile tekrar girişte aynı çalışma alanı verisi geri gelir.
+
+Web login ekranındaki ana akış:
+
+- Mevcut erişim anahtarıyla giriş yap.
+- Free erişim al: yeni, benzersiz ve kalıcı Free access key üretir; usage/history boş başlar.
+- Premium al: gerçek ödeme almayan kısa satın alma simülasyonu sonrası yeni, benzersiz ve kalıcı Premium access key üretir.
+
+Demo API key'leri backend ilk açıldığında seed edilir ve geliştirici kolaylığı için korunur:
 
 ```text
 tp_free_demo_key
@@ -214,6 +226,8 @@ Temel davranış:
 | --- | --- | --- | --- |
 | `GET` | `/health` | Servis ve AI motoru sağlık/durum kontrolü | Yok |
 | `GET` | `/docs` | Swagger UI | Yok |
+| `POST` | `/api/v1/auth/access/free` | Yeni Free access key oluşturma | Yok |
+| `POST` | `/api/v1/auth/access/premium` | Premium satın alma simülasyonu sonrası key oluşturma | Yok |
 | `POST` | `/api/v1/auth/validate` | API key doğrulama | Bearer |
 | `POST` | `/api/v1/generate` | Mod A, Mod B veya bug report üretimi | Bearer |
 | `POST` | `/api/v1/generate/batch` | Toplu Mod A/Mod B üretimi | Premium |
@@ -240,6 +254,17 @@ Hızlı backend testleri:
 
 ```bash
 curl http://localhost:8000/health
+
+curl -X POST http://localhost:8000/api/v1/auth/access/free \
+  -H "Content-Type: application/json" \
+  -d '{"owner_name": "Free QA Workspace"}'
+
+curl -X POST http://localhost:8000/api/v1/auth/access/premium \
+  -H "Content-Type: application/json" \
+  -d '{
+    "owner_name": "Atlas QA Team",
+    "plan_summary": "Premium monthly simulation - 200 generations/month"
+  }'
 
 curl -X POST http://localhost:8000/api/v1/auth/validate \
   -H "Authorization: Bearer tp_free_demo_key"

@@ -125,6 +125,30 @@ class GenerateRequest(BaseModel):
         }
 
 
+class FreeAccessCreateRequest(BaseModel):
+    """POST /api/v1/auth/access/free isteği."""
+    owner_name: Optional[str] = Field(
+        None,
+        max_length=120,
+        description="Anahtar etiketi: ad, ekip veya çalışma alanı adı",
+    )
+
+
+class PremiumAccessCreateRequest(BaseModel):
+    """POST /api/v1/auth/access/premium isteği."""
+    owner_name: str = Field(
+        ...,
+        min_length=2,
+        max_length=120,
+        description="Satın alma simülasyonu için ad, ekip veya kurum adı",
+    )
+    plan_summary: Optional[str] = Field(
+        "Premium monthly simulation",
+        max_length=200,
+        description="UI'da onaylanan plan özeti",
+    )
+
+
 # ── Response Schemas ────────────────────────────────────
 
 class TestCaseSchema(BaseModel):
@@ -224,10 +248,24 @@ class AuthValidateResponse(BaseModel):
     valid: bool
     plan: str
     owner_name: str
+    issued_via: Optional[str] = None
     monthly_limit: int
     usage_count: int
     remaining: int
     usage_resets_at: str
+
+
+class AccessKeyCreateResponse(BaseModel):
+    """Yeni access key oluşturma yanıtı."""
+    access_key: str
+    plan: PlanType
+    owner_name: str
+    issued_via: str
+    monthly_limit: int
+    usage_count: int
+    remaining: int
+    usage_resets_at: str
+    created_at: str
 
 
 # ── Template Schemas ────────────────────────────────────

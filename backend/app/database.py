@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
     key             TEXT    UNIQUE NOT NULL,
     plan            TEXT    NOT NULL DEFAULT 'free' CHECK(plan IN ('free', 'premium')),
     owner_name      TEXT    DEFAULT '',
+    issued_via      TEXT    NOT NULL DEFAULT 'seed',
     is_active       INTEGER NOT NULL DEFAULT 1,
     monthly_limit   INTEGER NOT NULL DEFAULT 30,
     usage_count     INTEGER NOT NULL DEFAULT 0,
@@ -101,8 +102,8 @@ def _seed_api_keys(conn: sqlite3.Connection) -> None:
     for key, plan, owner, limit in SEED_KEYS:
         conn.execute(
             """INSERT OR IGNORE INTO api_keys
-               (key, plan, owner_name, monthly_limit, usage_count, usage_reset_at)
-               VALUES (?, ?, ?, ?, 0, ?)""",
+               (key, plan, owner_name, issued_via, monthly_limit, usage_count, usage_reset_at)
+               VALUES (?, ?, ?, 'seed', ?, 0, ?)""",
             (key, plan, owner, limit, reset_at),
         )
 
@@ -201,6 +202,18 @@ def _migrate_custom_templates(conn: sqlite3.Connection) -> None:
     )
 
 
+def _migrate_api_keys_issued_via(conn: sqlite3.Connection) -> None:
+    """Eski api_keys tablosuna key'in edinilme yolunu ekle."""
+    columns = conn.execute("PRAGMA table_info(api_keys)").fetchall()
+    column_names = {column["name"] for column in columns}
+    if "issued_via" in column_names:
+        return
+
+    conn.execute(
+        "ALTER TABLE api_keys ADD COLUMN issued_via TEXT NOT NULL DEFAULT 'seed'"
+    )
+
+
 def init_db() -> None:
     """Tabloları oluştur ve seed data ekle.
 
@@ -213,6 +226,7 @@ def init_db() -> None:
 
     with get_db() as conn:
         conn.executescript(SCHEMA_SQL)
+        _migrate_api_keys_issued_via(conn)
         _migrate_generations_bug_report_mode(conn)
         _migrate_custom_templates(conn)
         _seed_api_keys(conn)

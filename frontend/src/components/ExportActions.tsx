@@ -60,18 +60,18 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
         )}
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
         {exportOptions.map((option) => (
           <button
             key={option.format}
             type="button"
             onClick={() => handleDownload(option.format, option.premiumOnly)}
-            className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left hover:border-sky-300 hover:bg-sky-50"
+            className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-left hover:border-sky-300 hover:bg-sky-50"
           >
-            <span className="block text-sm font-bold text-navy-800">
+            <span className="block truncate text-sm font-bold text-navy-800">
               {option.label}
             </span>
-            <span className="mt-1 block text-xs text-slate-500">
+            <span className="mt-1 block text-xs leading-4 text-slate-500">
               {option.premiumOnly ? "Premium Export" : "Tüm planlarda kullanılabilir"}
             </span>
           </button>

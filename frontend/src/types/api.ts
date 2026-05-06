@@ -7,10 +7,32 @@ export type AuthValidateResponse = {
   valid: boolean;
   plan: Plan;
   owner_name: string;
+  issued_via?: string | null;
   monthly_limit: number;
   usage_count: number;
   remaining: number;
   usage_resets_at: string;
+};
+
+export type FreeAccessCreateRequest = {
+  owner_name?: string;
+};
+
+export type PremiumAccessCreateRequest = {
+  owner_name: string;
+  plan_summary?: string;
+};
+
+export type AccessKeyCreateResponse = {
+  access_key: string;
+  plan: Plan;
+  owner_name: string;
+  issued_via: string;
+  monthly_limit: number;
+  usage_count: number;
+  remaining: number;
+  usage_resets_at: string;
+  created_at: string;
 };
 
 export type UsageResponse = {
