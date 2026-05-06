@@ -7,11 +7,22 @@ Generation kayıtlarını JSON, Markdown, CSV ve Jira-friendly text olarak dış
 from __future__ import annotations
 
 import csv
+import hashlib
+import hmac
 import io
 import json
 import re
+import uuid
+from datetime import datetime, timezone
+from typing import Any
 
+from app.config import settings
 from app.database import get_db
+
+
+PROVENANCE_STAMP_TYPE = "testpilot_free_export_provenance"
+PROVENANCE_ALGORITHM = "HMAC-SHA256"
+MARKDOWN_PROVENANCE_TITLE = "TestPilot Free Export Provenance"
 
 
 def get_owned_generation(api_key_id: int, generation_id: int) -> dict | None:
@@ -39,17 +50,41 @@ def get_owned_generation(api_key_id: int, generation_id: int) -> dict | None:
     }
 
 
-def to_json_export(record: dict) -> str:
+def to_json_export(record: dict, key_info: dict | None = None) -> str:
     """JSON export içeriği."""
-    return json.dumps(record, ensure_ascii=False, indent=2)
+    export_payload = _deepcopy_json(record)
+    if _should_add_free_provenance(key_info):
+        export_payload["export_meta"] = _build_export_meta(
+            payload=_export_payload_for_hash(export_payload),
+            format_name="json",
+        )
+
+    return json.dumps(export_payload, ensure_ascii=False, indent=2)
 
 
-def to_markdown_export(record: dict) -> str:
+def to_markdown_export(record: dict, key_info: dict | None = None) -> str:
     """Markdown export içeriği."""
-    return record["markdown"] or f"# Generation {record['generation_id']}\n"
+    content = record["markdown"] or f"# Generation {record['generation_id']}\n"
+    if not _should_add_free_provenance(key_info):
+        return content
+
+    body = _strip_legacy_plan_footer(_strip_markdown_provenance(content)).rstrip()
+    meta = _build_export_meta(payload=body, format_name="markdown")
+    return "\n".join([
+        body,
+        "",
+        "---",
+        MARKDOWN_PROVENANCE_TITLE,
+        f"Export ID: {meta['export_id']}",
+        f"Generated At: {meta['generated_at']}",
+        f"Plan: {meta['plan_label']}",
+        f"Payload SHA256: {meta['payload_sha256']}",
+        f"Signature: {meta['signature']}",
+        "",
+    ])
 
 
-def to_csv_export(record: dict) -> str:
+def to_csv_export(record: dict, key_info: dict | None = None) -> str:
     """Test case veya bug report kaydını basit CSV formatına dönüştür."""
     buffer = io.StringIO()
     writer = csv.writer(buffer)
@@ -112,7 +147,7 @@ def to_csv_export(record: dict) -> str:
     return buffer.getvalue()
 
 
-def to_jira_export(record: dict) -> str:
+def to_jira_export(record: dict, key_info: dict | None = None) -> str:
     """Jira'ya kolay taşınabilecek düz metin çıktı."""
     if record["mode"] == "bug_report":
         bug = record["output"].get("bug_report", {})
@@ -197,6 +232,228 @@ def export_filename(record: dict, extension: str, suffix: str | None = None) -> 
     """Download filename üret."""
     suffix_part = f"-{suffix}" if suffix else ""
     return f"generation-{record['generation_id']}{suffix_part}.{extension}"
+
+
+def verify_export_content(content: str, format_name: str | None = None) -> dict:
+    """Free export provenance bilgisini doğrula.
+
+    Bu doğrulama silmeyi engellemez; export gövdesinin imzalı kaynak damgasıyla
+    uyumlu olup olmadığını söyler.
+    """
+    detected_format = format_name or _detect_export_format(content)
+    if detected_format == "json":
+        return _verify_json_export(content)
+    if detected_format in {"markdown", "text"}:
+        return _verify_markdown_export(content)
+
+    return _invalid_verify_result(
+        format_name=detected_format,
+        reason="Unsupported export format.",
+    )
+
+
+def _build_export_meta(payload: Any, format_name: str) -> dict[str, str]:
+    payload_sha = _payload_sha256(payload)
+    meta = {
+        "stamp_type": PROVENANCE_STAMP_TYPE,
+        "version": "1",
+        "algorithm": PROVENANCE_ALGORITHM,
+        "export_id": f"tpx_{uuid.uuid4().hex}",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "plan_label": "Free plan",
+        "format": format_name,
+        "payload_sha256": payload_sha,
+    }
+    meta["signature"] = _sign_export_meta(meta)
+    return meta
+
+
+def _verify_json_export(content: str) -> dict:
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError:
+        return _invalid_verify_result("json", "Invalid JSON content.")
+
+    if not isinstance(parsed, dict):
+        return _invalid_verify_result("json", "JSON export must be an object.")
+
+    meta = parsed.get("export_meta")
+    if not isinstance(meta, dict):
+        return _invalid_verify_result("json", "Missing export_meta.")
+
+    payload = _export_payload_for_hash(parsed)
+    return _verify_meta(meta=meta, payload=payload, format_name="json")
+
+
+def _verify_markdown_export(content: str) -> dict:
+    body, meta = _extract_markdown_provenance(content)
+    if not meta:
+        return _invalid_verify_result("markdown", "Missing provenance footer.")
+
+    return _verify_meta(meta=meta, payload=body, format_name="markdown")
+
+
+def _verify_meta(meta: dict, payload: Any, format_name: str) -> dict:
+    expected_payload_sha = _payload_sha256(payload)
+    payload_changed = meta.get("payload_sha256") != expected_payload_sha
+    signature_valid = hmac.compare_digest(
+        str(meta.get("signature", "")),
+        _sign_export_meta(meta),
+    )
+    stamp_type_valid = meta.get("stamp_type") == PROVENANCE_STAMP_TYPE
+    algorithm_valid = meta.get("algorithm") == PROVENANCE_ALGORITHM
+    plan_valid = meta.get("plan_label") == "Free plan"
+    format_valid = meta.get("format") in {format_name, None}
+    valid = (
+        not payload_changed
+        and signature_valid
+        and stamp_type_valid
+        and algorithm_valid
+        and plan_valid
+        and format_valid
+    )
+
+    reason = "Signature and payload hash are valid."
+    if payload_changed:
+        reason = "Payload hash does not match export content."
+    elif not signature_valid:
+        reason = "Signature is invalid."
+    elif not stamp_type_valid or not algorithm_valid or not plan_valid or not format_valid:
+        reason = "Provenance metadata is not a valid TestPilot Free export stamp."
+
+    return {
+        "valid": valid,
+        "signature_valid": signature_valid,
+        "payload_changed": payload_changed,
+        "is_testpilot_free_export": valid,
+        "format": format_name,
+        "reason": reason,
+        "export_meta": _public_meta(meta),
+    }
+
+
+def _sign_export_meta(meta: dict) -> str:
+    message = "\n".join([
+        str(meta.get("stamp_type", "")),
+        str(meta.get("version", "")),
+        str(meta.get("algorithm", "")),
+        str(meta.get("export_id", "")),
+        str(meta.get("generated_at", "")),
+        str(meta.get("plan_label", "")),
+        str(meta.get("format", "")),
+        str(meta.get("payload_sha256", "")),
+    ])
+    return hmac.new(
+        settings.EXPORT_SIGNATURE_SECRET.encode("utf-8"),
+        message.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def _payload_sha256(payload: Any) -> str:
+    if isinstance(payload, str):
+        payload_bytes = payload.encode("utf-8")
+    else:
+        payload_bytes = json.dumps(
+            payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    return hashlib.sha256(payload_bytes).hexdigest()
+
+
+def _export_payload_for_hash(payload: dict) -> dict:
+    clean = _deepcopy_json(payload)
+    clean.pop("export_meta", None)
+    return clean
+
+
+def _should_add_free_provenance(key_info: dict | None) -> bool:
+    return key_info is not None and key_info.get("plan") == "free"
+
+
+def _detect_export_format(content: str) -> str:
+    stripped = content.lstrip()
+    if stripped.startswith("{"):
+        return "json"
+    return "markdown"
+
+
+def _strip_markdown_provenance(content: str) -> str:
+    body, _ = _extract_markdown_provenance(content)
+    return body if body else content
+
+
+def _extract_markdown_provenance(content: str) -> tuple[str, dict[str, str] | None]:
+    marker = f"\n---\n{MARKDOWN_PROVENANCE_TITLE}\n"
+    index = content.rfind(marker)
+    if index == -1:
+        return content.rstrip(), None
+
+    body = content[:index].rstrip()
+    footer = content[index + len(marker):]
+    meta = {
+        "stamp_type": PROVENANCE_STAMP_TYPE,
+        "version": "1",
+        "algorithm": PROVENANCE_ALGORITHM,
+        "format": "markdown",
+    }
+    field_map = {
+        "Export ID": "export_id",
+        "Generated At": "generated_at",
+        "Plan": "plan_label",
+        "Payload SHA256": "payload_sha256",
+        "Signature": "signature",
+    }
+
+    for line in footer.splitlines():
+        if ": " not in line:
+            continue
+        key, value = line.split(": ", 1)
+        if key in field_map:
+            meta[field_map[key]] = value.strip()
+
+    return body, meta
+
+
+def _strip_legacy_plan_footer(content: str) -> str:
+    return re.sub(
+        r"\n---\n\*Plan source: Free plan\.\*\s*$",
+        "",
+        content.rstrip(),
+    )
+
+
+def _public_meta(meta: dict) -> dict[str, str]:
+    keys = [
+        "stamp_type",
+        "version",
+        "algorithm",
+        "export_id",
+        "generated_at",
+        "plan_label",
+        "format",
+        "payload_sha256",
+        "signature",
+    ]
+    return {key: str(meta[key]) for key in keys if key in meta}
+
+
+def _invalid_verify_result(format_name: str, reason: str) -> dict:
+    return {
+        "valid": False,
+        "signature_valid": False,
+        "payload_changed": False,
+        "is_testpilot_free_export": False,
+        "format": format_name,
+        "reason": reason,
+        "export_meta": None,
+    }
+
+
+def _deepcopy_json(value: Any) -> Any:
+    return json.loads(json.dumps(value, ensure_ascii=False))
 
 
 def _highest_priority(test_cases: list[dict]) -> str:

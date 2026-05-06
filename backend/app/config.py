@@ -44,6 +44,13 @@ class Settings:
     FREE_MONTHLY_LIMIT: int = 30
     PREMIUM_MONTHLY_LIMIT: int = 200
 
+    # ── Export Provenance ───────────────────────────
+    # Free export imzaları için kullanılır. Production'da güçlü ve gizli bir değer ver.
+    EXPORT_SIGNATURE_SECRET: str = os.getenv(
+        "EXPORT_SIGNATURE_SECRET",
+        "testpilot-local-export-signature-secret",
+    )
+
     # ── LLM ─────────────────────────────────────────
     # "mock" → deterministik mock generator (test / geliştirme)
     # "gemini" → gerçek Gemini API (GEMINI_API_KEY gerekli)

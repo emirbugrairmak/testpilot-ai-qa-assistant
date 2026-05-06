@@ -145,7 +145,9 @@ export type GenerateResponse = {
   plan_stamp?: {
     plan: "free";
     label: string;
-    notice: string;
+    note?: string;
+    notice?: string;
+    source?: string;
   } | null;
   created_at: string;
 };

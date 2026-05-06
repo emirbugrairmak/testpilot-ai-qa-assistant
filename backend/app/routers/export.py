@@ -8,6 +8,7 @@ from collections.abc import Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
+from app.models.schemas import ExportVerifyRequest, ExportVerifyResponse
 from app.services.export_service import (
     export_filename,
     get_owned_generation,
@@ -15,10 +16,27 @@ from app.services.export_service import (
     to_jira_export,
     to_json_export,
     to_markdown_export,
+    verify_export_content,
 )
 from app.utils.auth import get_api_key_info
 
 router = APIRouter(prefix="/export", tags=["Export"])
+
+
+@router.post(
+    "/verify",
+    response_model=ExportVerifyResponse,
+    summary="Free export provenance doğrula",
+    description=(
+        "JSON veya Markdown Free export içindeki imzalı kaynak damgasını doğrular. "
+        "Silinmeyi engellemez; orijinal payload'ın değiştirilip değiştirilmediğini söyler."
+    ),
+)
+def verify_export(body: ExportVerifyRequest):
+    """Export imzasını ve payload hash'ini doğrula."""
+    return ExportVerifyResponse(
+        **verify_export_content(body.content, format_name=body.format)
+    )
 
 
 @router.get("/{generation_id}/json", summary="JSON export")
@@ -87,7 +105,7 @@ def export_jira(
 def _export_record(
     generation_id: int,
     key_info: dict,
-    renderer: Callable[[dict], str],
+    renderer: Callable[[dict, dict | None], str],
     extension: str,
     media_type: str,
     suffix: str | None = None,
@@ -99,7 +117,7 @@ def _export_record(
             detail="Generation not found",
         )
 
-    content = renderer(record)
+    content = renderer(record, key_info)
     headers = {
         "Content-Disposition": f'attachment; filename="{export_filename(record, extension, suffix=suffix)}"'
     }

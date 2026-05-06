@@ -72,7 +72,11 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
               {option.label}
             </span>
             <span className="mt-1 block text-xs leading-4 text-slate-500">
-              {option.premiumOnly ? "Premium Export" : "Tüm planlarda kullanılabilir"}
+              {option.premiumOnly
+                ? "Premium Export"
+                : plan === "free"
+                  ? "İmzalı Free provenance içerir"
+                  : "Tüm planlarda kullanılabilir"}
             </span>
           </button>
         ))}

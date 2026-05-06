@@ -35,15 +35,14 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
     provider = result.get("provider", "unknown")
 
 
-    # ── 2. Free plan işaretlemesi ──────────────────
-    watermark = None
+    # ── 2. Free plan kaynak damgası ─────────────────
     plan_stamp = None
     if key_info["plan"] == "free":
-        watermark = "TestPilot Free"
         plan_stamp = {
             "plan": "free",
-            "label": "TestPilot Free",
-            "notice": "Bu içerik TestPilot Free plan ile üretildi.",
+            "label": "Free plan",
+            "source": "testpilot_free",
+            "note": "Generated with TestPilot Free plan.",
         }
 
     # ── 3. Timestamp ───────────────────────────────
@@ -75,8 +74,6 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
             "created_at": created_at,
         }
 
-    if watermark:
-        output["watermark"] = watermark
     if plan_stamp:
         output["plan_stamp"] = plan_stamp
 
@@ -121,8 +118,6 @@ def _to_markdown(data: dict) -> str:
     lines.append("")
     lines.append(f"**Mode:** `{data['mode']}`")
     lines.append(f"**AI Provider:** `{data.get('provider', 'unknown')}`")
-    if data.get("plan_stamp"):
-        lines.append(f"**Plan:** {data['plan_stamp'].get('label', 'TestPilot Free')}")
     lines.append(f"**Generated:** {data['created_at']}")
     lines.append("")
 
@@ -169,10 +164,9 @@ def _to_markdown(data: dict) -> str:
         lines.append(f"- **Tags:** {', '.join(tc['tags'])}")
         lines.append("")
 
-    # Free plan stamp
     if data.get("plan_stamp"):
         lines.append("---")
-        lines.append(f"*{data['plan_stamp'].get('notice', 'Bu içerik TestPilot Free plan ile üretildi.')}*")
+        lines.append(f"*Plan source: {data['plan_stamp'].get('label', 'Free plan')}.*")
         lines.append("")
 
     return "\n".join(lines)
@@ -186,11 +180,6 @@ def _bug_report_to_markdown(data: dict) -> str:
         "",
         f"**Mode:** `{data['mode']}`",
         f"**AI Provider:** `{data.get('provider', 'unknown')}`",
-        *(
-            [f"**Plan:** {data['plan_stamp'].get('label', 'TestPilot Free')}"]
-            if data.get("plan_stamp")
-            else []
-        ),
         f"**Generated:** {data['created_at']}",
         f"**Severity:** {bug['severity']}",
         f"**Priority:** {bug['priority']}",
@@ -225,7 +214,7 @@ def _bug_report_to_markdown(data: dict) -> str:
 
     if data.get("plan_stamp"):
         lines.append("---")
-        lines.append(f"*{data['plan_stamp'].get('notice', 'Bu içerik TestPilot Free plan ile üretildi.')}*")
+        lines.append(f"*Plan source: {data['plan_stamp'].get('label', 'Free plan')}.*")
         lines.append("")
 
     return "\n".join(lines)

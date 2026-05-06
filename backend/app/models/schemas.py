@@ -268,6 +268,26 @@ class AccessKeyCreateResponse(BaseModel):
     created_at: str
 
 
+class ExportVerifyRequest(BaseModel):
+    """POST /api/v1/export/verify isteği."""
+    content: str = Field(..., min_length=1, description="JSON veya Markdown export içeriği")
+    format: Optional[str] = Field(
+        None,
+        description="Opsiyonel format ipucu: json veya markdown",
+    )
+
+
+class ExportVerifyResponse(BaseModel):
+    """Export provenance doğrulama yanıtı."""
+    valid: bool
+    signature_valid: bool
+    payload_changed: bool
+    is_testpilot_free_export: bool
+    format: str
+    reason: str
+    export_meta: Optional[dict[str, str]] = None
+
+
 # ── Template Schemas ────────────────────────────────────
 
 class TemplateCreate(BaseModel):

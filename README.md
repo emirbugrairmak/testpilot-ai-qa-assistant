@@ -27,12 +27,16 @@ Kimlik modeli access key tabanlıdır. Web uygulamasında kullanıcı mevcut acc
 | Custom templates | Yok | Var |
 | Template ile generate | Yok | Var |
 | Batch generate | Yok | Var |
-| Free watermark | Var | Yok |
+| Plan kaynak damgası | Var | Yok |
 
-Free plan üretimlerinde sonuç ekranında sade bir `TestPilot Free` plan damgası
-gösterilir. JSON export içinde bu bilgi yapısal `plan_stamp` alanı olarak yer alır;
-Markdown export ise aynı bilgiyi plan satırı ve footer notu olarak taşır. Premium
-çıktılarda bu damga yer almaz.
+Free plan üretimlerinde damga bir koruma mekanizması değil, çıktının plan
+kaynağını belirten provenance bilgisidir. Sonuç ekranında küçük meta bilgi
+olarak görünür. Free JSON ve Markdown export dosyaları ayrıca HMAC-SHA256 ile
+imzalanmış `export_id`, `generated_at`, `payload_sha256` ve `signature` alanları
+taşır. Bu yapı metnin silinmesini teknik olarak engellemez; export'un orijinal
+TestPilot Free çıktısı olup olmadığını ve payload'ın değiştirilip
+değiştirilmediğini doğrulanabilir hale getirir. Premium çıktılarda Free plan
+kaynak damgası yer almaz.
 
 ## Access Key ile Plan Edinme
 
@@ -179,6 +183,7 @@ GEMINI_MODEL=gemini-2.0-flash
 GEMINI_TIMEOUT_MS=30000
 LLM_FALLBACK_TO_MOCK=false
 DEMO_RESET_ON_STARTUP=true
+EXPORT_SIGNATURE_SECRET=change-this-export-signature-secret
 ```
 
 Sonra servisleri yeniden başlat:
@@ -238,6 +243,7 @@ Temel davranış:
 | `GET` | `/api/v1/export/{id}/markdown` | Markdown export | Bearer |
 | `GET` | `/api/v1/export/{id}/csv` | CSV export | Premium |
 | `GET` | `/api/v1/export/{id}/jira` | Jira-friendly text export | Premium |
+| `POST` | `/api/v1/export/verify` | Free export imzası ve payload hash doğrulama | Yok |
 | `GET` | `/api/v1/usage` | Plan ve kullanım özeti | Bearer |
 | `GET` | `/api/v1/templates` | Template listesi | Premium |
 | `POST` | `/api/v1/templates` | Template oluşturma | Premium |
@@ -364,6 +370,7 @@ Gemini:
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=your_actual_api_key_here
 LLM_FALLBACK_TO_MOCK=false
+EXPORT_SIGNATURE_SECRET=change-this-export-signature-secret
 ```
 
 Sonra bir `POST /api/v1/generate` isteği çalıştır. Geçerli key ve network varsa Gemini çıktısı döner; key veya API tarafı hatalıysa fallback kapalıyken `503` beklenir.
