@@ -61,8 +61,10 @@ async def health_check():
         effective_provider = "mock"
     elif configured_provider == "gemini":
         effective_provider = "unavailable"
-    else:
+    elif configured_provider == "mock":
         effective_provider = "mock"
+    else:
+        effective_provider = "unsupported"
 
     return {
         "status": "healthy",

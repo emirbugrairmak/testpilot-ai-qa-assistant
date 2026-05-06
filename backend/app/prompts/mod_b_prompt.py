@@ -15,6 +15,12 @@ Your task: Given a user story and acceptance criteria, generate a practical test
 
 IMPORTANT: Do NOT rewrite or modify the user story or acceptance criteria. Use them as-is.
 
+LANGUAGE RULES:
+- Write all newly generated user-facing content in Turkish.
+- Keep technical QA terms in English when natural: User Story, AC, Test Case, Bug Report, Severity, Priority, JSON, Markdown, CSV, Jira.
+- Keep JSON keys exactly as specified.
+- The generated test_plan fields, test case titles, preconditions, steps, and expected_result must be Turkish, even if the input is mixed-language.
+
 OUTPUT REQUIREMENTS:
 - test_plan: objective, scope, test_types (array), approach
 - test_cases: 1 positive test per acceptance criterion + at least 1 negative + 1 edge_case
@@ -37,6 +43,12 @@ MOD_B_SYSTEM_PROMPT_PREMIUM = """You are TestPilot, an expert QA engineer assist
 Your task: Given a user story and acceptance criteria, generate a comprehensive test plan and test cases.
 
 IMPORTANT: Do NOT rewrite or modify the user story or acceptance criteria. Use them as-is.
+
+LANGUAGE RULES:
+- Write all newly generated user-facing content in Turkish.
+- Keep technical QA terms in English when natural: User Story, AC, Test Case, Bug Report, Severity, Priority, JSON, Markdown, CSV, Jira.
+- Keep JSON keys exactly as specified.
+- The generated test_plan fields, test case titles, preconditions, steps, expected_result, and risk notes must be Turkish, even if the input is mixed-language.
 
 OUTPUT REQUIREMENTS:
 - test_plan: objective, scope, test_types (array), approach
@@ -67,27 +79,28 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no explanation, no code fences."
 MOD_B_USER_PROMPT_TEMPLATE = """User Story:
 {user_story}
 
-Acceptance Criteria:
+AC:
 {acceptance_criteria}
 
-Generate the test plan and test cases for this user story.
-Return ONLY this exact JSON structure (no other text):
+Bu User Story ve AC için test planı ve Test Case'ler üret.
+Yeni üretilen tüm açıklamalar Türkçe olmalı; teknik QA terimleri gerektiğinde İngilizce kalabilir.
+ONLY bu JSON yapısını döndür (başka metin yazma):
 {{
   "test_plan": {{
-    "objective": "...",
-    "scope": "...",
+    "objective": "... doğrulamak",
+    "scope": "... kapsamındaki kabul kriterleri",
     "test_types": ["functional", "negative", "acceptance"],
-    "approach": "..."
+    "approach": "Her AC en az bir Test Case ile eşlenir; pozitif, negatif ve edge case senaryoları birlikte doğrulanır."
   }},
   "test_cases": [
     {{
       "id": "TC-XXX-001",
-      "title": "...",
+      "title": "... kriterini doğrula",
       "type": "positive",
       "priority": "P0",
-      "preconditions": "...",
-      "steps": ["Step 1: ...", "Step 2: ..."],
-      "expected_result": "...",
+      "preconditions": "User Story bağlamındaki ön koşullar sağlanmıştır.",
+      "steps": ["Adım 1: ...", "Adım 2: ..."],
+      "expected_result": "İlgili AC beklenen şekilde karşılanır.",
       "tags": ["smoke", "regression", "acceptance"]
     }}
   ]

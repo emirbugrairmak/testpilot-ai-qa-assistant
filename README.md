@@ -159,6 +159,7 @@ Ardından `.env` içinde:
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=your_actual_api_key_here
 GEMINI_MODEL=gemini-2.0-flash
+GEMINI_TIMEOUT_MS=30000
 LLM_FALLBACK_TO_MOCK=false
 DEMO_RESET_ON_STARTUP=true
 ```
@@ -344,7 +345,7 @@ docker compose down
 Tam çalışan alanlar:
 
 - Backend auth, usage, generate, history, export, template ve batch endpoint'leri.
-- Mock LLM ile API key gerektirmeyen deterministik demo üretimi.
+- Gemini ile gerçek AI üretimi; mock yalnızca açıkça seçilen lokal deterministik geliştirme modu.
 - Web uygulamasında free/premium ayrımı, generate, history, export, templates ve batch UI akışları.
 - Flutter mobil uygulamasında temel login, dashboard, generate, result, history, settings ve export paylaşım akışları.
 - Docker Compose ile backend + web servislerinin birlikte ayağa kalkması.
@@ -353,7 +354,7 @@ Demo seviyesinde olan alanlar:
 
 - API key sistemi gerçek kullanıcı yönetimi yerine seed edilmiş demo key'lere dayanır.
 - SQLite local/demo kullanım için uygundur; production DB migrasyon/backup stratejisi yoktur.
-- Gemini entegrasyonu opsiyoneldir; mock fallback demo güvenilirliği için varsayılan açık gelir.
+- Gemini entegrasyonu demo/release akışının varsayılanıdır; mock fallback varsayılan kapalıdır ve Gemini hatası kullanıcıyı yanıltmadan `503` döner.
 - Mobil uygulama temel ürün akışını gösterir; store release, cihaz matrisi ve geniş kapsamlı UI testleri yapılmamıştır.
 
 Opsiyonel veya sınırlı alanlar:

@@ -164,6 +164,7 @@ class GenerateResponse(BaseModel):
     """POST /api/v1/generate yanıtı."""
     generation_id: int
     mode: GenerationMode
+    provider: Optional[str] = None
     user_story: Optional[str] = None
     acceptance_criteria: list[str] = Field(default_factory=list)
     test_plan: Optional[TestPlanSchema] = None
@@ -297,4 +298,3 @@ class BatchGenerateResponse(BaseModel):
 class ErrorResponse(BaseModel):
     """Hata yanıtı."""
     detail: str
-

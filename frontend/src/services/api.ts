@@ -25,6 +25,7 @@ type RequestOptions = {
   apiKey?: string | null;
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
+  timeoutMs?: number;
 };
 
 export function getStoredApiKey() {
@@ -55,13 +56,36 @@ function buildAuthHeaders(apiKey = getStoredApiKey(), hasBody = false) {
 
 export async function apiRequest<T>(
   path: string,
-  { apiKey = getStoredApiKey(), method = "GET", body }: RequestOptions = {},
+  { apiKey = getStoredApiKey(), method = "GET", body, timeoutMs }: RequestOptions = {},
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: buildAuthHeaders(apiKey, body !== undefined),
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  const controller = timeoutMs ? new AbortController() : undefined;
+  const timeoutId = timeoutMs
+    ? window.setTimeout(() => controller?.abort(), timeoutMs)
+    : undefined;
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers: buildAuthHeaders(apiKey, body !== undefined),
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller?.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("Üretim zaman aşımına uğradı. Lütfen bağlantıyı kontrol edip tekrar deneyin.");
+    }
+
+    if (error instanceof TypeError) {
+      throw new Error("Backend bağlantısı kurulamadı. API servisinin çalıştığından emin olun.");
+    }
+
+    throw error;
+  } finally {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+  }
 
   if (!response.ok) {
     let message = "Bir sorun oluştu. Lütfen tekrar deneyin.";
@@ -133,6 +157,7 @@ export function generateArtifact(payload: GenerateRequest) {
   return apiRequest<GenerateResponse>("/api/v1/generate", {
     method: "POST",
     body: payload,
+    timeoutMs: 75000,
   });
 }
 
@@ -210,6 +235,14 @@ export async function downloadExportFile(
 }
 
 function localizeApiError(message: string) {
+  if (message.startsWith("Gemini generation failed:")) {
+    return "Gemini yanıtı alınamadı. Lütfen bağlantıyı kontrol edip tekrar deneyin.";
+  }
+
+  if (message.includes("GEMINI_API_KEY is empty")) {
+    return "Gemini API key bulunamadı. Backend ortam ayarlarını kontrol edin.";
+  }
+
   const knownMessages: Record<string, string> = {
     "Invalid or inactive API key": "Geçersiz veya pasif erişim anahtarı.",
     "Generation not found": "Üretim bulunamadı.",

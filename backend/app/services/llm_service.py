@@ -8,7 +8,7 @@ Desteklenen provider'lar:
   - gemini : Google Gemini API (GEMINI_API_KEY gerekli)
 
 Geçiş: LLM_PROVIDER env değişkeni ile kontrol edilir.
-Fallback: LLM_FALLBACK_TO_MOCK=true ise Gemini hata verirse mock'a düşer.
+Fallback: Yalnızca LLM_FALLBACK_TO_MOCK=true ise Gemini hata verirse mock'a düşer.
 """
 
 from __future__ import annotations
@@ -44,14 +44,17 @@ def generate_with_llm(mode: str, inputs: dict, plan: str = "free", template_hint
 
     if provider == "gemini" and settings.GEMINI_API_KEY:
         try:
-            return _generate_with_gemini(mode, inputs, plan, template_hint)
+            return _with_provider(
+                _generate_with_gemini(mode, inputs, plan, template_hint),
+                "gemini",
+            )
         except Exception as exc:
             if settings.LLM_FALLBACK_TO_MOCK:
                 logger.warning(
                     "Gemini call failed (mode=%s), falling back to mock: %s",
                     mode, exc,
                 )
-                return _generate_mock(mode, inputs, plan)
+                return _with_provider(_generate_mock(mode, inputs, plan), "mock")
             raise RuntimeError(
                 f"Gemini generation failed: {exc}. "
                 "Set LLM_FALLBACK_TO_MOCK=true to enable mock fallback."
@@ -60,13 +63,26 @@ def generate_with_llm(mode: str, inputs: dict, plan: str = "free", template_hint
     if provider == "gemini" and not settings.GEMINI_API_KEY:
         if settings.LLM_FALLBACK_TO_MOCK:
             logger.warning("LLM_PROVIDER=gemini but GEMINI_API_KEY is empty, using mock.")
-            return _generate_mock(mode, inputs, plan)
+            return _with_provider(_generate_mock(mode, inputs, plan), "mock")
         raise RuntimeError(
             "LLM_PROVIDER=gemini but GEMINI_API_KEY is empty. "
             "Add a Gemini API key or set LLM_PROVIDER=mock for deterministic demo output."
         )
 
-    return _generate_mock(mode, inputs, plan)
+    if provider == "mock":
+        return _with_provider(_generate_mock(mode, inputs, plan), "mock")
+
+    raise RuntimeError(
+        f"Unsupported LLM_PROVIDER={settings.LLM_PROVIDER!r}. "
+        "Use 'gemini' for real AI generation or 'mock' for local deterministic development."
+    )
+
+
+def _with_provider(result: dict, provider: str) -> dict:
+    """Üretim sonucuna kullanılan provider bilgisini ekle."""
+    tagged = dict(result)
+    tagged["provider"] = provider
+    return tagged
 
 
 # ── Gemini Provider ─────────────────────────────────────
@@ -87,7 +103,10 @@ def _generate_with_gemini(mode: str, inputs: dict, plan: str, template_hint: str
             "Run: pip install google-genai"
         ) from exc
 
-    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    client = genai.Client(
+        api_key=settings.GEMINI_API_KEY,
+        http_options=genai_types.HttpOptions(timeout=settings.GEMINI_TIMEOUT_MS),
+    )
 
     system_prompt, user_prompt = _build_prompts(mode, inputs, plan, template_hint)
 
@@ -115,8 +134,9 @@ def _generate_with_gemini(mode: str, inputs: dict, plan: str, template_hint: str
         # Single retry with explicit reminder
         retry_prompt = (
             user_prompt
-            + "\n\nIMPORTANT: Your previous response could not be parsed. "
-            "Return ONLY the raw JSON object. No markdown fences, no explanation text."
+            + "\n\nIMPORTANT: Önceki yanıt parse edilemedi. "
+            "ONLY raw JSON object döndür. Markdown fence, açıklama veya ek metin yazma. "
+            "JSON içindeki kullanıcıya görünen metinler Türkçe olmalı."
         )
         retry_response = client.models.generate_content(
             model=settings.GEMINI_MODEL,
@@ -185,7 +205,10 @@ def _build_prompts(mode: str, inputs: dict, plan: str, template_hint: str | None
     if template_hint:
         user = (
             user
-            + f"\n\nAdditional context / custom instructions from user template:\n{template_hint}"
+            + "\n\nKullanıcının Template yönergeleri:\n"
+            + template_hint
+            + "\n\nBu yönergeleri uygula; ancak çıktı dili Türkçe kalmalı. "
+            "Teknik QA terimlerini gerektiğinde İngilizce bırak."
         )
 
     return system, user

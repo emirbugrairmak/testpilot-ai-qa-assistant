@@ -111,6 +111,7 @@ export type GenerateRequest =
 export type GenerateResponse = {
   generation_id: number;
   mode: GenerationMode;
+  provider?: string;
   user_story?: string;
   acceptance_criteria?: string[];
   test_plan?: TestPlan;

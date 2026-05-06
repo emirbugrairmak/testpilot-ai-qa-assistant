@@ -5,9 +5,17 @@ Ortam değişkenlerinden okunan konfigürasyon.
 """
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = BACKEND_DIR.parent
+
+# Backend hem repo kökünden hem de backend/ içinden çalıştırılabiliyor.
+# Bu yüzden önce kök .env, ardından backend/.env okunur; gerçek environment
+# değişkenleri varsa python-dotenv bunların üstüne yazmaz.
+load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(BACKEND_DIR / ".env")
 
 
 class Settings:
@@ -37,12 +45,15 @@ class Settings:
     # ── LLM ─────────────────────────────────────────
     # "mock" → deterministik mock generator (test / geliştirme)
     # "gemini" → gerçek Gemini API (GEMINI_API_KEY gerekli)
-    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "mock")
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gemini")
 
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 
     # Kullanılacak Gemini modeli
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+
+    # Gemini HTTP isteği için timeout (milisaniye)
+    GEMINI_TIMEOUT_MS: int = int(os.getenv("GEMINI_TIMEOUT_MS", "30000"))
 
     # True ise Gemini başarısız olursa mock'a düşer. Demo güvenilirliği için görünür tutulur.
     LLM_FALLBACK_TO_MOCK: bool = (

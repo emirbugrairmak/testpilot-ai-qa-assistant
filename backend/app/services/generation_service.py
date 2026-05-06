@@ -32,6 +32,7 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
     template_hint = inputs.get("custom_template_hint")
 
     result = generate_with_llm(mode, inputs_for_db, plan=plan, template_hint=template_hint)
+    provider = result.get("provider", "unknown")
 
 
     # ── 2. Watermark ekle (free plan) ──────────────
@@ -47,6 +48,7 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
         br = result["bug_report"]
         output = {
             "mode": mode,
+            "provider": provider,
             "bug_report": br,
             "tags": br.get("labels", ["bug"]),
             "watermark": watermark,
@@ -59,6 +61,7 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
 
         output = {
             "mode": mode,
+            "provider": provider,
             "user_story": result["user_story"],
             "acceptance_criteria": result["acceptance_criteria"],
             "test_plan": result["test_plan"],
@@ -108,6 +111,7 @@ def _to_markdown(data: dict) -> str:
     lines.append(f"# Test Plan: {data['test_plan']['objective']}")
     lines.append("")
     lines.append(f"**Mode:** `{data['mode']}`")
+    lines.append(f"**AI Provider:** `{data.get('provider', 'unknown')}`")
     lines.append(f"**Generated:** {data['created_at']}")
     lines.append("")
 
@@ -170,6 +174,7 @@ def _bug_report_to_markdown(data: dict) -> str:
         f"# Bug Report: {bug['title']}",
         "",
         f"**Mode:** `{data['mode']}`",
+        f"**AI Provider:** `{data.get('provider', 'unknown')}`",
         f"**Generated:** {data['created_at']}",
         f"**Severity:** {bug['severity']}",
         f"**Priority:** {bug['priority']}",
