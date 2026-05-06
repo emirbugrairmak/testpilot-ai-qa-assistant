@@ -17,6 +17,9 @@ import hashlib
 import json
 import logging
 import re
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from app.config import settings
 
@@ -90,40 +93,13 @@ def _with_provider(result: dict, provider: str) -> dict:
 def _generate_with_gemini(mode: str, inputs: dict, plan: str, template_hint: str | None = None) -> dict:
     """Gerçek Gemini API çağrısı.
 
-    google-genai SDK kullanır.
-    JSON çıktı için response_mime_type='application/json' parametresi ile
-    structured output talep eder, parse başarısız olursa tek retry yapar.
+    Doğrudan Gemini REST API kullanır. Docker ortamında SDK HTTP timeout'u
+    güvenilir kesmediği için urllib timeout ile kontrollü çağrı yapılır.
+    JSON çıktı için response_mime_type='application/json' talep eder,
+    parse başarısız olursa tek retry yapar.
     """
-    try:
-        from google import genai
-        from google.genai import types as genai_types
-    except ImportError as exc:
-        raise RuntimeError(
-            "google-genai package not installed. "
-            "Run: pip install google-genai"
-        ) from exc
-
-    client = genai.Client(
-        api_key=settings.GEMINI_API_KEY,
-        http_options=genai_types.HttpOptions(timeout=settings.GEMINI_TIMEOUT_MS),
-    )
-
     system_prompt, user_prompt = _build_prompts(mode, inputs, plan, template_hint)
-
-    config = genai_types.GenerateContentConfig(
-        system_instruction=system_prompt,
-        response_mime_type="application/json",
-        temperature=0.4,
-        max_output_tokens=4096,
-    )
-
-    response = client.models.generate_content(
-        model=settings.GEMINI_MODEL,
-        contents=user_prompt,
-        config=config,
-    )
-
-    raw_text = response.text.strip()
+    raw_text = _call_gemini_rest(system_prompt, user_prompt)
 
     # Parse & validate
     try:
@@ -138,12 +114,65 @@ def _generate_with_gemini(mode: str, inputs: dict, plan: str, template_hint: str
             "ONLY raw JSON object döndür. Markdown fence, açıklama veya ek metin yazma. "
             "JSON içindeki kullanıcıya görünen metinler Türkçe olmalı."
         )
-        retry_response = client.models.generate_content(
-            model=settings.GEMINI_MODEL,
-            contents=retry_prompt,
-            config=config,
-        )
-        return _parse_and_validate(mode, retry_response.text.strip(), plan, inputs)
+        retry_text = _call_gemini_rest(system_prompt, retry_prompt)
+        return _parse_and_validate(mode, retry_text, plan, inputs)
+
+
+def _call_gemini_rest(system_prompt: str, user_prompt: str) -> str:
+    """Gemini REST API çağrısı yap ve text response döndür."""
+    model = settings.GEMINI_MODEL.removeprefix("models/")
+    quoted_model = urllib.parse.quote(model, safe="")
+    url = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{quoted_model}:generateContent?key={urllib.parse.quote(settings.GEMINI_API_KEY)}"
+    )
+    payload = {
+        "system_instruction": {
+            "parts": [{"text": system_prompt}],
+        },
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": user_prompt}],
+            }
+        ],
+        "generationConfig": {
+            "response_mime_type": "application/json",
+            "temperature": 0.4,
+            "maxOutputTokens": 4096,
+        },
+    }
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        method="POST",
+    )
+    timeout_seconds = max(settings.GEMINI_TIMEOUT_MS / 1000, 1)
+
+    try:
+        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+            response_body = response.read().decode("utf-8")
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read(1000).decode("utf-8", errors="replace")
+        raise RuntimeError(f"Gemini HTTP {exc.code}: {error_body}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Gemini network error: {exc.reason}") from exc
+    except TimeoutError as exc:
+        raise RuntimeError(f"Gemini request timed out after {settings.GEMINI_TIMEOUT_MS} ms") from exc
+
+    data = json.loads(response_body)
+    try:
+        parts = data["candidates"][0]["content"]["parts"]
+        text = "".join(part.get("text", "") for part in parts).strip()
+    except (KeyError, IndexError, TypeError) as exc:
+        raise RuntimeError("Gemini response did not include generated text") from exc
+
+    if not text:
+        raise RuntimeError("Gemini response text is empty")
+
+    return text
 
 
 def _build_prompts(mode: str, inputs: dict, plan: str, template_hint: str | None = None) -> tuple[str, str]:

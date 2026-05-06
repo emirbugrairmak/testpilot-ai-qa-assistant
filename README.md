@@ -225,6 +225,12 @@ Temel davranış:
 | `PUT` | `/api/v1/templates/{id}` | Template güncelleme | Premium |
 | `DELETE` | `/api/v1/templates/{id}` | Template silme | Premium |
 
+Jira export gerçek bir `.jira` dosya standardı üretmez. Premium kullanıcılar için
+Jira ekranına yapıştırılabilir plain text çıktı indirir; dosya adı
+`generation-{id}-jira.txt` biçimindedir. Mod A / Mod B çıktıları gerçek bug
+değil, QA task / test preparation taslağı olarak formatlanır. Bug Report modu
+ise bug ticket draft formatını korur.
+
 Hızlı backend testleri:
 
 ```bash

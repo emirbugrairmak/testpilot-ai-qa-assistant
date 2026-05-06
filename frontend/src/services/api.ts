@@ -229,9 +229,21 @@ export async function downloadExportFile(
   const blob = await response.blob();
   const disposition = response.headers.get("Content-Disposition") || "";
   const filenameMatch = disposition.match(/filename="?(.*?)"?$/i);
-  const filename = filenameMatch?.[1] || `testpilot-export-${generationId}.${format}`;
+  const filename = filenameMatch?.[1] || fallbackExportFilename(generationId, format);
 
   return { blob, filename };
+}
+
+function fallbackExportFilename(generationId: number, format: ExportFormat) {
+  const extensionByFormat: Record<ExportFormat, string> = {
+    json: "json",
+    markdown: "md",
+    csv: "csv",
+    jira: "txt",
+  };
+  const suffix = format === "jira" ? "-jira" : "";
+
+  return `generation-${generationId}${suffix}.${extensionByFormat[format]}`;
 }
 
 function localizeApiError(message: string) {

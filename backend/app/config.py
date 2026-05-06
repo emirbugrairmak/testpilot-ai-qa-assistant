@@ -29,7 +29,9 @@ class Settings:
     # ── CORS ────────────────────────────────────────
     CORS_ORIGINS: list[str] = [
         "http://localhost:3000",    # Frontend (Vite dev server)
+        "http://127.0.0.1:3000",    # Frontend (local Docker/dev)
         "http://localhost:8000",    # Backend (Swagger UI)
+        "http://127.0.0.1:8000",    # Backend (local Docker/dev)
     ]
 
     # ── Database ────────────────────────────────────

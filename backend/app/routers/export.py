@@ -79,6 +79,7 @@ def export_jira(
         key_info=key_info,
         renderer=to_jira_export,
         extension="txt",
+        suffix="jira",
         media_type="text/plain; charset=utf-8",
     )
 
@@ -89,6 +90,7 @@ def _export_record(
     renderer: Callable[[dict], str],
     extension: str,
     media_type: str,
+    suffix: str | None = None,
 ) -> Response:
     record = get_owned_generation(key_info["id"], generation_id)
     if not record:
@@ -99,7 +101,7 @@ def _export_record(
 
     content = renderer(record)
     headers = {
-        "Content-Disposition": f'attachment; filename="{export_filename(record, extension)}"'
+        "Content-Disposition": f'attachment; filename="{export_filename(record, extension, suffix=suffix)}"'
     }
     return Response(content=content, media_type=media_type, headers=headers)
 
