@@ -15,6 +15,7 @@ const exportOptions: Array<{
 }> = [
   { format: "json", label: "JSON", premiumOnly: false },
   { format: "markdown", label: "Markdown", premiumOnly: false },
+  { format: "pdf", label: "PDF", premiumOnly: false },
   { format: "csv", label: "CSV", premiumOnly: true },
   { format: "jira", label: "Jira", premiumOnly: true },
 ];
@@ -74,6 +75,10 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
             <span className="mt-1 block text-xs leading-4 text-slate-500">
               {option.premiumOnly
                 ? "Premium Export"
+                : option.format === "pdf" && plan === "free"
+                  ? "TestPilot Free watermark içerir"
+                : option.format === "pdf"
+                  ? "Temiz PDF export"
                 : plan === "free"
                   ? "İmzalı Free provenance içerir"
                   : "Tüm planlarda kullanılabilir"}

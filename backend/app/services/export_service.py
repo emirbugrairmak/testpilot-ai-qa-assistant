@@ -15,14 +15,47 @@ import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any
+from xml.sax.saxutils import escape
 
 from app.config import settings
 from app.database import get_db
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import cm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.rl_config import TTFSearchPath
+from reportlab.platypus import (
+    ListFlowable,
+    ListItem,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 
 PROVENANCE_STAMP_TYPE = "testpilot_free_export_provenance"
 PROVENANCE_ALGORITHM = "HMAC-SHA256"
 MARKDOWN_PROVENANCE_TITLE = "TestPilot Free Export Provenance"
+PDF_FONT_REGULAR = "TestPilotVera"
+PDF_FONT_BOLD = "TestPilotVeraBold"
+
+
+def _register_pdf_fonts() -> None:
+    """Unicode destekli TTF fontları PDF'e gömmek için kaydet."""
+    registered = set(pdfmetrics.getRegisteredFontNames())
+    if PDF_FONT_REGULAR in registered and PDF_FONT_BOLD in registered:
+        return
+
+    font_dir = TTFSearchPath[0]
+    if PDF_FONT_REGULAR not in registered:
+        pdfmetrics.registerFont(TTFont(PDF_FONT_REGULAR, f"{font_dir}/Vera.ttf"))
+    if PDF_FONT_BOLD not in registered:
+        pdfmetrics.registerFont(TTFont(PDF_FONT_BOLD, f"{font_dir}/VeraBd.ttf"))
 
 
 def get_owned_generation(api_key_id: int, generation_id: int) -> dict | None:
@@ -82,6 +115,30 @@ def to_markdown_export(record: dict, key_info: dict | None = None) -> str:
         f"Signature: {meta['signature']}",
         "",
     ])
+
+
+def to_pdf_export(record: dict, key_info: dict | None = None) -> bytes:
+    """PDF export icerigi."""
+    _register_pdf_fonts()
+    buffer = io.BytesIO()
+    is_free = key_info is not None and key_info.get("plan") == "free"
+    story = _build_pdf_story(record, key_info or {})
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=1.7 * cm,
+        leftMargin=1.7 * cm,
+        topMargin=1.7 * cm,
+        bottomMargin=1.6 * cm,
+        title=f"TestPilot Generation {record['generation_id']}",
+        author="TestPilot",
+    )
+
+    def decorate_page(canvas, document):
+        _draw_pdf_page(canvas, document, is_free=is_free)
+
+    doc.build(story, onFirstPage=decorate_page, onLaterPages=decorate_page)
+    return buffer.getvalue()
 
 
 def to_csv_export(record: dict, key_info: dict | None = None) -> str:
@@ -232,6 +289,279 @@ def export_filename(record: dict, extension: str, suffix: str | None = None) -> 
     """Download filename üret."""
     suffix_part = f"-{suffix}" if suffix else ""
     return f"generation-{record['generation_id']}{suffix_part}.{extension}"
+
+
+def _build_pdf_story(record: dict, key_info: dict) -> list:
+    output = record.get("output") or {}
+    styles = _pdf_styles()
+    is_free = key_info.get("plan") == "free"
+    story: list = []
+
+    if is_free:
+        story.extend([
+            Paragraph("TestPilot", styles["Title"]),
+            Paragraph("AI QA Assistant Export", styles["Subtitle"]),
+            Spacer(1, 0.35 * cm),
+            _pdf_meta_table(record, output, key_info, styles),
+            Spacer(1, 0.45 * cm),
+        ])
+
+    if record.get("mode") == "bug_report":
+        story.extend(_bug_report_pdf_sections(output, styles))
+    else:
+        story.extend(_test_suite_pdf_sections(output, styles))
+
+    return story
+
+
+def _pdf_meta_table(record: dict, output: dict, key_info: dict, styles: dict) -> Table:
+    data = [
+        ["Mode", _format_mode(record.get("mode"))],
+        ["Plan", str(key_info.get("plan", "")).title() or "Unknown"],
+        ["Generated", _display_datetime(record.get("created_at"))],
+        ["AI Provider", str(output.get("provider") or "unknown")],
+    ]
+    table = Table(
+        [[Paragraph(_safe_text(label), styles["MetaLabel"]), Paragraph(_safe_text(value), styles["MetaValue"])] for label, value in data],
+        colWidths=[3.2 * cm, 12 * cm],
+        hAlign="LEFT",
+    )
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
+        ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#CBD5E1")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#E2E8F0")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    return table
+
+
+def _test_suite_pdf_sections(output: dict, styles: dict) -> list:
+    story: list = []
+    if output.get("user_story"):
+        story.extend(_section("User Story", [Paragraph(_safe_text(output["user_story"]), styles["Body"])], styles))
+
+    acceptance_criteria = output.get("acceptance_criteria") or []
+    if acceptance_criteria:
+        story.extend(_section("Acceptance Criteria", [_bullet_list(acceptance_criteria, styles)], styles))
+
+    test_plan = output.get("test_plan") or {}
+    if test_plan:
+        plan_parts = []
+        for label, value in [
+            ("Objective", test_plan.get("objective")),
+            ("Scope", test_plan.get("scope")),
+            ("Test Types", ", ".join(test_plan.get("test_types") or [])),
+            ("Approach", test_plan.get("approach")),
+        ]:
+            if value:
+                plan_parts.append(Paragraph(f"<b>{_safe_text(label)}:</b> {_safe_text(value)}", styles["Body"]))
+        story.extend(_section("Test Plan", plan_parts, styles))
+
+    test_cases = output.get("test_cases") or []
+    if test_cases:
+        case_blocks = []
+        for test_case in test_cases:
+            case_blocks.append(Paragraph(
+                f"<b>{_safe_text(test_case.get('id', ''))} - {_safe_text(test_case.get('title', ''))}</b>",
+                styles["CaseTitle"],
+            ))
+            case_blocks.append(Paragraph(
+                f"<b>Priority:</b> {_safe_text(test_case.get('priority', ''))} &nbsp; "
+                f"<b>Type:</b> {_safe_text(test_case.get('type', ''))}",
+                styles["Body"],
+            ))
+            if test_case.get("preconditions"):
+                case_blocks.append(Paragraph(
+                    f"<b>Preconditions:</b> {_safe_text(test_case.get('preconditions'))}",
+                    styles["Body"],
+                ))
+            steps = test_case.get("steps") or []
+            if steps:
+                case_blocks.append(Paragraph("<b>Steps</b>", styles["SmallHeading"]))
+                case_blocks.append(_bullet_list(steps, styles, ordered=True))
+            if test_case.get("expected_result"):
+                case_blocks.append(Paragraph(
+                    f"<b>Expected Result:</b> {_safe_text(test_case.get('expected_result'))}",
+                    styles["Body"],
+                ))
+            case_blocks.append(Spacer(1, 0.2 * cm))
+        story.extend(_section("Test Cases", case_blocks, styles))
+
+    return story
+
+
+def _bug_report_pdf_sections(output: dict, styles: dict) -> list:
+    bug = output.get("bug_report") or {}
+    story: list = []
+    summary_parts = [
+        Paragraph(f"<b>Title:</b> {_safe_text(bug.get('title', ''))}", styles["Body"]),
+        Paragraph(f"<b>Severity:</b> {_safe_text(bug.get('severity', ''))}", styles["Body"]),
+        Paragraph(f"<b>Priority:</b> {_safe_text(bug.get('priority', ''))}", styles["Body"]),
+        Paragraph(f"<b>Environment:</b> {_safe_text(bug.get('environment', ''))}", styles["Body"]),
+    ]
+    story.extend(_section("Bug Report", summary_parts, styles))
+
+    if bug.get("summary"):
+        story.extend(_section("Summary", [Paragraph(_safe_text(bug["summary"]), styles["Body"])], styles))
+    if bug.get("steps_to_reproduce"):
+        story.extend(_section("Steps to Reproduce", [_bullet_list(bug["steps_to_reproduce"], styles, ordered=True)], styles))
+    if bug.get("actual_result"):
+        story.extend(_section("Actual Result", [Paragraph(_safe_text(bug["actual_result"]), styles["Body"])], styles))
+    if bug.get("expected_result"):
+        story.extend(_section("Expected Result", [Paragraph(_safe_text(bug["expected_result"]), styles["Body"])], styles))
+
+    return story
+
+
+def _section(title: str, flowables: list, styles: dict) -> list:
+    if not flowables:
+        return []
+    return [
+        Paragraph(_safe_text(title), styles["Heading"]),
+        Spacer(1, 0.12 * cm),
+        *flowables,
+        Spacer(1, 0.35 * cm),
+    ]
+
+
+def _bullet_list(items: list, styles: dict, ordered: bool = False) -> ListFlowable:
+    return ListFlowable(
+        [
+            ListItem(Paragraph(_safe_text(item), styles["Body"]), leftIndent=12)
+            for item in items
+        ],
+        bulletType="1" if ordered else "bullet",
+        leftIndent=16,
+    )
+
+
+def _draw_pdf_page(canvas, document, is_free: bool) -> None:
+    width, height = A4
+    canvas.saveState()
+    if is_free:
+        if hasattr(canvas, "setFillAlpha"):
+            canvas.setFillAlpha(0.12)
+        canvas.setFillColor(colors.HexColor("#50B0E0"))
+        canvas.setFont(PDF_FONT_BOLD, 42)
+        canvas.translate(width / 2, height / 2)
+        canvas.rotate(38)
+        canvas.drawCentredString(0, 0, "Generated with TestPilot Free")
+        canvas.restoreState()
+        canvas.saveState()
+        canvas.setFillColor(colors.HexColor("#64748B"))
+        canvas.setFont(PDF_FONT_REGULAR, 8)
+        canvas.drawString(1.7 * cm, 0.9 * cm, "Generated with TestPilot Free")
+    else:
+        canvas.setFillColor(colors.HexColor("#64748B"))
+        canvas.setFont(PDF_FONT_REGULAR, 8)
+    canvas.drawRightString(width - 1.7 * cm, 0.9 * cm, f"Page {document.page}")
+    canvas.restoreState()
+
+
+def _pdf_styles() -> dict:
+    base = getSampleStyleSheet()
+    return {
+        "Title": ParagraphStyle(
+            "TestPilotTitle",
+            parent=base["Title"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=22,
+            leading=26,
+            textColor=colors.HexColor("#102050"),
+            alignment=TA_CENTER,
+            spaceAfter=4,
+        ),
+        "Subtitle": ParagraphStyle(
+            "TestPilotSubtitle",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=10,
+            leading=13,
+            textColor=colors.HexColor("#3096C9"),
+            alignment=TA_CENTER,
+        ),
+        "Heading": ParagraphStyle(
+            "SectionHeading",
+            parent=base["Heading2"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=13,
+            leading=16,
+            textColor=colors.HexColor("#102050"),
+            spaceBefore=5,
+        ),
+        "SmallHeading": ParagraphStyle(
+            "SmallHeading",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=9.5,
+            leading=12,
+            textColor=colors.HexColor("#334155"),
+        ),
+        "Body": ParagraphStyle(
+            "Body",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9.5,
+            leading=13,
+            textColor=colors.HexColor("#334155"),
+            spaceAfter=4,
+        ),
+        "CaseTitle": ParagraphStyle(
+            "CaseTitle",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=10,
+            leading=13,
+            textColor=colors.HexColor("#102050"),
+            spaceBefore=4,
+            spaceAfter=3,
+        ),
+        "MetaLabel": ParagraphStyle(
+            "MetaLabel",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=8.5,
+            leading=11,
+            textColor=colors.HexColor("#475569"),
+        ),
+        "MetaValue": ParagraphStyle(
+            "MetaValue",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=8.5,
+            leading=11,
+            textColor=colors.HexColor("#0F172A"),
+        ),
+    }
+
+
+def _format_mode(mode: str | None) -> str:
+    labels = {
+        "mod_a": "Mod A",
+        "mod_b": "Mod B",
+        "bug_report": "Bug Report",
+    }
+    return labels.get(str(mode or ""), str(mode or "Unknown"))
+
+
+def _display_datetime(value: str | None) -> str:
+    if not value:
+        return ""
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return parsed.strftime("%Y-%m-%d %H:%M UTC")
+    except ValueError:
+        return value
+
+
+def _safe_text(value: Any) -> str:
+    if value is None:
+        return ""
+    return escape(str(value)).replace("\n", "<br/>")
 
 
 def verify_export_content(content: str, format_name: str | None = None) -> dict:

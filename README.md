@@ -22,6 +22,7 @@ Kimlik modeli access key tabanlıdır. Web uygulamasında kullanıcı mevcut acc
 | History | Son 15 kayıt | Tüm kayıtlar |
 | JSON export | Var | Var |
 | Markdown export | Var | Var |
+| PDF export | Watermark'lı | Temiz |
 | CSV export | Yok | Var |
 | Jira-friendly export | Yok | Var |
 | Custom templates | Yok | Var |
@@ -37,6 +38,11 @@ taşır. Bu yapı metnin silinmesini teknik olarak engellemez; export'un orijina
 TestPilot Free çıktısı olup olmadığını ve payload'ın değiştirilip
 değiştirilmediğini doğrulanabilir hale getirir. Premium çıktılarda Free plan
 kaynak damgası yer almaz.
+
+PDF export Free ve Premium planda desteklenir. Free PDF dosyalarında her sayfada
+okunabilirliği bozmayacak şekilde `Generated with TestPilot Free` watermark'ı ve
+küçük footer bilgisi bulunur. Premium PDF export temiz belge olarak üretilir.
+JSON/Markdown export desteği devam eder; CSV/Jira export Premium-only kalır.
 
 ## Access Key ile Plan Edinme
 
@@ -241,6 +247,7 @@ Temel davranış:
 | `DELETE` | `/api/v1/history/{id}` | Tek kayıt silme | Bearer |
 | `GET` | `/api/v1/export/{id}/json` | JSON export | Bearer |
 | `GET` | `/api/v1/export/{id}/markdown` | Markdown export | Bearer |
+| `GET` | `/api/v1/export/{id}/pdf` | PDF export | Bearer |
 | `GET` | `/api/v1/export/{id}/csv` | CSV export | Premium |
 | `GET` | `/api/v1/export/{id}/jira` | Jira-friendly text export | Premium |
 | `POST` | `/api/v1/export/verify` | Free export imzası ve payload hash doğrulama | Yok |

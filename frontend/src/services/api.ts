@@ -257,10 +257,12 @@ function fallbackExportFilename(generationId: number, format: ExportFormat) {
   const extensionByFormat: Record<ExportFormat, string> = {
     json: "json",
     markdown: "md",
+    pdf: "pdf",
     csv: "csv",
     jira: "txt",
   };
-  const suffix = format === "jira" ? "-jira" : "";
+  const suffix =
+    format === "jira" ? "-jira" : format === "pdf" ? "-testpilot" : "";
 
   return `generation-${generationId}${suffix}.${extensionByFormat[format]}`;
 }

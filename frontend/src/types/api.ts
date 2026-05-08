@@ -1,7 +1,7 @@
 export type Plan = "free" | "premium";
 
 export type GenerationMode = "mod_a" | "mod_b" | "bug_report";
-export type ExportFormat = "json" | "markdown" | "csv" | "jira";
+export type ExportFormat = "json" | "markdown" | "pdf" | "csv" | "jira";
 
 export type AuthValidateResponse = {
   valid: boolean;

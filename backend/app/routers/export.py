@@ -16,6 +16,7 @@ from app.services.export_service import (
     to_jira_export,
     to_json_export,
     to_markdown_export,
+    to_pdf_export,
     verify_export_content,
 )
 from app.utils.auth import get_api_key_info
@@ -69,6 +70,22 @@ def export_markdown(
     )
 
 
+@router.get("/{generation_id}/pdf", summary="PDF export")
+def export_pdf(
+    generation_id: int,
+    key_info: dict = Depends(get_api_key_info),
+):
+    """PDF export: free ve premium için açık. Free planda görsel watermark içerir."""
+    return _export_record(
+        generation_id=generation_id,
+        key_info=key_info,
+        renderer=to_pdf_export,
+        extension="pdf",
+        suffix="testpilot",
+        media_type="application/pdf",
+    )
+
+
 @router.get("/{generation_id}/csv", summary="CSV export")
 def export_csv(
     generation_id: int,
@@ -105,7 +122,7 @@ def export_jira(
 def _export_record(
     generation_id: int,
     key_info: dict,
-    renderer: Callable[[dict, dict | None], str],
+    renderer: Callable[[dict, dict | None], str | bytes],
     extension: str,
     media_type: str,
     suffix: str | None = None,
