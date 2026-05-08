@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useExportDownload } from "../hooks/useExportDownload";
-import type { ExportFormat, Plan } from "../types/api";
+import type { ExportFormat, GenerationMode, Plan } from "../types/api";
 import { ErrorAlert } from "./ErrorAlert";
 
 type ExportActionsProps = {
   generationId: number;
   plan: Plan;
+  mode: GenerationMode;
 };
 
 const exportOptions: Array<{
@@ -20,9 +21,13 @@ const exportOptions: Array<{
   { format: "jira", label: "Jira", premiumOnly: true },
 ];
 
-export function ExportActions({ generationId, plan }: ExportActionsProps) {
+export function ExportActions({ generationId, plan, mode }: ExportActionsProps) {
   const [message, setMessage] = useState<string | null>(null);
   const downloadMutation = useExportDownload();
+  const visibleOptions =
+    mode === "bug_report"
+      ? exportOptions.filter((option) => option.format !== "csv")
+      : exportOptions;
 
   function handleDownload(format: ExportFormat, premiumOnly: boolean) {
     setMessage(null);
@@ -62,7 +67,7 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
-        {exportOptions.map((option) => (
+        {visibleOptions.map((option) => (
           <button
             key={option.format}
             type="button"
@@ -70,18 +75,10 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
             className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-left hover:border-sky-300 hover:bg-sky-50"
           >
             <span className="block truncate text-sm font-bold text-navy-800">
-              {option.label}
+              {formatExportLabel(option.format, mode)}
             </span>
             <span className="mt-1 block text-xs leading-4 text-slate-500">
-              {option.premiumOnly
-                ? "Premium Export"
-                : option.format === "pdf" && plan === "free"
-                  ? "TestPilot Free watermark içerir"
-                : option.format === "pdf"
-                  ? "Temiz PDF export"
-                : plan === "free"
-                  ? "İmzalı Free provenance içerir"
-                  : "Tüm planlarda kullanılabilir"}
+              {formatExportDescription(option.format, option.premiumOnly, plan, mode)}
             </span>
           </button>
         ))}
@@ -100,4 +97,47 @@ export function ExportActions({ generationId, plan }: ExportActionsProps) {
       ) : null}
     </section>
   );
+}
+
+function formatExportLabel(format: ExportFormat, mode: GenerationMode) {
+  if (format === "csv") {
+    return "TestRail CSV";
+  }
+
+  if (format === "jira") {
+    return mode === "bug_report" ? "Jira Bug Draft" : "Jira QA Task";
+  }
+
+  return format === "pdf" ? "PDF" : format === "markdown" ? "Markdown" : "JSON";
+}
+
+function formatExportDescription(
+  format: ExportFormat,
+  premiumOnly: boolean,
+  plan: Plan,
+  mode: GenerationMode,
+) {
+  if (format === "csv") {
+    return "TestRail / Test Case export";
+  }
+
+  if (format === "jira") {
+    return mode === "bug_report"
+      ? "Jira Bug Draft"
+      : "Jira QA hazırlık taslağı";
+  }
+
+  if (format === "pdf") {
+    return plan === "free"
+      ? "TestPilot Free watermark içerir"
+      : "Temiz PDF export";
+  }
+
+  if (premiumOnly) {
+    return "Premium Export";
+  }
+
+  return plan === "free"
+    ? "İmzalı Free provenance içerir"
+    : "Tüm planlarda kullanılabilir";
 }

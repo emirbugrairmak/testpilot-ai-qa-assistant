@@ -113,6 +113,7 @@ export function ResultPage({
           <ExportActions
             generationId={detailQuery.data.generation_id}
             plan={user.plan}
+            mode={result.mode}
           />
 
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
