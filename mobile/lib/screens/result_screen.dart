@@ -97,7 +97,9 @@ class _ResultScreenState extends State<ResultScreen> {
         format == ExportFormat.csv || format == ExportFormat.jira;
 
     if (requiresPremium && !isPremium) {
-      _showSnackBar("CSV and Jira exports are available on the premium plan.");
+      _showSnackBar(
+        "CSV ve Jira export yalnızca Premium planda kullanılabilir.",
+      );
       return;
     }
 
@@ -128,7 +130,7 @@ class _ResultScreenState extends State<ResultScreen> {
       }
 
       setState(() {
-        _exportMessage = "${format.label} export is ready to share.";
+        _exportMessage = "${format.label} export paylaşmaya hazır.";
       });
       _showSnackBar(_exportMessage!);
     } catch (error) {
@@ -162,14 +164,14 @@ class _ResultScreenState extends State<ResultScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Result"),
+        title: const Text("Sonuç"),
         leading: IconButton(
           onPressed: widget.onBack,
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         actions: [
           IconButton(
-            tooltip: "Refresh",
+            tooltip: "Yenile",
             onPressed: _isLoading
                 ? null
                 : () {
@@ -187,20 +189,20 @@ class _ResultScreenState extends State<ResultScreen> {
                   padding: const EdgeInsets.all(16),
                   children: [
                     SectionCard(
-                      title: "Summary",
+                      title: "Özet",
                       trailing: PlanBadge(plan: widget.authResponse.plan),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Generation #${detail.generationId}",
+                            "Üretim #${detail.generationId}",
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Mode: ${detail.output.mode.label}\nCreated: ${detail.createdAt}",
+                            "Mod: ${detail.output.mode.label}\nOluşturulma: ${detail.createdAt}",
                             style: theme.textTheme.bodyMedium,
                           ),
                           if (detail.output.watermark != null) ...[
@@ -225,21 +227,21 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                     const SizedBox(height: 16),
                     SectionCard(
-                      title: "Input summary",
+                      title: "Girdi özeti",
                       child: _buildInputSummary(detail.input, theme),
                     ),
                     const SizedBox(height: 16),
                     SectionCard(
-                      title: "Result blocks",
+                      title: "Sonuç blokları",
                       child: _buildResultBlocks(detail, theme),
                     ),
                     const SizedBox(height: 16),
                     SectionCard(
-                      title: "Markdown preview",
+                      title: "Markdown önizleme",
                       child: detail.markdown.isNotEmpty
                           ? MarkdownBody(data: detail.markdown)
                           : Text(
-                              "Markdown preview is not available for this result.",
+                              "Bu sonuç için Markdown önizleme yok.",
                               style: theme.textTheme.bodyMedium,
                             ),
                     ),
@@ -309,7 +311,7 @@ class _ResultScreenState extends State<ResultScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Result is not available.",
+              "Sonuç bulunamadı.",
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -335,7 +337,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (entries.isEmpty) {
       return Text(
-        "No input summary available.",
+        "Girdi özeti yok.",
         style: theme.textTheme.bodyMedium,
       );
     }
@@ -351,7 +353,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   SizedBox(
                     width: 120,
                     child: Text(
-                      entry.key,
+                      _labelForInputKey(entry.key),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -373,6 +375,33 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
+  String _labelForInputKey(String key) {
+    switch (key) {
+      case "mode":
+        return "Mod";
+      case "feature_idea":
+        return "Feature fikri";
+      case "user_story":
+        return "User Story";
+      case "acceptance_criteria":
+        return "AC";
+      case "title":
+        return "Başlık";
+      case "steps_to_reproduce":
+        return "Adımlar";
+      case "actual_result":
+        return "Gerçek sonuç";
+      case "expected_result":
+        return "Beklenen sonuç";
+      case "environment":
+        return "Ortam";
+      case "severity":
+        return "Severity";
+      default:
+        return key;
+    }
+  }
+
   Widget _buildResultBlocks(GenerationDetail detail, ThemeData theme) {
     final result = detail.output;
 
@@ -381,17 +410,17 @@ class _ResultScreenState extends State<ResultScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTextBlock("Title", bug.title, theme),
-          _buildTextBlock("Summary", bug.summary, theme),
+          _buildTextBlock("Başlık", bug.title, theme),
+          _buildTextBlock("Özet", bug.summary, theme),
           _buildTextBlock(
             "Severity / Priority",
             "${bug.severity} / ${bug.priority}",
             theme,
           ),
-          _buildTextBlock("Environment", bug.environment, theme),
-          _buildListBlock("Steps", bug.steps, theme),
-          _buildTextBlock("Actual result", bug.actualResult, theme),
-          _buildTextBlock("Expected result", bug.expectedResult, theme),
+          _buildTextBlock("Ortam", bug.environment, theme),
+          _buildListBlock("Adımlar", bug.steps, theme),
+          _buildTextBlock("Gerçek sonuç", bug.actualResult, theme),
+          _buildTextBlock("Beklenen sonuç", bug.expectedResult, theme),
         ],
       );
     }
@@ -400,18 +429,22 @@ class _ResultScreenState extends State<ResultScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (result.userStory != null)
-          _buildTextBlock("User story", result.userStory!, theme),
+          _buildTextBlock("User Story", result.userStory!, theme),
         if (result.acceptanceCriteria.isNotEmpty)
-          _buildListBlock("Acceptance criteria", result.acceptanceCriteria, theme),
+          _buildListBlock(
+            "AC / Acceptance Criteria",
+            result.acceptanceCriteria,
+            theme,
+          ),
         if (result.testPlan != null) ...[
-          _buildTextBlock("Objective", result.testPlan!.objective, theme),
-          _buildTextBlock("Scope", result.testPlan!.scope, theme),
-          _buildListBlock("Test types", result.testPlan!.testTypes, theme),
-          _buildTextBlock("Approach", result.testPlan!.approach, theme),
+          _buildTextBlock("Amaç", result.testPlan!.objective, theme),
+          _buildTextBlock("Kapsam", result.testPlan!.scope, theme),
+          _buildListBlock("Test türleri", result.testPlan!.testTypes, theme),
+          _buildTextBlock("Yaklaşım", result.testPlan!.approach, theme),
         ],
         if (result.testCases.isNotEmpty) ...[
           Text(
-            "Test cases",
+            "Test Case’ler",
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -436,10 +469,10 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text("Type: ${testCase.type}"),
+                  Text("Tür: ${testCase.type}"),
                   Text("Priority: ${testCase.priority}"),
                   if (testCase.preconditions.isNotEmpty)
-                    Text("Preconditions: ${testCase.preconditions}"),
+                    Text("Ön koşullar: ${testCase.preconditions}"),
                   if (testCase.steps.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     ...testCase.steps.map((step) => Text("• $step")),

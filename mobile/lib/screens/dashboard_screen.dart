@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "../models/auth_models.dart";
 import "../models/generation_models.dart";
 import "../models/history_models.dart";
+import "../models/system_models.dart";
 import "../models/usage_models.dart";
 import "../services/api_service.dart";
 import "../widgets/plan_badge.dart";
@@ -37,6 +38,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   UsageSummary? _usage;
   HistoryListResponse? _history;
+  SystemStatus? _systemStatus;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -53,6 +55,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
+      SystemStatus? systemStatus;
+      try {
+        systemStatus = await widget.apiService.fetchSystemStatus();
+      } catch (_) {
+        systemStatus = null;
+      }
+
       final usage = await widget.apiService.fetchUsage(widget.apiKey);
       final history = await widget.apiService.fetchHistory(widget.apiKey);
 
@@ -63,6 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _usage = usage;
         _history = history;
+        _systemStatus = systemStatus;
       });
     } catch (error) {
       if (!mounted) {
@@ -87,20 +97,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Dashboard"),
+        title: const Text("Kontrol paneli"),
         actions: [
           IconButton(
-            tooltip: "History",
+            tooltip: "Geçmiş",
             onPressed: widget.onOpenHistory,
             icon: const Icon(Icons.history_rounded),
           ),
           IconButton(
-            tooltip: "Settings",
+            tooltip: "Ayarlar",
             onPressed: widget.onOpenSettings,
             icon: const Icon(Icons.settings_rounded),
           ),
           IconButton(
-            tooltip: "Refresh",
+            tooltip: "Yenile",
             onPressed: _isLoading
                 ? null
                 : () {
@@ -109,7 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: const Icon(Icons.refresh_rounded),
           ),
           IconButton(
-            tooltip: "Logout",
+            tooltip: "Çıkış yap",
             onPressed: () {
               widget.onLogout();
             },
@@ -123,7 +133,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             SectionCard(
-              title: "Account",
+              title: "Hesap",
               trailing: PlanBadge(plan: widget.authResponse.plan),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,48 +141,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text(
                     widget.authResponse.ownerName.isNotEmpty
                         ? widget.authResponse.ownerName
-                        : "API key session",
+                        : "Access key oturumu",
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "Use Mod A, Mod B, or Bug Report to create QA output quickly.",
+                    "Mod A, Mod B veya Bug Report ile hızlıca QA çıktısı üretin.",
                     style: theme.textTheme.bodyMedium,
                   ),
+                  if (_systemStatus != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      "AI motoru: ${_systemStatus!.ai.displayName}",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: "Quick actions",
+              title: "Hızlı işlemler",
               child: Column(
                 children: [
                   _QuickActionTile(
-                    label: "New Mod A",
-                    subtitle: "Feature idea to QA artifacts",
+                    label: "Yeni Mod A",
+                    subtitle: "Feature fikrinden QA çıktıları üret",
                     icon: Icons.auto_awesome_rounded,
                     onTap: () => widget.onOpenGenerate(GenerationMode.modA),
                   ),
                   const SizedBox(height: 12),
                   _QuickActionTile(
-                    label: "New Mod B",
-                    subtitle: "User story and AC to test cases",
+                    label: "Yeni Mod B",
+                    subtitle: "User Story ve AC’den Test Case üret",
                     icon: Icons.fact_check_rounded,
                     onTap: () => widget.onOpenGenerate(GenerationMode.modB),
                   ),
                   const SizedBox(height: 12),
                   _QuickActionTile(
-                    label: "New Bug Report",
-                    subtitle: "Issue notes to bug template",
+                    label: "Yeni Bug Report",
+                    subtitle: "Hata notlarından rapor taslağı üret",
                     icon: Icons.bug_report_rounded,
-                    onTap: () => widget.onOpenGenerate(GenerationMode.bugReport),
+                    onTap: () =>
+                        widget.onOpenGenerate(GenerationMode.bugReport),
                   ),
                   const SizedBox(height: 12),
                   _QuickActionTile(
-                    label: "Open history",
-                    subtitle: "Review past generations",
+                    label: "Geçmişi aç",
+                    subtitle: "Önceki üretimleri incele",
                     icon: Icons.history_rounded,
                     onTap: widget.onOpenHistory,
                   ),
@@ -181,17 +201,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: "Usage summary",
+              title: "Kullanım özeti",
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _buildUsageSection(theme),
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: "Recent history",
+              title: "Son geçmiş",
               trailing: _history?.limit != null
                   ? Text(
-                      "Last ${_history!.limit}",
+                      "Son ${_history!.limit}",
                       style: theme.textTheme.labelMedium,
                     )
                   : null,
@@ -218,7 +238,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildUsageSection(ThemeData theme) {
     if (_usage == null) {
       return Text(
-        "Usage data is not available yet.",
+        "Kullanım bilgisi şu anda alınamadı.",
         style: theme.textTheme.bodyMedium,
       );
     }
@@ -227,7 +247,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "${_usage!.usageCount} / ${_usage!.monthlyLimit} generations used",
+          "${_usage!.usageCount} / ${_usage!.monthlyLimit} üretim kullanıldı",
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -240,7 +260,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          "Remaining: ${_usage!.remaining}\nResets at: ${_usage!.usageResetAt}",
+          "Kalan hak: ${_usage!.remaining}\nSıfırlanma: ${_usage!.usageResetAt}",
           style: theme.textTheme.bodyMedium,
         ),
       ],
@@ -252,7 +272,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (items.isEmpty) {
       return Text(
-        "No history yet. Start with a new generation.",
+        "Henüz geçmiş kaydı yok. Yeni bir üretimle başlayın.",
         style: theme.textTheme.bodyMedium,
       );
     }

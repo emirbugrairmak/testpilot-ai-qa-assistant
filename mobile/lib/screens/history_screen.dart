@@ -84,18 +84,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete history item"),
+        title: const Text("Geçmiş kaydını sil"),
         content: const Text(
-          "This generation will be removed from your history. Continue?",
+          "Bu üretim geçmişinizden kaldırılacak. Devam edilsin mi?",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel"),
+            child: const Text("Vazgeç"),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Delete"),
+            child: const Text("Sil"),
           ),
         ],
       ),
@@ -118,7 +118,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("History item deleted.")),
+        const SnackBar(content: Text("Geçmiş kaydı silindi.")),
       );
       await _loadHistory();
     } catch (error) {
@@ -144,14 +144,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("History"),
+        title: const Text("Geçmiş"),
         leading: IconButton(
           onPressed: widget.onBack,
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         actions: [
           IconButton(
-            tooltip: "Refresh",
+            tooltip: "Yenile",
             onPressed: _isLoading
                 ? null
                 : () {
@@ -165,7 +165,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           SectionCard(
-            title: "Filters",
+            title: "Filtreler",
             child: Column(
               children: [
                 DropdownButtonFormField<GenerationMode?>(
@@ -173,7 +173,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   items: [
                     const DropdownMenuItem<GenerationMode?>(
                       value: null,
-                      child: Text("All modes"),
+                      child: Text("Tüm modlar"),
                     ),
                     ...GenerationMode.values.map(
                       (mode) => DropdownMenuItem<GenerationMode?>(
@@ -189,15 +189,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     _loadHistory();
                   },
                   decoration: const InputDecoration(
-                    labelText: "Mode",
+                    labelText: "Mod",
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    labelText: "Search",
-                    hintText: "Search in input or output",
+                    labelText: "Ara",
+                    hintText: "Girdi veya çıktıda ara",
                     suffixIcon: IconButton(
                       onPressed: () {
                         _loadHistory();
@@ -214,7 +214,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      "Free plan returns the last ${_history!.limit} records.",
+                      "Free plan son ${_history!.limit} kaydı gösterir.",
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -224,7 +224,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: "Results",
+            title: "Sonuçlar",
             trailing: _isDeleting
                 ? const SizedBox(
                     width: 20,
@@ -233,7 +233,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   )
                 : (_history != null
                     ? Text(
-                        "${_history!.count} items",
+                        "${_history!.count} kayıt",
                         style: theme.textTheme.labelMedium,
                       )
                     : null),
@@ -249,7 +249,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       )
                     : items.isEmpty
                         ? Text(
-                            "No history records match the current filters.",
+                            "Bu filtrelerle eşleşen geçmiş kaydı yok.",
                             style: theme.textTheme.bodyMedium,
                           )
                         : Column(
@@ -295,7 +295,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                   item.generationId,
                                                 );
                                               },
-                                              child: const Text("Open"),
+                                              child: const Text("Aç"),
                                             ),
                                             const SizedBox(width: 10),
                                             OutlinedButton(
@@ -306,7 +306,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                         item.generationId,
                                                       );
                                                     },
-                                              child: const Text("Delete"),
+                                              child: const Text("Sil"),
                                             ),
                                           ],
                                         ),

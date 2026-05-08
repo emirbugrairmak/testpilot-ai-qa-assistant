@@ -152,12 +152,12 @@ class _GenerateScreenState extends State<GenerateScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: "History",
+            tooltip: "Geçmiş",
             onPressed: widget.onOpenHistory,
             icon: const Icon(Icons.history_rounded),
           ),
           IconButton(
-            tooltip: "Settings",
+            tooltip: "Ayarlar",
             onPressed: widget.onOpenSettings,
             icon: const Icon(Icons.settings_rounded),
           ),
@@ -167,7 +167,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           SectionCard(
-            title: "Mode",
+            title: "Mod",
             child: SegmentedButton<GenerationMode>(
               segments: GenerationMode.values
                   .map(
@@ -189,7 +189,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: "Input",
+            title: "Girdi",
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -210,7 +210,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
                   const SizedBox(height: 16),
                 ],
                 PrimaryActionButton(
-                  label: "Generate",
+                  label: "Üret",
                   icon: Icons.play_arrow_rounded,
                   onPressed: _isSubmitting
                       ? null
@@ -223,7 +223,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: "Output preview",
+            title: "Çıktı önizleme",
             child: _buildResultPreview(context),
           ),
         ],
@@ -240,8 +240,8 @@ class _GenerateScreenState extends State<GenerateScreen> {
             minLines: 4,
             maxLines: 6,
             decoration: const InputDecoration(
-              labelText: "Feature idea",
-              hintText: "User login with email and password",
+              labelText: "Feature fikri",
+              hintText: "E-posta ve şifre ile kullanıcı girişi",
             ),
           ),
         ];
@@ -252,7 +252,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
             minLines: 3,
             maxLines: 5,
             decoration: const InputDecoration(
-              labelText: "User story",
+              labelText: "User Story",
             ),
           ),
           const SizedBox(height: 12),
@@ -261,7 +261,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
             minLines: 4,
             maxLines: 6,
             decoration: const InputDecoration(
-              labelText: "Acceptance criteria",
+              labelText: "AC / Acceptance Criteria",
             ),
           ),
         ];
@@ -269,7 +269,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
         return [
           TextField(
             controller: _bugTitleController,
-            decoration: const InputDecoration(labelText: "Title"),
+            decoration: const InputDecoration(labelText: "Başlık"),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
@@ -297,8 +297,8 @@ class _GenerateScreenState extends State<GenerateScreen> {
             minLines: 4,
             maxLines: 6,
             decoration: const InputDecoration(
-              labelText: "Steps to reproduce",
-              hintText: "One step per line",
+              labelText: "Yeniden üretme adımları",
+              hintText: "Her satıra bir adım yazın",
             ),
           ),
           const SizedBox(height: 12),
@@ -306,19 +306,19 @@ class _GenerateScreenState extends State<GenerateScreen> {
             controller: _actualResultController,
             minLines: 3,
             maxLines: 5,
-            decoration: const InputDecoration(labelText: "Actual result"),
+            decoration: const InputDecoration(labelText: "Gerçek sonuç"),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _expectedResultController,
             minLines: 3,
             maxLines: 5,
-            decoration: const InputDecoration(labelText: "Expected result"),
+            decoration: const InputDecoration(labelText: "Beklenen sonuç"),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _environmentController,
-            decoration: const InputDecoration(labelText: "Environment"),
+            decoration: const InputDecoration(labelText: "Ortam"),
           ),
         ];
     }
@@ -329,7 +329,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
 
     if (_result == null) {
       return Text(
-        "Generated output will appear here after a successful request.",
+        "Başarılı bir istekten sonra üretilen çıktı burada görünecek.",
         style: theme.textTheme.bodyMedium,
       );
     }
@@ -350,10 +350,10 @@ class _GenerateScreenState extends State<GenerateScreen> {
           const SizedBox(height: 12),
           Text("Severity: ${bug.severity}"),
           Text("Priority: ${bug.priority}"),
-          Text("Environment: ${bug.environment}"),
+          Text("Ortam: ${bug.environment}"),
           const SizedBox(height: 12),
           Text(
-            "Steps",
+            "Adımlar",
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -369,7 +369,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
       children: [
         if (_result!.userStory != null) ...[
           Text(
-            "User story",
+            "User Story",
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -380,21 +380,20 @@ class _GenerateScreenState extends State<GenerateScreen> {
         ],
         if (_result!.acceptanceCriteria.isNotEmpty) ...[
           Text(
-            "Acceptance criteria",
+            "AC / Acceptance Criteria",
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
-          ..._result!.acceptanceCriteria
-              .map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text("• $item"),
-                  )),
+          ..._result!.acceptanceCriteria.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text("• $item"),
+              )),
           const SizedBox(height: 12),
         ],
         Text(
-          "Test cases",
+          "Test Case’ler",
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -406,7 +405,8 @@ class _GenerateScreenState extends State<GenerateScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(

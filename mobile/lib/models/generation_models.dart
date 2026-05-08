@@ -1,4 +1,5 @@
 enum GenerationMode { modA, modB, bugReport }
+
 enum ExportFormat { json, markdown, csv, jira }
 
 extension ExportFormatX on ExportFormat {
@@ -203,9 +204,8 @@ class GenerationResult {
       mode: generationModeFromApi(json["mode"] as String? ?? "mod_a"),
       createdAt: json["created_at"] as String? ?? "",
       userStory: json["user_story"] as String?,
-      acceptanceCriteria: rawAcceptanceCriteria
-          .map((item) => item.toString())
-          .toList(),
+      acceptanceCriteria:
+          rawAcceptanceCriteria.map((item) => item.toString()).toList(),
       testPlan: json["test_plan"] is Map<String, dynamic>
           ? TestPlan.fromJson(json["test_plan"] as Map<String, dynamic>)
           : null,
@@ -272,7 +272,8 @@ class GenerationDetail {
   final String createdAt;
 
   factory GenerationDetail.fromJson(Map<String, dynamic> json) {
-    final outputJson = (json["output"] as Map<String, dynamic>? ?? <String, dynamic>{})
+    final outputJson = (json["output"] as Map<String, dynamic>? ??
+        <String, dynamic>{})
       ..putIfAbsent("generation_id", () => json["generation_id"]);
     outputJson.putIfAbsent("markdown", () => json["markdown"]);
 

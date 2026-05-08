@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 
 import "../models/auth_models.dart";
+import "../models/system_models.dart";
 import "../models/usage_models.dart";
 import "../services/api_service.dart";
 import "../utils/constants.dart";
@@ -29,19 +30,24 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   UsageSummary? _usage;
+  SystemStatus? _systemStatus;
   bool _isLoading = true;
+  bool _isCheckingStatus = true;
   String? _errorMessage;
+  String? _statusErrorMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadUsage();
+    _loadSettingsData();
   }
 
-  Future<void> _loadUsage() async {
+  Future<void> _loadSettingsData() async {
     setState(() {
       _isLoading = true;
+      _isCheckingStatus = true;
       _errorMessage = null;
+      _statusErrorMessage = null;
     });
 
     try {
@@ -66,6 +72,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
       }
     }
+
+    try {
+      final systemStatus = await widget.apiService.fetchSystemStatus();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _systemStatus = systemStatus;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _statusErrorMessage = error.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingStatus = false;
+        });
+      }
+    }
   }
 
   @override
@@ -74,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Settings"),
+        title: const Text("Ayarlar"),
         leading: IconButton(
           onPressed: widget.onBack,
           icon: const Icon(Icons.arrow_back_rounded),
@@ -84,7 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           SectionCard(
-            title: "Account",
+            title: "Hesap",
             trailing: PlanBadge(plan: widget.authResponse.plan),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,24 +121,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   widget.authResponse.ownerName.isNotEmpty
                       ? widget.authResponse.ownerName
-                      : "API key session",
+                      : "Access key oturumu",
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text("API key: ${_maskApiKey(widget.apiKey)}"),
+                Text("Access key: ${_maskApiKey(widget.apiKey)}"),
               ],
             ),
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: "Usage summary",
+            title: "Kullanım özeti",
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _usage == null
                     ? Text(
-                        _errorMessage ?? "Usage information is unavailable.",
+                        _errorMessage ?? "Kullanım bilgisi alınamadı.",
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: _errorMessage != null
                               ? theme.colorScheme.error
@@ -120,7 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "${_usage!.usageCount} / ${_usage!.monthlyLimit} used",
+                            "${_usage!.usageCount} / ${_usage!.monthlyLimit} kullanıldı",
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
@@ -132,17 +161,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 : _usage!.usageCount / _usage!.monthlyLimit,
                           ),
                           const SizedBox(height: 12),
-                          Text("Remaining: ${_usage!.remaining}"),
-                          Text("Reset at: ${_usage!.usageResetAt}"),
+                          Text("Kalan hak: ${_usage!.remaining}"),
+                          Text("Sıfırlanma: ${_usage!.usageResetAt}"),
                         ],
                       ),
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: "API info",
-            child: Text(
-              "Base URL: ${AppConstants.apiBaseUrl}\nJSON and Markdown exports are available on all plans. CSV and Jira exports require premium.",
-              style: theme.textTheme.bodyMedium,
+            title: "Backend bağlantısı",
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SelectableText(
+                  "API_BASE_URL: ${AppConstants.apiBaseUrl}",
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "Android emulator için genelde 10.0.2.2, gerçek cihaz için aynı Wi‑Fi üzerindeki bilgisayar IP adresi gerekir.",
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: 12),
+                if (_isCheckingStatus)
+                  const Row(
+                    children: [
+                      SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 10),
+                      Text("Backend durumu kontrol ediliyor..."),
+                    ],
+                  )
+                else if (_systemStatus != null)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _systemStatus!.isHealthy
+                            ? "Backend durumu: Bağlı"
+                            : "Backend durumu: ${_systemStatus!.status}",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text("AI motoru: ${_systemStatus!.ai.displayName}"),
+                    ],
+                  )
+                else
+                  Text(
+                    _statusErrorMessage ?? "Backend durumu alınamadı.",
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
@@ -151,7 +226,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               widget.onLogout();
             },
             icon: const Icon(Icons.logout_rounded),
-            label: const Text("Logout"),
+            label: const Text("Çıkış yap"),
           ),
         ],
       ),

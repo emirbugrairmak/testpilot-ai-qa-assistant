@@ -236,12 +236,14 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
         );
       case AppScreen.login:
         return LoginScreen(
+          apiService: _apiService,
           onLogin: _handleLogin,
           initialApiKey: _apiKey,
         );
       case AppScreen.dashboard:
         if (_apiKey == null || _authResponse == null) {
           return LoginScreen(
+            apiService: _apiService,
             onLogin: _handleLogin,
             initialApiKey: _apiKey,
           );
@@ -265,6 +267,7 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
       case AppScreen.generate:
         if (_apiKey == null) {
           return LoginScreen(
+            apiService: _apiService,
             onLogin: _handleLogin,
             initialApiKey: _apiKey,
           );
@@ -290,6 +293,7 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
             _authResponse == null ||
             _currentResultGenerationId == null) {
           return LoginScreen(
+            apiService: _apiService,
             onLogin: _handleLogin,
             initialApiKey: _apiKey,
           );
@@ -306,6 +310,7 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
       case AppScreen.history:
         if (_apiKey == null) {
           return LoginScreen(
+            apiService: _apiService,
             onLogin: _handleLogin,
             initialApiKey: _apiKey,
           );
@@ -325,6 +330,7 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
       case AppScreen.settings:
         if (_apiKey == null || _authResponse == null) {
           return LoginScreen(
+            apiService: _apiService,
             onLogin: _handleLogin,
             initialApiKey: _apiKey,
           );
