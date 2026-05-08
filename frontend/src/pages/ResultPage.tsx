@@ -7,6 +7,7 @@ import { PlanBadge } from "../components/PlanBadge";
 import { useAuth } from "../hooks/useAuth";
 import { useHistoryDetail } from "../hooks/useHistoryDetail";
 import type { GenerateResponse } from "../types/api";
+import { cleanMarkdownListMarkers } from "../utils/textFormatting";
 
 type ResultPageProps = {
   generationId: number;
@@ -104,7 +105,7 @@ export function ResultPage({
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-bold text-navy-800">Markdown önizleme</h2>
             <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">
-              {detailQuery.data.markdown}
+              {cleanMarkdownListMarkers(detailQuery.data.markdown)}
             </pre>
           </section>
         </div>

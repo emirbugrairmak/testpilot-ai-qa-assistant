@@ -1,4 +1,5 @@
 import type { GenerateResponse } from "../types/api";
+import { cleanListItem } from "../utils/textFormatting";
 
 type OutputPreviewProps = {
   result: GenerateResponse;
@@ -58,7 +59,7 @@ function BugReportPreview({
         <h4 className="text-sm font-bold text-slate-800">Adımlar</h4>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-700">
           {bugReport.steps_to_reproduce.map((step) => (
-            <li key={step}>{step}</li>
+            <li key={step}>{cleanListItem(step)}</li>
           ))}
         </ol>
       </div>
@@ -108,7 +109,7 @@ function TestSuitePreview({
           </h4>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
             {result.acceptance_criteria.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}>{cleanListItem(item)}</li>
             ))}
           </ul>
         </div>
@@ -144,7 +145,7 @@ function TestSuitePreview({
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-slate-700">
-                  {testCase.expected_result}
+                  {cleanListItem(testCase.expected_result)}
                 </p>
                 {fullDetails ? (
                   <>
@@ -152,11 +153,11 @@ function TestSuitePreview({
                       <span className="font-semibold text-slate-800">
                         Ön koşullar:
                       </span>{" "}
-                      {testCase.preconditions}
+                      {cleanListItem(testCase.preconditions)}
                     </p>
                     <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-700">
                       {testCase.steps.map((step) => (
-                        <li key={step}>{step}</li>
+                        <li key={step}>{cleanListItem(step)}</li>
                       ))}
                     </ol>
                     {testCase.tags.length > 0 ? (
@@ -200,7 +201,9 @@ function TextBlock({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <h4 className="text-sm font-bold text-slate-800">{label}</h4>
-      <p className="mt-2 text-sm leading-6 text-slate-700">{value}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-700">
+        {cleanListItem(value)}
+      </p>
     </div>
   );
 }

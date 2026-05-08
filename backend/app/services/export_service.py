@@ -19,6 +19,7 @@ from xml.sax.saxutils import escape
 
 from app.config import settings
 from app.database import get_db
+from app.utils.text_formatting import clean_list_item, clean_list_items, clean_markdown_list_markers
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
@@ -97,7 +98,9 @@ def to_json_export(record: dict, key_info: dict | None = None) -> str:
 
 def to_markdown_export(record: dict, key_info: dict | None = None) -> str:
     """Markdown export içeriği."""
-    content = record["markdown"] or f"# Generation {record['generation_id']}\n"
+    content = clean_markdown_list_markers(
+        record["markdown"] or f"# Generation {record['generation_id']}\n"
+    )
     if not _should_add_free_provenance(key_info):
         return content
 
@@ -167,9 +170,9 @@ def to_csv_export(record: dict, key_info: dict | None = None) -> str:
             bug.get("severity", ""),
             bug.get("priority", ""),
             bug.get("environment", ""),
-            " | ".join(bug.get("steps_to_reproduce", [])),
-            bug.get("actual_result", ""),
-            bug.get("expected_result", ""),
+            " | ".join(clean_list_items(bug.get("steps_to_reproduce", []))),
+            clean_list_item(bug.get("actual_result", "")),
+            clean_list_item(bug.get("expected_result", "")),
             ", ".join(bug.get("labels", [])),
         ])
         return buffer.getvalue()
@@ -195,9 +198,9 @@ def to_csv_export(record: dict, key_info: dict | None = None) -> str:
             test_case.get("title", ""),
             test_case.get("type", ""),
             test_case.get("priority", ""),
-            test_case.get("preconditions", ""),
-            " | ".join(test_case.get("steps", [])),
-            test_case.get("expected_result", ""),
+            clean_list_item(test_case.get("preconditions", "")),
+            " | ".join(clean_list_items(test_case.get("steps", []))),
+            clean_list_item(test_case.get("expected_result", "")),
             ", ".join(test_case.get("tags", [])),
         ])
 
@@ -214,24 +217,30 @@ def to_jira_export(record: dict, key_info: dict | None = None) -> str:
             "",
             "Issue Type: Bug",
             f"Title: {bug.get('title', '')}",
-            f"Summary: {bug.get('summary', '')}",
+            f"Summary: {clean_list_item(bug.get('summary', ''))}",
             f"Priority: {bug.get('priority', '')}",
             f"Severity: {bug.get('severity', '')}",
             f"Labels: {', '.join(bug.get('labels', []))}",
             "",
             "Description:",
-            bug.get("summary", ""),
+            clean_list_item(bug.get("summary", "")),
             "",
             f"Environment: {bug.get('environment', '')}",
             "",
             "Steps to Reproduce:",
-            *[f"{index}. {step}" for index, step in enumerate(_limit_items(bug.get("steps_to_reproduce", []), 6), 1)],
+            *[
+                f"{index}. {step}"
+                for index, step in enumerate(
+                    _limit_items(clean_list_items(bug.get("steps_to_reproduce", [])), 6),
+                    1,
+                )
+            ],
             "",
             "Actual Result:",
-            bug.get("actual_result", ""),
+            clean_list_item(bug.get("actual_result", "")),
             "",
             "Expected Result:",
-            bug.get("expected_result", ""),
+            clean_list_item(bug.get("expected_result", "")),
         ])
 
     output = record["output"]
@@ -257,7 +266,7 @@ def to_jira_export(record: dict, key_info: dict | None = None) -> str:
         "AC Summary:",
     ]
 
-    for item in _limit_items(output.get("acceptance_criteria", []), 3):
+    for item in _limit_items(clean_list_items(output.get("acceptance_criteria", [])), 3):
         lines.append(f"- {item}")
 
     lines.extend([
@@ -279,7 +288,7 @@ def to_jira_export(record: dict, key_info: dict | None = None) -> str:
             "",
             f"{test_case.get('id', '')}: {test_case.get('title', '')}",
             f"Priority: {test_case.get('priority', '')}",
-            f"Expected Result: {test_case.get('expected_result', '')}",
+            f"Expected Result: {clean_list_item(test_case.get('expected_result', ''))}",
         ])
 
     return "\n".join(lines)
@@ -376,7 +385,7 @@ def _test_suite_pdf_sections(output: dict, styles: dict) -> list:
             ))
             if test_case.get("preconditions"):
                 case_blocks.append(Paragraph(
-                    f"<b>Preconditions:</b> {_safe_text(test_case.get('preconditions'))}",
+                    f"<b>Preconditions:</b> {_safe_text(clean_list_item(test_case.get('preconditions')))}",
                     styles["Body"],
                 ))
             steps = test_case.get("steps") or []
@@ -385,7 +394,7 @@ def _test_suite_pdf_sections(output: dict, styles: dict) -> list:
                 case_blocks.append(_bullet_list(steps, styles, ordered=True))
             if test_case.get("expected_result"):
                 case_blocks.append(Paragraph(
-                    f"<b>Expected Result:</b> {_safe_text(test_case.get('expected_result'))}",
+                    f"<b>Expected Result:</b> {_safe_text(clean_list_item(test_case.get('expected_result')))}",
                     styles["Body"],
                 ))
             case_blocks.append(Spacer(1, 0.2 * cm))
@@ -406,13 +415,13 @@ def _bug_report_pdf_sections(output: dict, styles: dict) -> list:
     story.extend(_section("Bug Report", summary_parts, styles))
 
     if bug.get("summary"):
-        story.extend(_section("Summary", [Paragraph(_safe_text(bug["summary"]), styles["Body"])], styles))
+        story.extend(_section("Summary", [Paragraph(_safe_text(clean_list_item(bug["summary"])), styles["Body"])], styles))
     if bug.get("steps_to_reproduce"):
         story.extend(_section("Steps to Reproduce", [_bullet_list(bug["steps_to_reproduce"], styles, ordered=True)], styles))
     if bug.get("actual_result"):
-        story.extend(_section("Actual Result", [Paragraph(_safe_text(bug["actual_result"]), styles["Body"])], styles))
+        story.extend(_section("Actual Result", [Paragraph(_safe_text(clean_list_item(bug["actual_result"])), styles["Body"])], styles))
     if bug.get("expected_result"):
-        story.extend(_section("Expected Result", [Paragraph(_safe_text(bug["expected_result"]), styles["Body"])], styles))
+        story.extend(_section("Expected Result", [Paragraph(_safe_text(clean_list_item(bug["expected_result"])), styles["Body"])], styles))
 
     return story
 
@@ -432,7 +441,7 @@ def _bullet_list(items: list, styles: dict, ordered: bool = False) -> ListFlowab
     return ListFlowable(
         [
             ListItem(Paragraph(_safe_text(item), styles["Body"]), leftIndent=12)
-            for item in items
+            for item in clean_list_items(items)
         ],
         bulletType="1" if ordered else "bullet",
         leftIndent=16,

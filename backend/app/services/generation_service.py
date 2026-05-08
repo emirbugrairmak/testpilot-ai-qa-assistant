@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 from app.database import get_db
 from app.services.llm_service import generate_with_llm
+from app.utils.text_formatting import clean_list_item, clean_list_items
 
 
 def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
@@ -132,7 +133,7 @@ def _to_markdown(data: dict) -> str:
     lines.append("")
     ac = data["acceptance_criteria"]
     if isinstance(ac, list):
-        for item in ac:
+        for item in clean_list_items(ac):
             lines.append(f"- {item}")
     else:
         lines.append(ac)
@@ -156,11 +157,11 @@ def _to_markdown(data: dict) -> str:
         lines.append("")
         lines.append(f"- **Type:** {tc['type']}")
         lines.append(f"- **Priority:** {tc['priority']}")
-        lines.append(f"- **Preconditions:** {tc['preconditions']}")
+        lines.append(f"- **Preconditions:** {clean_list_item(tc['preconditions'])}")
         lines.append("- **Steps:**")
-        for i, step in enumerate(tc["steps"], 1):
+        for i, step in enumerate(clean_list_items(tc["steps"]), 1):
             lines.append(f"  {i}. {step}")
-        lines.append(f"- **Expected Result:** {tc['expected_result']}")
+        lines.append(f"- **Expected Result:** {clean_list_item(tc['expected_result'])}")
         lines.append(f"- **Tags:** {', '.join(tc['tags'])}")
         lines.append("")
 
@@ -193,18 +194,18 @@ def _bug_report_to_markdown(data: dict) -> str:
         "",
     ]
 
-    for index, step in enumerate(bug["steps_to_reproduce"], 1):
+    for index, step in enumerate(clean_list_items(bug["steps_to_reproduce"]), 1):
         lines.append(f"{index}. {step}")
 
     lines.extend([
         "",
         "## Actual Result",
         "",
-        bug["actual_result"],
+        clean_list_item(bug["actual_result"]),
         "",
         "## Expected Result",
         "",
-        bug["expected_result"],
+        clean_list_item(bug["expected_result"]),
         "",
         "## Labels",
         "",
