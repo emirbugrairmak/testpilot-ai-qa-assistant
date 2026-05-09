@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 
 import "models/auth_models.dart";
 import "models/generation_models.dart";
+import "screens/batch_generate_screen.dart";
 import "screens/dashboard_screen.dart";
 import "screens/generate_screen.dart";
 import "screens/history_screen.dart";
@@ -26,6 +27,7 @@ enum AppScreen {
   history,
   settings,
   templates,
+  batch,
 }
 
 class TestPilotMobileApp extends StatefulWidget {
@@ -150,6 +152,12 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
     });
   }
 
+  void _openBatch() {
+    setState(() {
+      _screen = AppScreen.batch;
+    });
+  }
+
   void _openResult({
     required int generationId,
     GenerationDetail? detail,
@@ -265,6 +273,7 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
           onOpenHistory: _openHistory,
           onOpenSettings: _openSettings,
           onOpenTemplates: _openTemplates,
+          onOpenBatch: _openBatch,
           onOpenResult: (generationId) {
             _openResult(
               generationId: generationId,
@@ -367,6 +376,28 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
           apiKey: _apiKey!,
           authResponse: _authResponse!,
           onBack: _backToDashboard,
+        );
+      case AppScreen.batch:
+        if (_apiKey == null || _authResponse == null) {
+          return LoginScreen(
+            apiService: _apiService,
+            onLogin: _handleLogin,
+            initialApiKey: _apiKey,
+          );
+        }
+
+        return BatchGenerateScreen(
+          apiService: _apiService,
+          apiKey: _apiKey!,
+          authResponse: _authResponse!,
+          onBack: _backToDashboard,
+          onOpenResult: (detail) {
+            _openResult(
+              generationId: detail.generationId,
+              detail: detail,
+              backScreen: AppScreen.batch,
+            );
+          },
         );
     }
   }

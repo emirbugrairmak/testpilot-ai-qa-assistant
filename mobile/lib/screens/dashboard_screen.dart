@@ -19,6 +19,7 @@ class DashboardScreen extends StatefulWidget {
     required this.onOpenHistory,
     required this.onOpenSettings,
     required this.onOpenTemplates,
+    required this.onOpenBatch,
     required this.onOpenResult,
     required this.onLogout,
   });
@@ -30,6 +31,7 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenTemplates;
+  final VoidCallback onOpenBatch;
   final void Function(int generationId) onOpenResult;
   final Future<void> Function() onLogout;
 
@@ -194,6 +196,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.bug_report_rounded,
                     onTap: () =>
                         widget.onOpenGenerate(GenerationMode.bugReport),
+                  ),
+                  const SizedBox(height: 12),
+                  _QuickActionTile(
+                    label: "Batch Generate",
+                    subtitle: _isPremium
+                        ? "Mod A / Mod B çoklu üretim"
+                        : "Premium özellik",
+                    icon: Icons.playlist_add_check_rounded,
+                    onTap: widget.onOpenBatch,
+                    locked: !_isPremium,
                   ),
                   const SizedBox(height: 12),
                   _QuickActionTile(

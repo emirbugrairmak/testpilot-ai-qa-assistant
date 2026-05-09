@@ -6,6 +6,7 @@ import "dart:typed_data";
 import "package:http/http.dart" as http;
 
 import "../models/auth_models.dart";
+import "../models/batch_models.dart";
 import "../models/generation_models.dart";
 import "../models/history_models.dart";
 import "../models/system_models.dart";
@@ -173,6 +174,25 @@ class ApiService {
     return _parseJsonResponse(
       response,
       (json) => GenerationResult.fromJson(json),
+    );
+  }
+
+  Future<BatchGenerateResponse> batchGenerate({
+    required String apiKey,
+    required Map<String, dynamic> payload,
+  }) async {
+    final response = await _send(
+      () => http.post(
+        Uri.parse("$baseUrl/api/v1/generate/batch"),
+        headers: _headers(apiKey, withJson: true),
+        body: jsonEncode(payload),
+      ),
+      timeout: const Duration(seconds: 140),
+    );
+
+    return _parseJsonResponse(
+      response,
+      (json) => BatchGenerateResponse.fromJson(json),
     );
   }
 
