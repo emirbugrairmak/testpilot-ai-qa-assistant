@@ -8,6 +8,7 @@ import "screens/history_screen.dart";
 import "screens/login_screen.dart";
 import "screens/result_screen.dart";
 import "screens/settings_screen.dart";
+import "screens/templates_screen.dart";
 import "services/api_service.dart";
 import "services/storage_service.dart";
 import "utils/constants.dart";
@@ -24,6 +25,7 @@ enum AppScreen {
   result,
   history,
   settings,
+  templates,
 }
 
 class TestPilotMobileApp extends StatefulWidget {
@@ -142,6 +144,12 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
     });
   }
 
+  void _openTemplates() {
+    setState(() {
+      _screen = AppScreen.templates;
+    });
+  }
+
   void _openResult({
     required int generationId,
     GenerationDetail? detail,
@@ -256,6 +264,7 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
           onOpenGenerate: _openGenerate,
           onOpenHistory: _openHistory,
           onOpenSettings: _openSettings,
+          onOpenTemplates: _openTemplates,
           onOpenResult: (generationId) {
             _openResult(
               generationId: generationId,
@@ -265,7 +274,7 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
           onLogout: _handleLogout,
         );
       case AppScreen.generate:
-        if (_apiKey == null) {
+        if (_apiKey == null || _authResponse == null) {
           return LoginScreen(
             apiService: _apiService,
             onLogin: _handleLogin,
@@ -276,6 +285,7 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
         return GenerateScreen(
           apiService: _apiService,
           apiKey: _apiKey!,
+          authResponse: _authResponse!,
           initialMode: _activeMode,
           onBack: _backToDashboard,
           onOpenHistory: _openHistory,
@@ -342,6 +352,21 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
           authResponse: _authResponse!,
           onBack: _backToDashboard,
           onLogout: _handleLogout,
+        );
+      case AppScreen.templates:
+        if (_apiKey == null || _authResponse == null) {
+          return LoginScreen(
+            apiService: _apiService,
+            onLogin: _handleLogin,
+            initialApiKey: _apiKey,
+          );
+        }
+
+        return TemplatesScreen(
+          apiService: _apiService,
+          apiKey: _apiKey!,
+          authResponse: _authResponse!,
+          onBack: _backToDashboard,
         );
     }
   }

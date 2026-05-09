@@ -9,6 +9,7 @@ import "../models/auth_models.dart";
 import "../models/generation_models.dart";
 import "../models/history_models.dart";
 import "../models/system_models.dart";
+import "../models/template_models.dart";
 import "../models/usage_models.dart";
 
 class ApiService {
@@ -26,6 +27,26 @@ class ApiService {
         body: jsonEncode({
           if (ownerName != null && ownerName.trim().isNotEmpty)
             "owner_name": ownerName.trim(),
+        }),
+      ),
+    );
+
+    return _parseJsonResponse(
+      response,
+      (json) => AccessKeyCreateResponse.fromJson(json),
+    );
+  }
+
+  Future<AccessKeyCreateResponse> createPremiumAccess({
+    required String ownerName,
+  }) async {
+    final response = await _send(
+      () => http.post(
+        Uri.parse("$baseUrl/api/v1/auth/access/premium"),
+        headers: _jsonHeaders(),
+        body: jsonEncode({
+          "owner_name": ownerName.trim(),
+          "plan_summary": "Premium monthly simulation",
         }),
       ),
     );
@@ -153,6 +174,79 @@ class ApiService {
       response,
       (json) => GenerationResult.fromJson(json),
     );
+  }
+
+  Future<TemplateListResponse> fetchTemplates(String apiKey) async {
+    final response = await _send(
+      () => http.get(
+        Uri.parse("$baseUrl/api/v1/templates"),
+        headers: _headers(apiKey),
+      ),
+    );
+
+    return _parseJsonResponse(
+      response,
+      (json) => TemplateListResponse.fromJson(json),
+    );
+  }
+
+  Future<TemplateItem> createTemplate({
+    required String apiKey,
+    required String name,
+    required String promptText,
+  }) async {
+    final response = await _send(
+      () => http.post(
+        Uri.parse("$baseUrl/api/v1/templates"),
+        headers: _headers(apiKey, withJson: true),
+        body: jsonEncode({
+          "name": name.trim(),
+          "prompt_text": promptText.trim(),
+        }),
+      ),
+    );
+
+    return _parseJsonResponse(
+      response,
+      (json) => TemplateItem.fromJson(json),
+    );
+  }
+
+  Future<TemplateItem> updateTemplate({
+    required String apiKey,
+    required int templateId,
+    required String name,
+    required String promptText,
+  }) async {
+    final response = await _send(
+      () => http.put(
+        Uri.parse("$baseUrl/api/v1/templates/$templateId"),
+        headers: _headers(apiKey, withJson: true),
+        body: jsonEncode({
+          "name": name.trim(),
+          "prompt_text": promptText.trim(),
+        }),
+      ),
+    );
+
+    return _parseJsonResponse(
+      response,
+      (json) => TemplateItem.fromJson(json),
+    );
+  }
+
+  Future<void> deleteTemplate({
+    required String apiKey,
+    required int templateId,
+  }) async {
+    final response = await _send(
+      () => http.delete(
+        Uri.parse("$baseUrl/api/v1/templates/$templateId"),
+        headers: _headers(apiKey),
+      ),
+    );
+
+    _ensureSuccessfulResponse(response);
   }
 
   Future<ExportedFile> exportGeneration({
@@ -301,6 +395,14 @@ class ApiService {
       "Generation not found": "Üretim bulunamadı.",
       "This export format is available for premium plans only":
           "Bu export formatı yalnızca Premium planda kullanılabilir.",
+      "Premium plan required":
+          "Bu özellik yalnızca Premium kullanıcılar için kullanılabilir.",
+      "Custom templates are available for Premium plan users only.":
+          "Custom Template özelliği yalnızca Premium kullanıcılar için kullanılabilir.",
+      "Template-based generation is available for Premium plan users only.":
+          "Template ile üretim yalnızca Premium kullanıcılar için kullanılabilir.",
+      "Template not found or access denied.":
+          "Template bulunamadı veya bu anahtar ile erişilemez.",
       "Monthly usage limit exceeded":
           "Aylık kullanım limitiniz doldu. Premium plan veya yeni bir dönem gerekir.",
       "Batch generation is available for Premium plan users only.":
@@ -317,6 +419,10 @@ class ApiService {
 
     if (statusCode == 422) {
       return "Girilen bilgiler eksik veya hatalı. Form alanlarını kontrol edin.";
+    }
+
+    if (statusCode == 403) {
+      return "Bu işlem için Premium erişim gerekir.";
     }
 
     if (statusCode == 429) {

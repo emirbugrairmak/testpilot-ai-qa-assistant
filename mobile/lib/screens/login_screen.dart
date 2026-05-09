@@ -22,8 +22,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   late final TextEditingController _apiKeyController;
   late final TextEditingController _ownerNameController;
+  late final TextEditingController _premiumOwnerNameController;
   bool _isLoading = false;
   bool _isCreatingFreeAccess = false;
+  bool _isCreatingPremiumAccess = false;
   String? _errorMessage;
   String? _createdAccessKey;
   String? _infoMessage;
@@ -35,12 +37,14 @@ class _LoginScreenState extends State<LoginScreen> {
       text: widget.initialApiKey ?? "",
     );
     _ownerNameController = TextEditingController();
+    _premiumOwnerNameController = TextEditingController();
   }
 
   @override
   void dispose() {
     _apiKeyController.dispose();
     _ownerNameController.dispose();
+    _premiumOwnerNameController.dispose();
     super.dispose();
   }
 
@@ -111,6 +115,51 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _createPremiumAccess() async {
+    setState(() {
+      _isCreatingPremiumAccess = true;
+      _errorMessage = null;
+      _infoMessage = null;
+      _createdAccessKey = null;
+    });
+
+    try {
+      final ownerName = _premiumOwnerNameController.text.trim();
+      if (ownerName.length < 2) {
+        throw ApiException("Premium için ad, ekip veya kurum adı girin.");
+      }
+
+      final response = await widget.apiService.createPremiumAccess(
+        ownerName: ownerName,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _createdAccessKey = response.accessKey;
+        _apiKeyController.text = response.accessKey;
+        _infoMessage =
+            "Premium erişim simülasyonu tamamlandı. Anahtar alana dolduruldu; giriş yapabilirsiniz.";
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _errorMessage = error.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingPremiumAccess = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -173,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   PrimaryActionButton(
                     label: "Giriş yap",
                     icon: Icons.login_rounded,
-                    onPressed: _isLoading || _isCreatingFreeAccess
+                    onPressed: _isBusy
                         ? null
                         : () {
                             _submit();
@@ -208,9 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 12),
                           OutlinedButton.icon(
-                            onPressed: _isLoading || _isCreatingFreeAccess
-                                ? null
-                                : _createFreeAccess,
+                            onPressed: _isBusy ? null : _createFreeAccess,
                             icon: _isCreatingFreeAccess
                                 ? const SizedBox(
                                     width: 18,
@@ -233,6 +280,51 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 6),
                             SelectableText(_createdAccessKey!),
                           ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Premium al",
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Gerçek ödeme alınmaz. Sunum için Premium access key oluşturur.",
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _premiumOwnerNameController,
+                            decoration: const InputDecoration(
+                              labelText: "Ad / ekip / kurum adı",
+                              hintText: "QA Premium Ekibi",
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: _isBusy ? null : _createPremiumAccess,
+                            icon: _isCreatingPremiumAccess
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.workspace_premium_rounded),
+                            label: const Text("Premium erişimi oluştur"),
+                          ),
                         ],
                       ),
                     ),
@@ -269,5 +361,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  bool get _isBusy {
+    return _isLoading || _isCreatingFreeAccess || _isCreatingPremiumAccess;
   }
 }

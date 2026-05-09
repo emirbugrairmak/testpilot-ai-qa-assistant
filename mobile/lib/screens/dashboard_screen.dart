@@ -18,6 +18,7 @@ class DashboardScreen extends StatefulWidget {
     required this.onOpenGenerate,
     required this.onOpenHistory,
     required this.onOpenSettings,
+    required this.onOpenTemplates,
     required this.onOpenResult,
     required this.onLogout,
   });
@@ -28,6 +29,7 @@ class DashboardScreen extends StatefulWidget {
   final void Function(GenerationMode mode) onOpenGenerate;
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
+  final VoidCallback onOpenTemplates;
   final void Function(int generationId) onOpenResult;
   final Future<void> Function() onLogout;
 
@@ -41,6 +43,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   SystemStatus? _systemStatus;
   bool _isLoading = true;
   String? _errorMessage;
+
+  bool get _isPremium {
+    return widget.authResponse.plan.toLowerCase() == "premium";
+  }
 
   @override
   void initState() {
@@ -191,6 +197,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 12),
                   _QuickActionTile(
+                    label: "Templates",
+                    subtitle: _isPremium
+                        ? "Premium Template’leri yönet"
+                        : "Premium özellik",
+                    icon: Icons.dashboard_customize_rounded,
+                    onTap: widget.onOpenTemplates,
+                    locked: !_isPremium,
+                  ),
+                  const SizedBox(height: 12),
+                  _QuickActionTile(
                     label: "Geçmişi aç",
                     subtitle: "Önceki üretimleri incele",
                     icon: Icons.history_rounded,
@@ -308,12 +324,14 @@ class _QuickActionTile extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.onTap,
+    this.locked = false,
   });
 
   final String label;
   final String subtitle;
   final IconData icon;
   final VoidCallback onTap;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -345,7 +363,9 @@ class _QuickActionTile extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded),
+            Icon(
+              locked ? Icons.lock_rounded : Icons.chevron_right_rounded,
+            ),
           ],
         ),
       ),

@@ -1,6 +1,8 @@
 import "package:flutter/material.dart";
 
+import "../models/auth_models.dart";
 import "../models/generation_models.dart";
+import "../models/template_models.dart";
 import "../services/api_service.dart";
 import "../widgets/primary_action_button.dart";
 import "../widgets/section_card.dart";
@@ -10,6 +12,7 @@ class GenerateScreen extends StatefulWidget {
     super.key,
     required this.apiService,
     required this.apiKey,
+    required this.authResponse,
     required this.initialMode,
     required this.onBack,
     required this.onOpenHistory,
@@ -19,6 +22,7 @@ class GenerateScreen extends StatefulWidget {
 
   final ApiService apiService;
   final String apiKey;
+  final AuthValidationResponse authResponse;
   final GenerationMode initialMode;
   final VoidCallback onBack;
   final VoidCallback onOpenHistory;
@@ -45,13 +49,25 @@ class _GenerateScreenState extends State<GenerateScreen> {
 
   String _severity = "Medium";
   bool _isSubmitting = false;
+  bool _isLoadingTemplates = false;
   String? _errorMessage;
+  String? _templateMessage;
   GenerationResult? _result;
+  List<TemplateItem> _templates = const [];
+  int? _selectedTemplateId;
+
+  bool get _isPremium => widget.authResponse.plan.toLowerCase() == "premium";
+  bool get _supportsTemplate {
+    return _mode == GenerationMode.modA || _mode == GenerationMode.modB;
+  }
 
   @override
   void initState() {
     super.initState();
     _mode = widget.initialMode;
+    if (_isPremium) {
+      _loadTemplates();
+    }
   }
 
   @override
@@ -117,12 +133,14 @@ class _GenerateScreenState extends State<GenerateScreen> {
         return {
           "mode": _mode.apiValue,
           "feature_idea": _featureIdeaController.text.trim(),
+          if (_selectedTemplateId != null) "template_id": _selectedTemplateId,
         };
       case GenerationMode.modB:
         return {
           "mode": _mode.apiValue,
           "user_story": _userStoryController.text.trim(),
           "acceptance_criteria": _acceptanceCriteriaController.text.trim(),
+          if (_selectedTemplateId != null) "template_id": _selectedTemplateId,
         };
       case GenerationMode.bugReport:
         return {
@@ -138,6 +156,42 @@ class _GenerateScreenState extends State<GenerateScreen> {
           "environment": _environmentController.text.trim(),
           "severity": _severity,
         };
+    }
+  }
+
+  Future<void> _loadTemplates() async {
+    setState(() {
+      _isLoadingTemplates = true;
+      _templateMessage = null;
+    });
+
+    try {
+      final response = await widget.apiService.fetchTemplates(widget.apiKey);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _templates = response.items;
+        if (!_templates.any((template) => template.id == _selectedTemplateId)) {
+          _selectedTemplateId = null;
+        }
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _templateMessage = error.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingTemplates = false;
+        });
+      }
     }
   }
 
@@ -181,11 +235,19 @@ class _GenerateScreenState extends State<GenerateScreen> {
               onSelectionChanged: (selection) {
                 setState(() {
                   _mode = selection.first;
+                  if (!_supportsTemplate) {
+                    _selectedTemplateId = null;
+                  }
                   _result = null;
                   _errorMessage = null;
                 });
               },
             ),
+          ),
+          const SizedBox(height: 16),
+          SectionCard(
+            title: "Template",
+            child: _buildTemplateSelector(context),
           ),
           const SizedBox(height: 16),
           SectionCard(
@@ -228,6 +290,101 @@ class _GenerateScreenState extends State<GenerateScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTemplateSelector(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (!_isPremium) {
+      return Text(
+        "Template seçimi Premium kullanıcılar içindir. Free plan ile standart üretim yapılır.",
+        style: theme.textTheme.bodyMedium,
+      );
+    }
+
+    if (!_supportsTemplate) {
+      return Text(
+        "Bug Report için bu turda Template seçimi kapalıdır. Template seçimi Mod A ve Mod B üretimlerinde kullanılır.",
+        style: theme.textTheme.bodyMedium,
+      );
+    }
+
+    if (_isLoadingTemplates) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_templates.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Henüz Template yok. Dashboard üzerinden Templates ekranında oluşturabilirsiniz.",
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _loadTemplates,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text("Template listesini yenile"),
+          ),
+          if (_templateMessage != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _templateMessage!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<int?>(
+          key: ValueKey(_selectedTemplateId),
+          initialValue: _selectedTemplateId,
+          items: [
+            const DropdownMenuItem<int?>(
+              value: null,
+              child: Text("Template kullanma"),
+            ),
+            ..._templates.map(
+              (template) => DropdownMenuItem<int?>(
+                value: template.id,
+                child: Text(template.name),
+              ),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedTemplateId = value;
+            });
+          },
+          decoration: const InputDecoration(
+            labelText: "Template seçimi",
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Seçilen Template, generate request içinde template_id olarak gönderilir.",
+          style: theme.textTheme.bodySmall,
+        ),
+        if (_templateMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _templateMessage!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ],
     );
   }
 
