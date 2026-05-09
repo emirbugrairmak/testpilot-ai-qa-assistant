@@ -1,6 +1,6 @@
 enum GenerationMode { modA, modB, bugReport }
 
-enum ExportFormat { json, markdown, csv, jira }
+enum ExportFormat { json, markdown, pdf, csv, jira }
 
 extension ExportFormatX on ExportFormat {
   String get apiValue {
@@ -9,6 +9,8 @@ extension ExportFormatX on ExportFormat {
         return "json";
       case ExportFormat.markdown:
         return "markdown";
+      case ExportFormat.pdf:
+        return "pdf";
       case ExportFormat.csv:
         return "csv";
       case ExportFormat.jira:
@@ -22,6 +24,8 @@ extension ExportFormatX on ExportFormat {
         return "JSON";
       case ExportFormat.markdown:
         return "Markdown";
+      case ExportFormat.pdf:
+        return "PDF";
       case ExportFormat.csv:
         return "CSV";
       case ExportFormat.jira:

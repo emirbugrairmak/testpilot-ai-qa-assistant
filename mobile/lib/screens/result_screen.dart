@@ -93,12 +93,12 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _export(ExportFormat format) async {
     final isPremium = widget.authResponse.plan.toLowerCase() == "premium";
-    final requiresPremium =
-        format == ExportFormat.csv || format == ExportFormat.jira;
+    final requiresPremium = _requiresPremium(format);
+    final label = _labelForFormat(format, mode: _detail?.mode);
 
     if (requiresPremium && !isPremium) {
       _showSnackBar(
-        "CSV ve Jira export yalnızca Premium planda kullanılabilir.",
+        "$label yalnızca Premium planda kullanılabilir.",
       );
       return;
     }
@@ -122,7 +122,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
       await Share.shareXFiles(
         [XFile(path, mimeType: file.contentType)],
-        text: "TestPilot export: ${format.label}",
+        text: "TestPilot export: $label",
       );
 
       if (!mounted) {
@@ -130,7 +130,7 @@ class _ResultScreenState extends State<ResultScreen> {
       }
 
       setState(() {
-        _exportMessage = "${format.label} export paylaşmaya hazır.";
+        _exportMessage = "$label paylaşmaya hazır.";
       });
       _showSnackBar(_exportMessage!);
     } catch (error) {
@@ -254,39 +254,8 @@ class _ResultScreenState extends State<ResultScreen> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : null,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: ExportFormat.values
-                                .map(
-                                  (format) => OutlinedButton.icon(
-                                    onPressed: _isExporting
-                                        ? null
-                                        : () {
-                                            _export(format);
-                                          },
-                                    icon: Icon(_iconForFormat(format)),
-                                    label: Text(format.label),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                          if (_exportMessage != null) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              _exportMessage!,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+                          : PlanBadge(plan: widget.authResponse.plan),
+                      child: _buildExportSection(detail, theme),
                     ),
                     if (_errorMessage != null) ...[
                       const SizedBox(height: 16),
@@ -301,6 +270,94 @@ class _ResultScreenState extends State<ResultScreen> {
                   ],
                 ),
     );
+  }
+
+  Widget _buildExportSection(GenerationDetail detail, ThemeData theme) {
+    final isPremium = widget.authResponse.plan.toLowerCase() == "premium";
+    final formats = _formatsForMode(detail.mode);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isPremium
+              ? "Premium kullanıcılar temiz PDF export ve Premium formatları kullanabilir."
+              : "Free kullanıcılar JSON, Markdown ve PDF export alabilir. Free PDF çıktıları TestPilot Free watermark içerir.",
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: formats
+              .map(
+                (format) => OutlinedButton.icon(
+                  onPressed: _isExporting
+                      ? null
+                      : () {
+                          _export(format);
+                        },
+                  icon: Icon(_iconForFormat(format)),
+                  label: Text(_labelForFormat(format, mode: detail.mode)),
+                ),
+              )
+              .toList(),
+        ),
+        if (_exportMessage != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            _exportMessage!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  List<ExportFormat> _formatsForMode(GenerationMode mode) {
+    switch (mode) {
+      case GenerationMode.modA:
+      case GenerationMode.modB:
+        return const [
+          ExportFormat.json,
+          ExportFormat.markdown,
+          ExportFormat.pdf,
+          ExportFormat.csv,
+          ExportFormat.jira,
+        ];
+      case GenerationMode.bugReport:
+        return const [
+          ExportFormat.json,
+          ExportFormat.markdown,
+          ExportFormat.pdf,
+          ExportFormat.jira,
+        ];
+    }
+  }
+
+  bool _requiresPremium(ExportFormat format) {
+    return format == ExportFormat.csv || format == ExportFormat.jira;
+  }
+
+  String _labelForFormat(ExportFormat format, {GenerationMode? mode}) {
+    switch (format) {
+      case ExportFormat.json:
+        return "JSON";
+      case ExportFormat.markdown:
+        return "Markdown";
+      case ExportFormat.pdf:
+        return "PDF";
+      case ExportFormat.csv:
+        return "TestRail CSV";
+      case ExportFormat.jira:
+        if (mode == GenerationMode.bugReport) {
+          return "Jira Bug Draft";
+        }
+        return "Jira QA Task";
+    }
   }
 
   Widget _buildEmptyState(ThemeData theme) {
@@ -551,6 +608,8 @@ class _ResultScreenState extends State<ResultScreen> {
         return Icons.data_object_rounded;
       case ExportFormat.markdown:
         return Icons.description_rounded;
+      case ExportFormat.pdf:
+        return Icons.picture_as_pdf_rounded;
       case ExportFormat.csv:
         return Icons.table_chart_rounded;
       case ExportFormat.jira:

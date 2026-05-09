@@ -180,8 +180,10 @@ class ApiService {
     final filenameMatch = RegExp(r'filename="?([^"]+)"?').firstMatch(
       contentDisposition,
     );
+    final fallbackExtension =
+        format == ExportFormat.markdown ? "md" : format.apiValue;
     final filename = filenameMatch?.group(1) ??
-        "testpilot-generation-$generationId.${format.apiValue}";
+        "generation-$generationId.$fallbackExtension";
 
     return ExportedFile(
       filename: filename,
