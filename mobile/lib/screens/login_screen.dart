@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 
 import "../services/api_service.dart";
 import "../widgets/primary_action_button.dart";
@@ -26,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isCreatingFreeAccess = false;
   bool _isCreatingPremiumAccess = false;
+  bool _isApiKeyVisible = false;
   String? _errorMessage;
   String? _createdAccessKey;
   String? _infoMessage;
@@ -195,9 +197,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _apiKeyController,
-                    decoration: const InputDecoration(
+                    obscureText: !_isApiKeyVisible,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    decoration: InputDecoration(
                       labelText: "Access key",
                       hintText: "tp_...",
+                      suffixIcon: IconButton(
+                        tooltip: _isApiKeyVisible ? "Gizle" : "Göster",
+                        onPressed: () {
+                          setState(() {
+                            _isApiKeyVisible = !_isApiKeyVisible;
+                          });
+                        },
+                        icon: Icon(
+                          _isApiKeyVisible
+                              ? Icons.visibility_off_rounded
+                              : Icons.visibility_rounded,
+                        ),
+                      ),
                     ),
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) {
@@ -269,17 +287,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : const Icon(Icons.key_rounded),
                             label: const Text("Ücretsiz erişim al"),
                           ),
-                          if (_createdAccessKey != null) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              "Oluşturulan access key",
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            SelectableText(_createdAccessKey!),
-                          ],
                         ],
                       ),
                     ),
@@ -339,6 +346,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
+                  if (_createdAccessKey != null) ...[
+                    const SizedBox(height: 16),
+                    _buildCreatedAccessKeyCard(theme),
+                  ],
                   const SizedBox(height: 24),
                   ExpansionTile(
                     tilePadding: EdgeInsets.zero,
@@ -365,5 +376,52 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool get _isBusy {
     return _isLoading || _isCreatingFreeAccess || _isCreatingPremiumAccess;
+  }
+
+  Widget _buildCreatedAccessKeyCard(ThemeData theme) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Oluşturulan access key",
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              _createdAccessKey!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () async {
+                await Clipboard.setData(
+                  ClipboardData(text: _createdAccessKey!),
+                );
+
+                if (!mounted) {
+                  return;
+                }
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Access key kopyalandı."),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.copy_rounded),
+              label: const Text("Kopyala"),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

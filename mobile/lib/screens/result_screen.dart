@@ -1,7 +1,6 @@
 import "dart:io";
 
 import "package:flutter/material.dart";
-import "package:flutter_markdown/flutter_markdown.dart";
 import "package:path_provider/path_provider.dart";
 import "package:share_plus/share_plus.dart";
 
@@ -9,6 +8,7 @@ import "../models/auth_models.dart";
 import "../models/generation_models.dart";
 import "../services/api_service.dart";
 import "../utils/constants.dart";
+import "../utils/date_formatters.dart";
 import "../widgets/plan_badge.dart";
 import "../widgets/section_card.dart";
 
@@ -202,7 +202,7 @@ class _ResultScreenState extends State<ResultScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Mod: ${detail.output.mode.label}\nOluşturulma: ${detail.createdAt}",
+                            "Mod: ${detail.output.mode.label}\nOluşturulma: ${AppDateFormatters.formatDateTime(detail.createdAt)}",
                             style: theme.textTheme.bodyMedium,
                           ),
                           if (detail.output.watermark != null) ...[
@@ -237,16 +237,6 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                     const SizedBox(height: 16),
                     SectionCard(
-                      title: "Markdown önizleme",
-                      child: detail.markdown.isNotEmpty
-                          ? MarkdownBody(data: detail.markdown)
-                          : Text(
-                              "Bu sonuç için Markdown önizleme yok.",
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                    ),
-                    const SizedBox(height: 16),
-                    SectionCard(
                       title: "Export",
                       trailing: _isExporting
                           ? const SizedBox(
@@ -274,35 +264,68 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Widget _buildExportSection(GenerationDetail detail, ThemeData theme) {
     final isPremium = widget.authResponse.plan.toLowerCase() == "premium";
-    final formats = _formatsForMode(detail.mode);
+    final advancedFormats = _formatsForMode(detail.mode)
+        .where((format) => format != ExportFormat.pdf)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           isPremium
-              ? "Premium kullanıcılar temiz PDF export ve Premium formatları kullanabilir."
-              : "Free kullanıcılar JSON, Markdown ve PDF export alabilir. Free PDF çıktıları TestPilot Free watermark içerir.",
+              ? "Premium kullanıcılar temiz PDF export alabilir."
+              : "Free kullanıcılar PDF export alabilir; çıktıda TestPilot Free watermark yer alır.",
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: formats
-              .map(
-                (format) => OutlinedButton.icon(
-                  onPressed: _isExporting
-                      ? null
-                      : () {
-                          _export(format);
-                        },
-                  icon: Icon(_iconForFormat(format)),
-                  label: Text(_labelForFormat(format, mode: detail.mode)),
-                ),
-              )
-              .toList(),
+        FilledButton.icon(
+          onPressed: _isExporting
+              ? null
+              : () {
+                  _export(ExportFormat.pdf);
+                },
+          icon: const Icon(Icons.picture_as_pdf_rounded),
+          label: const Text("PDF export al"),
         ),
+        if (advancedFormats.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: EdgeInsets.zero,
+            title: Text(
+              "Gelişmiş exportlar",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: advancedFormats
+                      .map(
+                        (format) => OutlinedButton.icon(
+                          onPressed: _isExporting
+                              ? null
+                              : () {
+                                  _export(format);
+                                },
+                          icon: Icon(
+                            _iconForFormat(format, mode: detail.mode),
+                          ),
+                          label: Text(
+                            _labelForFormat(format, mode: detail.mode),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+        ],
         if (_exportMessage != null) ...[
           const SizedBox(height: 12),
           Text(
@@ -390,7 +413,16 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildInputSummary(Map<String, dynamic> input, ThemeData theme) {
-    final entries = input.entries.toList();
+    final entries = input.entries
+        .where((entry) => !_isBlankValue(entry.value))
+        .map(
+          (entry) => MapEntry(
+            entry.key,
+            _displayValue(entry.value),
+          ),
+        )
+        .where((entry) => entry.value.isNotEmpty)
+        .toList();
 
     if (entries.isEmpty) {
       return Text(
@@ -418,9 +450,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      entry.value is List
-                          ? (entry.value as List<dynamic>).join("\n")
-                          : entry.value.toString(),
+                      entry.value,
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),
@@ -444,6 +474,8 @@ class _ResultScreenState extends State<ResultScreen> {
         return "AC";
       case "title":
         return "Başlık";
+      case "summary":
+        return "Özet";
       case "steps_to_reproduce":
         return "Adımlar";
       case "actual_result":
@@ -488,8 +520,7 @@ class _ResultScreenState extends State<ResultScreen> {
         if (result.userStory != null)
           _buildTextBlock("User Story", result.userStory!, theme),
         if (result.acceptanceCriteria.isNotEmpty)
-          _buildListBlock(
-            "AC / Acceptance Criteria",
+          _buildAcceptanceCriteriaBlock(
             result.acceptanceCriteria,
             theme,
           ),
@@ -562,6 +593,10 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildTextBlock(String label, String value, ThemeData theme) {
+    if (_isBlankValue(value)) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
@@ -581,6 +616,12 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildListBlock(String label, List<String> items, ThemeData theme) {
+    final visibleItems = items.where((item) => !_isBlankValue(item)).toList();
+
+    if (visibleItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
@@ -593,7 +634,7 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          ...items.map((item) => Padding(
+          ...visibleItems.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text("• $item", style: theme.textTheme.bodyMedium),
               )),
@@ -602,7 +643,205 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  IconData _iconForFormat(ExportFormat format) {
+  Widget _buildAcceptanceCriteriaBlock(
+    List<String> items,
+    ThemeData theme,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "AC / Acceptance Criteria",
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildAcceptanceCriteriaItem(item, theme),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAcceptanceCriteriaItem(String item, ThemeData theme) {
+    final parts = _acceptanceCriteriaParts(item);
+
+    if (parts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: parts.asMap().entries.map((entry) {
+          final isLast = entry.key == parts.length - 1;
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 8),
+            child: _buildAcceptanceCriteriaRow(entry.value, theme),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildAcceptanceCriteriaRow(
+    MapEntry<String, String> part,
+    ThemeData theme,
+  ) {
+    final label = part.key;
+
+    if (label.isEmpty) {
+      return Text(part.value, style: theme.textTheme.bodyMedium);
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 58,
+          child: Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(part.value, style: theme.textTheme.bodyMedium),
+        ),
+      ],
+    );
+  }
+
+  List<MapEntry<String, String>> _acceptanceCriteriaParts(String item) {
+    final cleanItem =
+        _stripLeadingBullet(item).replaceAll(RegExp(r"\s+"), " ").trim();
+
+    if (cleanItem.isEmpty) {
+      return const [];
+    }
+
+    final markerPattern = RegExp(
+      r"\b(Given|When|Then|And|But)\b",
+      caseSensitive: false,
+    );
+    final matches = markerPattern.allMatches(cleanItem).toList();
+
+    if (matches.isEmpty) {
+      return [MapEntry("", cleanItem)];
+    }
+
+    final leadingText = cleanItem.substring(0, matches.first.start).trim();
+    final parts = <MapEntry<String, String>>[
+      if (leadingText.isNotEmpty) MapEntry("", leadingText),
+    ];
+
+    for (var index = 0; index < matches.length; index += 1) {
+      final match = matches[index];
+      final nextStart = index + 1 < matches.length
+          ? matches[index + 1].start
+          : cleanItem.length;
+      final text = cleanItem.substring(match.start, nextStart).trim();
+
+      if (text.isNotEmpty) {
+        parts.add(_gherkinPart(text));
+      }
+    }
+
+    return parts;
+  }
+
+  String _stripLeadingBullet(String value) {
+    return value.replaceFirst(RegExp(r"^\s*(?:[-*•]\s+|\d+[.)]\s*)"), "");
+  }
+
+  MapEntry<String, String> _gherkinPart(String value) {
+    final normalized = value.replaceFirstMapped(
+      RegExp(r"^(given|when|then|and|but)\b", caseSensitive: false),
+      (match) {
+        final word = match.group(1)!.toLowerCase();
+
+        switch (word) {
+          case "given":
+            return "Given";
+          case "when":
+            return "When";
+          case "then":
+            return "Then";
+          case "and":
+            return "And";
+          case "but":
+            return "But";
+          default:
+            return match.group(1)!;
+        }
+      },
+    );
+
+    final separator = normalized.indexOf(" ");
+    if (separator == -1) {
+      return MapEntry(normalized, "");
+    }
+
+    return MapEntry(
+      normalized.substring(0, separator),
+      _stripLeadingPunctuation(normalized.substring(separator + 1)),
+    );
+  }
+
+  String _stripLeadingPunctuation(String value) {
+    return value.replaceFirst(RegExp(r"^\s*[:\-–]\s*"), "").trim();
+  }
+
+  bool _isBlankValue(dynamic value) {
+    if (value == null) {
+      return true;
+    }
+
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      return normalized.isEmpty || normalized == "null";
+    }
+
+    if (value is Iterable) {
+      return value.where((item) => !_isBlankValue(item)).isEmpty;
+    }
+
+    if (value is Map) {
+      return value.values.where((item) => !_isBlankValue(item)).isEmpty;
+    }
+
+    return false;
+  }
+
+  String _displayValue(dynamic value) {
+    if (value is Iterable) {
+      return value
+          .where((item) => !_isBlankValue(item))
+          .map(_displayValue)
+          .join("\n");
+    }
+
+    return value.toString().trim();
+  }
+
+  IconData _iconForFormat(ExportFormat format, {GenerationMode? mode}) {
     switch (format) {
       case ExportFormat.json:
         return Icons.data_object_rounded;
@@ -613,7 +852,10 @@ class _ResultScreenState extends State<ResultScreen> {
       case ExportFormat.csv:
         return Icons.table_chart_rounded;
       case ExportFormat.jira:
-        return Icons.share_rounded;
+        if (mode == GenerationMode.bugReport) {
+          return Icons.bug_report_rounded;
+        }
+        return Icons.assignment_turned_in_rounded;
     }
   }
 }

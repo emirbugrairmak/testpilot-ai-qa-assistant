@@ -3,9 +3,9 @@ import "package:flutter/material.dart";
 import "../models/auth_models.dart";
 import "../models/generation_models.dart";
 import "../models/history_models.dart";
-import "../models/system_models.dart";
 import "../models/usage_models.dart";
 import "../services/api_service.dart";
+import "../utils/date_formatters.dart";
 import "../widgets/plan_badge.dart";
 import "../widgets/section_card.dart";
 
@@ -42,7 +42,6 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   UsageSummary? _usage;
   HistoryListResponse? _history;
-  SystemStatus? _systemStatus;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -63,13 +62,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
-      SystemStatus? systemStatus;
-      try {
-        systemStatus = await widget.apiService.fetchSystemStatus();
-      } catch (_) {
-        systemStatus = null;
-      }
-
       final usage = await widget.apiService.fetchUsage(widget.apiKey);
       final history = await widget.apiService.fetchHistory(widget.apiKey);
 
@@ -80,7 +72,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _usage = usage;
         _history = history;
-        _systemStatus = systemStatus;
       });
     } catch (error) {
       if (!mounted) {
@@ -118,15 +109,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: const Icon(Icons.settings_rounded),
           ),
           IconButton(
-            tooltip: "Yenile",
-            onPressed: _isLoading
-                ? null
-                : () {
-                    _loadDashboardData();
-                  },
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-          IconButton(
             tooltip: "Çıkış yap",
             onPressed: () {
               widget.onLogout();
@@ -159,15 +141,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     "Mod A, Mod B veya Bug Report ile hızlıca QA çıktısı üretin.",
                     style: theme.textTheme.bodyMedium,
                   ),
-                  if (_systemStatus != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      "AI motoru: ${_systemStatus!.ai.displayName}",
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -288,7 +261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          "Kalan hak: ${_usage!.remaining}\nSıfırlanma: ${_usage!.usageResetAt}",
+          "Kalan hak: ${_usage!.remaining}\n${AppDateFormatters.formatResetDate(_usage!.usageResetAt)}",
           style: theme.textTheme.bodyMedium,
         ),
       ],
@@ -317,7 +290,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: Text(
-                "${item.mode.label} • ${item.createdAt}",
+                "${item.mode.label} • ${AppDateFormatters.formatDateTime(item.createdAt)}",
               ),
               leading: CircleAvatar(
                 child: Text(item.generationId.toString()),

@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "../models/generation_models.dart";
 import "../models/history_models.dart";
 import "../services/api_service.dart";
+import "../utils/date_formatters.dart";
 import "../widgets/section_card.dart";
 
 class HistoryScreen extends StatefulWidget {
@@ -283,7 +284,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          item.createdAt,
+                                          AppDateFormatters.formatDateTime(
+                                            item.createdAt,
+                                          ),
                                           style: theme.textTheme.bodySmall,
                                         ),
                                         const SizedBox(height: 10),

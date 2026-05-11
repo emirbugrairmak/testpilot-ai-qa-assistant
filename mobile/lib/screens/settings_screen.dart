@@ -5,6 +5,7 @@ import "../models/system_models.dart";
 import "../models/usage_models.dart";
 import "../services/api_service.dart";
 import "../utils/constants.dart";
+import "../utils/date_formatters.dart";
 import "../widgets/plan_badge.dart";
 import "../widgets/section_card.dart";
 
@@ -162,25 +163,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text("Kalan hak: ${_usage!.remaining}"),
-                          Text("Sıfırlanma: ${_usage!.usageResetAt}"),
+                          Text(
+                            AppDateFormatters.formatResetDate(
+                              _usage!.usageResetAt,
+                            ),
+                          ),
                         ],
                       ),
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: "Backend bağlantısı",
+            title: "Plan",
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SelectableText(
-                  "API_BASE_URL: ${AppConstants.apiBaseUrl}",
-                ),
-                const SizedBox(height: 10),
                 Text(
-                  "Android emulator için genelde 10.0.2.2, gerçek cihaz için aynı Wi‑Fi üzerindeki bilgisayar IP adresi gerekir.",
-                  style: theme.textTheme.bodySmall,
+                  widget.authResponse.plan.toLowerCase() == "premium"
+                      ? "Premium plan aktif."
+                      : "Free plan aktif.",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 if (_isCheckingStatus)
                   const Row(
                     children: [
@@ -190,33 +195,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                       SizedBox(width: 10),
-                      Text("Backend durumu kontrol ediliyor..."),
+                      Text("Bağlantı durumu kontrol ediliyor..."),
                     ],
                   )
                 else if (_systemStatus != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _systemStatus!.isHealthy
-                            ? "Backend durumu: Bağlı"
-                            : "Backend durumu: ${_systemStatus!.status}",
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text("AI motoru: ${_systemStatus!.ai.displayName}"),
-                    ],
+                  Text(
+                    _systemStatus!.isHealthy
+                        ? "Bağlantı durumu: Bağlı"
+                        : "Bağlantı durumu: ${_systemStatus!.status}",
+                    style: theme.textTheme.bodyMedium,
                   )
                 else
                   Text(
-                    _statusErrorMessage ?? "Backend durumu alınamadı.",
+                    _statusErrorMessage ?? "Bağlantı durumu alınamadı.",
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.error,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                const SizedBox(height: 8),
+                ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: EdgeInsets.zero,
+                  title: Text(
+                    "Geliştirici bilgileri",
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SelectableText(
+                            "API_BASE_URL: ${AppConstants.apiBaseUrl}",
+                          ),
+                          if (_systemStatus != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              "AI motoru: ${_systemStatus!.ai.displayName}",
+                            ),
+                          ],
+                          if (_statusErrorMessage != null) ...[
+                            const SizedBox(height: 8),
+                            Text(_statusErrorMessage!),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
