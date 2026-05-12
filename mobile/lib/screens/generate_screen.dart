@@ -55,9 +55,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
   int? _selectedTemplateId;
 
   bool get _isPremium => widget.authResponse.plan.toLowerCase() == "premium";
-  bool get _supportsTemplate {
-    return _mode == GenerationMode.modA || _mode == GenerationMode.modB;
-  }
+  bool get _supportsTemplate => true;
 
   @override
   void initState() {
@@ -153,6 +151,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
           "expected_result": _expectedResultController.text.trim(),
           "environment": _environmentController.text.trim(),
           "severity": _severity,
+          if (_selectedTemplateId != null) "template_id": _selectedTemplateId,
         };
     }
   }
@@ -291,14 +290,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
 
     if (!_isPremium) {
       return Text(
-        "Template, çıktının hangi teste odaklanacağını belirleyen yeniden kullanılabilir yönergedir. Premium kullanıcılar Mod A ve Mod B üretimlerinde Template seçebilir.",
-        style: theme.textTheme.bodyMedium,
-      );
-    }
-
-    if (!_supportsTemplate) {
-      return Text(
-        "Template seçimi Mod A ve Mod B üretimlerinde kullanılır.",
+        "Template, çıktının hangi teste odaklanacağını belirleyen yeniden kullanılabilir yönergedir. Premium kullanıcılar üretimlerde Template seçebilir.",
         style: theme.textTheme.bodyMedium,
       );
     }
