@@ -1,10 +1,8 @@
 import "package:flutter/material.dart";
 
 import "../models/auth_models.dart";
-import "../models/system_models.dart";
 import "../models/usage_models.dart";
 import "../services/api_service.dart";
-import "../utils/constants.dart";
 import "../utils/date_formatters.dart";
 import "../widgets/plan_badge.dart";
 import "../widgets/section_card.dart";
@@ -31,11 +29,8 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   UsageSummary? _usage;
-  SystemStatus? _systemStatus;
   bool _isLoading = true;
-  bool _isCheckingStatus = true;
   String? _errorMessage;
-  String? _statusErrorMessage;
 
   @override
   void initState() {
@@ -46,9 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSettingsData() async {
     setState(() {
       _isLoading = true;
-      _isCheckingStatus = true;
       _errorMessage = null;
-      _statusErrorMessage = null;
     });
 
     try {
@@ -70,29 +63,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-        });
-      }
-    }
-
-    try {
-      final systemStatus = await widget.apiService.fetchSystemStatus();
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _systemStatus = systemStatus;
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _statusErrorMessage = error.toString();
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isCheckingStatus = false;
         });
       }
     }
@@ -149,10 +119,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "${_usage!.usageCount} / ${_usage!.monthlyLimit}",
+                                  style:
+                                      theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE0F2FE),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFFBAE6FD),
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Kalan",
+                                      style:
+                                          theme.textTheme.labelSmall?.copyWith(
+                                        color: const Color(0xFF0369A1),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Text(
+                                      _usage!.remaining.toString(),
+                                      style:
+                                          theme.textTheme.titleMedium?.copyWith(
+                                        color: const Color(0xFF0369A1),
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           Text(
-                            "${_usage!.usageCount} / ${_usage!.monthlyLimit} kullanıldı",
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
+                            "üretim kullanıldı",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -162,10 +182,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 : _usage!.usageCount / _usage!.monthlyLimit,
                           ),
                           const SizedBox(height: 12),
-                          Text("Kalan hak: ${_usage!.remaining}"),
                           Text(
                             AppDateFormatters.formatResetDate(
                               _usage!.usageResetAt,
+                            ),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -173,7 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: "Plan",
+            title: "Plan özeti",
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -186,66 +209,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                if (_isCheckingStatus)
-                  const Row(
-                    children: [
-                      SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 10),
-                      Text("Bağlantı durumu kontrol ediliyor..."),
-                    ],
-                  )
-                else if (_systemStatus != null)
-                  Text(
-                    _systemStatus!.isHealthy
-                        ? "Bağlantı durumu: Bağlı"
-                        : "Bağlantı durumu: ${_systemStatus!.status}",
-                    style: theme.textTheme.bodyMedium,
-                  )
-                else
-                  Text(
-                    _statusErrorMessage ?? "Bağlantı durumu alınamadı.",
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                ExpansionTile(
-                  tilePadding: EdgeInsets.zero,
-                  childrenPadding: EdgeInsets.zero,
-                  title: Text(
-                    "Geliştirici bilgileri",
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SelectableText(
-                            "API_BASE_URL: ${AppConstants.apiBaseUrl}",
-                          ),
-                          if (_systemStatus != null) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              "AI motoru: ${_systemStatus!.ai.displayName}",
-                            ),
-                          ],
-                          if (_statusErrorMessage != null) ...[
-                            const SizedBox(height: 8),
-                            Text(_statusErrorMessage!),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
+                Text(
+                  "Free plan JSON ve Markdown Export destekler. Premium; CSV/Jira Export, temiz PDF, Templates, Batch Generate ve daha geniş History kullanımı ekler.",
+                  style: theme.textTheme.bodyMedium,
                 ),
               ],
             ),

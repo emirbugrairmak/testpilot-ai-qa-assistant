@@ -516,7 +516,7 @@ class _ResultScreenState extends State<ResultScreen> {
       case "steps_to_reproduce":
         return "Adımlar";
       case "actual_result":
-        return "Gerçek sonuç";
+        return "Gerçekleşen sonuç";
       case "expected_result":
         return "Beklenen sonuç";
       case "environment":
@@ -545,7 +545,7 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
           _buildTextBlock("Ortam", bug.environment, theme),
           _buildListBlock("Adımlar", bug.steps, theme),
-          _buildTextBlock("Gerçek sonuç", bug.actualResult, theme),
+          _buildTextBlock("Gerçekleşen sonuç", bug.actualResult, theme),
           _buildTextBlock("Beklenen sonuç", bug.expectedResult, theme),
         ],
       );

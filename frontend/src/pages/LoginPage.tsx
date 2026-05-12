@@ -125,21 +125,11 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
               QA çalışma alanınızı erişim anahtarıyla açın.
             </h1>
             <p className="mt-4 text-lg leading-8 text-slate-600">
-              TestPilot'ta kimlik, hesabınız değil access key'inizdir. Aynı
-              anahtarla döndüğünüzde planınız, kullanımınız, History kayıtlarınız
-              ve Premium template alanınız kaldığı yerden gelir.
+              QA üretim alanınıza erişmek için erişim anahtarınızı girin veya
+              yeni bir Free/Premium erişim oluşturun. Aynı anahtarla
+              döndüğünüzde planınız, kullanımınız ve geçmiş kayıtlarınız
+              korunur.
             </p>
-          </div>
-
-          <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
-            {["Free başlat", "Premium simüle et", "Anahtarla geri dön"].map((item) => (
-              <div
-                key={item}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm"
-              >
-                {item}
-              </div>
-            ))}
           </div>
         </section>
 

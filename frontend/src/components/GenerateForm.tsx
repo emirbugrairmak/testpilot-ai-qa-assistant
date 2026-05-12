@@ -136,7 +136,7 @@ export function GenerateForm({
               <p className="text-sm font-medium text-red-700">{templatesError}</p>
             ) : (
               <p className="text-sm text-slate-500">
-                Premium Templates, kayıtlı yönergelerinizi bu üretime ekler.
+                Template seçerek çıktıyı güvenlik, edge case veya regresyon gibi belirli bir odağa yönlendirebilirsiniz.
               </p>
             )}
           </>

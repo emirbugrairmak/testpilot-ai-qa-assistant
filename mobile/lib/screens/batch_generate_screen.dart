@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "../models/auth_models.dart";
 import "../models/batch_models.dart";
 import "../models/generation_models.dart";
+import "../models/template_models.dart";
 import "../services/api_service.dart";
 import "../widgets/plan_badge.dart";
 import "../widgets/primary_action_button.dart";
@@ -34,9 +35,21 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
 
   BatchGenerateResponse? _response;
   bool _isSubmitting = false;
+  bool _isLoadingTemplates = false;
   String? _errorMessage;
+  String? _templateMessage;
+  List<TemplateItem> _templates = const [];
+  int? _selectedTemplateId;
 
   bool get _isPremium => widget.authResponse.plan.toLowerCase() == "premium";
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isPremium) {
+      _loadTemplates();
+    }
+  }
 
   @override
   void dispose() {
@@ -94,6 +107,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
   Map<String, dynamic> _buildPayload() {
     return {
       "mode": _mode.apiValue,
+      if (_selectedTemplateId != null) "template_id": _selectedTemplateId,
       "items": _items.map((item) {
         if (_mode == GenerationMode.modA) {
           return {
@@ -109,26 +123,62 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
     };
   }
 
+  Future<void> _loadTemplates() async {
+    setState(() {
+      _isLoadingTemplates = true;
+      _templateMessage = null;
+    });
+
+    try {
+      final response = await widget.apiService.fetchTemplates(widget.apiKey);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _templates = response.items;
+        if (!_templates.any((template) => template.id == _selectedTemplateId)) {
+          _selectedTemplateId = null;
+        }
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _templateMessage = error.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingTemplates = false;
+        });
+      }
+    }
+  }
+
   String? _validateInputs() {
     if (!_isPremium) {
       return "Batch Generate yalnızca Premium kullanıcılar için kullanılabilir.";
     }
 
     if (_items.isEmpty) {
-      return "En az bir batch item ekleyin.";
+      return "En az bir batch öğesi ekleyin.";
     }
 
     for (var index = 0; index < _items.length; index += 1) {
       final item = _items[index];
       if (_mode == GenerationMode.modA &&
           item.featureIdeaController.text.trim().length < 5) {
-        return "${index + 1}. item için en az 5 karakterlik feature idea girin.";
+        return "${index + 1}. öğe için en az 5 karakterlik özellik fikri girin.";
       }
 
       if (_mode == GenerationMode.modB) {
         if (item.userStoryController.text.trim().length < 10 ||
             item.acceptanceCriteriaController.text.trim().length < 10) {
-          return "${index + 1}. item için en az 10 karakterlik User Story ve AC girin.";
+          return "${index + 1}. öğe için en az 10 karakterlik User Story ve AC girin.";
         }
       }
     }
@@ -139,7 +189,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
   void _addItem() {
     if (_items.length >= 10) {
       setState(() {
-        _errorMessage = "Backend batch limiti en fazla 10 item destekler.";
+        _errorMessage = "Backend batch limiti en fazla 10 öğe destekler.";
       });
       return;
     }
@@ -153,7 +203,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
   void _removeItem(int index) {
     if (_items.length == 1) {
       setState(() {
-        _errorMessage = "En az bir item kalmalı.";
+        _errorMessage = "En az bir öğe kalmalı.";
       });
       return;
     }
@@ -190,12 +240,14 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
     if (_mode == GenerationMode.modA) {
       return {
         "mode": _mode.apiValue,
+        if (_selectedTemplateId != null) "template_id": _selectedTemplateId,
         "feature_idea": item.featureIdeaController.text.trim(),
       };
     }
 
     return {
       "mode": _mode.apiValue,
+      if (_selectedTemplateId != null) "template_id": _selectedTemplateId,
       "user_story": item.userStoryController.text.trim(),
       "acceptance_criteria": item.acceptanceCriteriaController.text.trim(),
     };
@@ -263,7 +315,12 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: "Batch item’ları",
+              title: "Template",
+              child: _buildTemplateSelector(theme),
+            ),
+            const SizedBox(height: 16),
+            SectionCard(
+              title: "Batch öğeleri",
               trailing: Text("${_items.length} / 10"),
               child: Column(
                 children: [
@@ -279,7 +336,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _isSubmitting ? null : _addItem,
                       icon: const Icon(Icons.add_rounded),
-                      label: const Text("Item ekle"),
+                      label: const Text("Öğe ekle"),
                     ),
                   ),
                 ],
@@ -318,6 +375,93 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
     );
   }
 
+  Widget _buildTemplateSelector(ThemeData theme) {
+    if (_isLoadingTemplates) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_templates.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Template seçerek tüm batch çıktısını güvenlik, edge case veya regresyon gibi belirli bir odağa yönlendirebilirsiniz.",
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Henüz Template yok.",
+            style: theme.textTheme.bodySmall,
+          ),
+          if (_templateMessage != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _templateMessage!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _loadTemplates,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text("Template listesini yenile"),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<int?>(
+          initialValue: _selectedTemplateId,
+          items: [
+            const DropdownMenuItem<int?>(
+              value: null,
+              child: Text("Template kullanma"),
+            ),
+            ..._templates.map(
+              (template) => DropdownMenuItem<int?>(
+                value: template.id,
+                child: Text(template.name),
+              ),
+            ),
+          ],
+          onChanged: _isSubmitting
+              ? null
+              : (value) {
+                  setState(() {
+                    _selectedTemplateId = value;
+                    _response = null;
+                    _errorMessage = null;
+                  });
+                },
+          decoration: const InputDecoration(
+            labelText: "Template seçimi",
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Seçilen Template, Batch Generate isteğine uygulanır.",
+          style: theme.textTheme.bodySmall,
+        ),
+        if (_templateMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _templateMessage!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildInputItem({
     required BuildContext context,
     required int index,
@@ -340,14 +484,14 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
             children: [
               Expanded(
                 child: Text(
-                  "Item ${index + 1}",
+                  "Öğe ${index + 1}",
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
               IconButton(
-                tooltip: "Item sil",
+                tooltip: "Öğe sil",
                 onPressed: _isSubmitting
                     ? null
                     : () {
@@ -363,8 +507,8 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
               minLines: 3,
               maxLines: 5,
               decoration: const InputDecoration(
-                labelText: "Feature idea",
-                hintText: "E-posta ve şifre ile kullanıcı girişi",
+                labelText: "Özellik fikri",
+                hintText: "Kullanıcı e-posta ve şifre ile giriş yapabilsin",
               ),
             )
           else ...[
@@ -394,7 +538,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "${response.successCount} başarılı, ${response.failedCount} başarısız / ${response.totalItems} item",
+          "${response.successCount} başarılı, ${response.failedCount} başarısız / ${response.totalItems} öğe",
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -423,7 +567,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Item ${item.index + 1} • ${item.success ? "Başarılı" : "Başarısız"}",
+            "Öğe ${item.index + 1} • ${item.success ? "Başarılı" : "Başarısız"}",
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
               color: item.success
@@ -435,7 +579,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
           Text(
             item.success
                 ? title
-                : (item.error ?? "Bu item için üretim tamamlanamadı."),
+                : (item.error ?? "Bu öğe için üretim tamamlanamadı."),
           ),
           if (item.success && result != null) ...[
             const SizedBox(height: 10),

@@ -95,6 +95,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: const Text("Vazgeç"),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text("Sil"),
           ),
@@ -269,18 +273,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          "${item.mode.label} • #${item.generationId}",
-                                          style: theme.textTheme.titleSmall
-                                              ?.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          item.outputSummary,
-                                          maxLines: 3,
-                                          overflow: TextOverflow.ellipsis,
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 6,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          children: [
+                                            _ModeBadge(mode: item.mode),
+                                            Text(
+                                              "#${item.generationId}",
+                                              style: theme.textTheme.titleSmall
+                                                  ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
@@ -288,6 +295,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                             item.createdAt,
                                           ),
                                           style: theme.textTheme.bodySmall,
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          item.outputSummary,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 10),
                                         Row(
@@ -302,6 +315,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                             ),
                                             const SizedBox(width: 10),
                                             OutlinedButton(
+                                              style: OutlinedButton.styleFrom(
+                                                foregroundColor:
+                                                    theme.colorScheme.error,
+                                                side: BorderSide(
+                                                  color:
+                                                      theme.colorScheme.error,
+                                                ),
+                                              ),
                                               onPressed: _isDeleting
                                                   ? null
                                                   : () {
@@ -323,5 +344,57 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ],
       ),
     );
+  }
+}
+
+class _ModeBadge extends StatelessWidget {
+  const _ModeBadge({required this.mode});
+
+  final GenerationMode mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _modeColors(mode);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: colors.border),
+      ),
+      child: Text(
+        mode.label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colors.foreground,
+              fontWeight: FontWeight.w800,
+            ),
+      ),
+    );
+  }
+}
+
+({Color background, Color border, Color foreground}) _modeColors(
+  GenerationMode mode,
+) {
+  switch (mode) {
+    case GenerationMode.modA:
+      return (
+        background: const Color(0xFFE0F2FE),
+        border: const Color(0xFFBAE6FD),
+        foreground: const Color(0xFF0369A1),
+      );
+    case GenerationMode.modB:
+      return (
+        background: const Color(0xFFD1FAE5),
+        border: const Color(0xFFA7F3D0),
+        foreground: const Color(0xFF047857),
+      );
+    case GenerationMode.bugReport:
+      return (
+        background: const Color(0xFFFEF3C7),
+        border: const Color(0xFFFDE68A),
+        foreground: const Color(0xFFB45309),
+      );
   }
 }

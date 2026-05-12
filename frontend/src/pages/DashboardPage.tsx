@@ -4,7 +4,6 @@ import { PlanBadge } from "../components/PlanBadge";
 import { UsageCard } from "../components/UsageCard";
 import { useAuth } from "../hooks/useAuth";
 import { useHistory } from "../hooks/useHistory";
-import { useSystemStatus } from "../hooks/useSystemStatus";
 import { useUsage } from "../hooks/useUsage";
 import type { GenerationMode } from "../types/api";
 
@@ -20,9 +19,7 @@ export function DashboardPage({
   const { isAuthenticated, user } = useAuth();
   const usageQuery = useUsage(isAuthenticated);
   const historyQuery = useHistory({}, isAuthenticated);
-  const systemStatusQuery = useSystemStatus();
   const recentHistory = historyQuery.data?.items.slice(0, 5) ?? [];
-  const aiStatus = systemStatusQuery.data?.ai;
 
   return (
     <div className="space-y-8">
@@ -30,10 +27,9 @@ export function DashboardPage({
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl font-extrabold text-navy-800">
-              Panel
+              Kontrol paneli
             </h1>
             {user && <PlanBadge plan={user.plan} />}
-            {aiStatus ? <AiStatusBadge ai={aiStatus} /> : null}
           </div>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
             Kullanımı takip edin, son üretimleri inceleyin ve yeni bir QA çalışması başlatın.
@@ -110,7 +106,7 @@ export function DashboardPage({
                     className="block w-full py-4 text-left first:pt-0"
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-md bg-sky-50 px-2 py-1 text-xs font-bold text-sky-700">
+                      <span className={modeBadgeClass(item.mode)}>
                         {formatMode(item.mode)}
                       </span>
                       <span className="text-xs font-semibold text-slate-500">
@@ -132,40 +128,6 @@ export function DashboardPage({
       </div>
     </div>
   );
-}
-
-function AiStatusBadge({
-  ai,
-}: {
-  ai: {
-    effective_provider: string;
-    model: string;
-    fallback_to_mock: boolean;
-  };
-}) {
-  const providerLabel = formatProviderLabel(ai.effective_provider);
-  const fallbackLabel = ai.fallback_to_mock ? "fallback açık" : "fallback kapalı";
-
-  return (
-    <span
-      className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600"
-      title={`Model: ${ai.model} · ${fallbackLabel}`}
-    >
-      AI engine: {providerLabel} · {fallbackLabel}
-    </span>
-  );
-}
-
-function formatProviderLabel(provider: string) {
-  if (provider === "gemini") {
-    return "Gemini";
-  }
-
-  if (provider === "unavailable") {
-    return "Hazır değil";
-  }
-
-  return "Mock";
 }
 
 function ActionButton({
@@ -196,4 +158,18 @@ function formatMode(mode: GenerationMode) {
   }
 
   return "Bug Report";
+}
+
+function modeBadgeClass(mode: GenerationMode) {
+  const base = "rounded-md px-2 py-1 text-xs font-bold";
+
+  if (mode === "mod_a") {
+    return `${base} bg-sky-50 text-sky-700 ring-1 ring-sky-100`;
+  }
+
+  if (mode === "mod_b") {
+    return `${base} bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100`;
+  }
+
+  return `${base} bg-amber-50 text-amber-700 ring-1 ring-amber-100`;
 }

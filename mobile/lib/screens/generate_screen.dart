@@ -244,7 +244,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: "Girdi",
+            title: _inputSectionTitle,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -291,14 +291,14 @@ class _GenerateScreenState extends State<GenerateScreen> {
 
     if (!_isPremium) {
       return Text(
-        "Template seçimi Premium kullanıcılar içindir. Free plan ile standart üretim yapılır.",
+        "Template, çıktının hangi teste odaklanacağını belirleyen yeniden kullanılabilir yönergedir. Premium kullanıcılar Mod A ve Mod B üretimlerinde Template seçebilir.",
         style: theme.textTheme.bodyMedium,
       );
     }
 
     if (!_supportsTemplate) {
       return Text(
-        "Bug Report için bu turda Template seçimi kapalıdır. Template seçimi Mod A ve Mod B üretimlerinde kullanılır.",
+        "Template seçimi Mod A ve Mod B üretimlerinde kullanılır.",
         style: theme.textTheme.bodyMedium,
       );
     }
@@ -364,7 +364,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          "Seçilen Template, generate request içinde template_id olarak gönderilir.",
+          "Template seçerek çıktıyı güvenlik, edge case veya regresyon gibi belirli bir odağa yönlendirebilirsiniz.",
           style: theme.textTheme.bodySmall,
         ),
         if (_templateMessage != null) ...[
@@ -390,8 +390,8 @@ class _GenerateScreenState extends State<GenerateScreen> {
             minLines: 4,
             maxLines: 6,
             decoration: const InputDecoration(
-              labelText: "Feature fikri",
-              hintText: "E-posta ve şifre ile kullanıcı girişi",
+              labelText: "Özellik fikri",
+              hintText: "Kullanıcı e-posta ve şifre ile giriş yapabilsin",
             ),
           ),
         ];
@@ -403,6 +403,8 @@ class _GenerateScreenState extends State<GenerateScreen> {
             maxLines: 5,
             decoration: const InputDecoration(
               labelText: "User Story",
+              hintText:
+                  "Bir kullanıcı olarak, hesabıma tekrar erişebilmek için şifremi sıfırlamak istiyorum.",
             ),
           ),
           const SizedBox(height: 12),
@@ -411,7 +413,9 @@ class _GenerateScreenState extends State<GenerateScreen> {
             minLines: 4,
             maxLines: 6,
             decoration: const InputDecoration(
-              labelText: "AC / Acceptance Criteria",
+              labelText: "AC",
+              hintText:
+                  "Şifre sıfırlama talebinde sıfırlama e-postası gönderilmelidir.",
             ),
           ),
         ];
@@ -425,10 +429,10 @@ class _GenerateScreenState extends State<GenerateScreen> {
           DropdownButtonFormField<String>(
             initialValue: _severity,
             items: const [
-              DropdownMenuItem(value: "Critical", child: Text("Critical")),
-              DropdownMenuItem(value: "High", child: Text("High")),
-              DropdownMenuItem(value: "Medium", child: Text("Medium")),
-              DropdownMenuItem(value: "Low", child: Text("Low")),
+              DropdownMenuItem(value: "Low", child: Text("Düşük")),
+              DropdownMenuItem(value: "Medium", child: Text("Orta")),
+              DropdownMenuItem(value: "High", child: Text("Yüksek")),
+              DropdownMenuItem(value: "Critical", child: Text("Kritik")),
             ],
             onChanged: (value) {
               if (value == null) {
@@ -439,7 +443,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
                 _severity = value;
               });
             },
-            decoration: const InputDecoration(labelText: "Severity"),
+            decoration: const InputDecoration(labelText: "Önem seviyesi"),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -456,7 +460,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
             controller: _actualResultController,
             minLines: 3,
             maxLines: 5,
-            decoration: const InputDecoration(labelText: "Gerçek sonuç"),
+            decoration: const InputDecoration(labelText: "Gerçekleşen sonuç"),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -471,6 +475,17 @@ class _GenerateScreenState extends State<GenerateScreen> {
             decoration: const InputDecoration(labelText: "Ortam"),
           ),
         ];
+    }
+  }
+
+  String get _inputSectionTitle {
+    switch (_mode) {
+      case GenerationMode.modA:
+        return "Özellik fikri";
+      case GenerationMode.modB:
+        return "User Story ve AC";
+      case GenerationMode.bugReport:
+        return "Bug Report bilgileri";
     }
   }
 

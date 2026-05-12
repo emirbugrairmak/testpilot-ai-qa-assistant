@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "../models/auth_models.dart";
 import "../models/template_models.dart";
 import "../services/api_service.dart";
+import "../utils/date_formatters.dart";
 import "../widgets/plan_badge.dart";
 import "../widgets/primary_action_button.dart";
 import "../widgets/section_card.dart";
@@ -171,6 +172,10 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             child: const Text("Vazgeç"),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text("Sil"),
           ),
@@ -386,6 +391,14 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _templateDateLabel(template),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Text(
                     template.promptText,
@@ -406,6 +419,10 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                         label: const Text("Düzenle"),
                       ),
                       OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.colorScheme.error,
+                          side: BorderSide(color: theme.colorScheme.error),
+                        ),
                         onPressed: _isSaving || _isDeleting
                             ? null
                             : () {
@@ -422,5 +439,14 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
           )
           .toList(),
     );
+  }
+
+  String _templateDateLabel(TemplateItem template) {
+    final updatedAt = template.updatedAt.trim();
+    if (updatedAt.isNotEmpty) {
+      return "Güncellendi: ${AppDateFormatters.formatDateTime(updatedAt)}";
+    }
+
+    return "Oluşturuldu: ${AppDateFormatters.formatDateTime(template.createdAt)}";
   }
 }

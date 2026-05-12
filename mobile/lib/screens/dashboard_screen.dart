@@ -138,6 +138,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 4),
+            Text(
+              "Fikirden test senaryolarına, dakikalar içinde.",
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             const SizedBox(height: 16),
             SectionCard(
               title: "Hesap",
@@ -264,10 +272,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                "${_usage!.usageCount} / ${_usage!.monthlyLimit}",
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0F2FE),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFBAE6FD)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Kalan",
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: const Color(0xFF0369A1),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    _usage!.remaining.toString(),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: const Color(0xFF0369A1),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
         Text(
-          "${_usage!.usageCount} / ${_usage!.monthlyLimit} üretim kullanıldı",
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
+          "üretim kullanıldı",
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 8),
@@ -278,8 +328,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          "Kalan hak: ${_usage!.remaining}\n${AppDateFormatters.formatResetDate(_usage!.usageResetAt)}",
-          style: theme.textTheme.bodyMedium,
+          AppDateFormatters.formatResetDate(_usage!.usageResetAt),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
@@ -298,25 +351,93 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       children: items
           .map(
-            (item) => ListTile(
-              contentPadding: EdgeInsets.zero,
+            (item) => InkWell(
+              borderRadius: BorderRadius.circular(8),
               onTap: () => widget.onOpenResult(item.generationId),
-              title: Text(
-                item.outputSummary,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _ModeBadge(mode: item.mode),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.outputSummary,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "#${item.generationId} • ${AppDateFormatters.formatDateTime(item.createdAt)}",
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded),
+                  ],
+                ),
               ),
-              subtitle: Text(
-                "${item.mode.label} • ${AppDateFormatters.formatDateTime(item.createdAt)}",
-              ),
-              leading: CircleAvatar(
-                child: Text(item.generationId.toString()),
-              ),
-              trailing: const Icon(Icons.chevron_right_rounded),
             ),
           )
           .toList(),
     );
+  }
+}
+
+class _ModeBadge extends StatelessWidget {
+  const _ModeBadge({required this.mode});
+
+  final GenerationMode mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _modeColors(mode);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: colors.border),
+      ),
+      child: Text(
+        mode.label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colors.foreground,
+              fontWeight: FontWeight.w800,
+            ),
+      ),
+    );
+  }
+}
+
+({Color background, Color border, Color foreground}) _modeColors(
+  GenerationMode mode,
+) {
+  switch (mode) {
+    case GenerationMode.modA:
+      return (
+        background: const Color(0xFFE0F2FE),
+        border: const Color(0xFFBAE6FD),
+        foreground: const Color(0xFF0369A1),
+      );
+    case GenerationMode.modB:
+      return (
+        background: const Color(0xFFD1FAE5),
+        border: const Color(0xFFA7F3D0),
+        foreground: const Color(0xFF047857),
+      );
+    case GenerationMode.bugReport:
+      return (
+        background: const Color(0xFFFEF3C7),
+        border: const Color(0xFFFDE68A),
+        foreground: const Color(0xFFB45309),
+      );
   }
 }
 

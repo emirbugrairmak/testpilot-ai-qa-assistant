@@ -31,6 +31,13 @@ export function SettingsPage() {
           </div>
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-sm font-semibold text-slate-500">Hesap / Çalışma alanı</p>
+            <p className="mt-3 text-sm font-bold text-navy-800">
+              {user?.owner_name?.trim() || "Access key oturumu"}
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-500">Kayıtlı erişim anahtarı</p>
             <p className="mt-3 font-mono text-sm font-semibold text-navy-800">
               {maskApiKey(apiKey)}
@@ -40,7 +47,7 @@ export function SettingsPage() {
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-500">Plan özeti</p>
             <p className="mt-3 text-sm leading-6 text-slate-700">
-              Free planı JSON ve Markdown Export destekler. Premium; CSV/Jira Export ve sınırsız History ekler.
+              Free plan JSON ve Markdown Export destekler. Premium; CSV/Jira Export, temiz PDF, Templates, Batch Generate ve daha geniş History kullanımı ekler.
             </p>
           </div>
         </div>
