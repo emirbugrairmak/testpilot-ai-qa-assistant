@@ -122,6 +122,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            Row(
+              children: [
+                Image.asset(
+                  "assets/icons/testpilot_launcher.png",
+                  width: 36,
+                  height: 36,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  "TestPilot",
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             SectionCard(
               title: "Hesap",
               trailing: PlanBadge(plan: widget.authResponse.plan),

@@ -16,7 +16,6 @@ class GenerateScreen extends StatefulWidget {
     required this.initialMode,
     required this.onBack,
     required this.onOpenHistory,
-    required this.onOpenSettings,
     required this.onOpenResult,
   });
 
@@ -26,7 +25,6 @@ class GenerateScreen extends StatefulWidget {
   final GenerationMode initialMode;
   final VoidCallback onBack;
   final VoidCallback onOpenHistory;
-  final VoidCallback onOpenSettings;
   final void Function(GenerationDetail detail) onOpenResult;
 
   @override
@@ -209,11 +207,6 @@ class _GenerateScreenState extends State<GenerateScreen> {
             tooltip: "Geçmiş",
             onPressed: widget.onOpenHistory,
             icon: const Icon(Icons.history_rounded),
-          ),
-          IconButton(
-            tooltip: "Ayarlar",
-            onPressed: widget.onOpenSettings,
-            icon: const Icon(Icons.settings_rounded),
           ),
         ],
       ),

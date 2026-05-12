@@ -177,6 +177,25 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
     });
   }
 
+  void _handleSystemBack() {
+    switch (_screen) {
+      case AppScreen.generate:
+      case AppScreen.history:
+      case AppScreen.settings:
+      case AppScreen.templates:
+      case AppScreen.batch:
+        _backToDashboard();
+        return;
+      case AppScreen.result:
+        _backFromResult();
+        return;
+      case AppScreen.splash:
+      case AppScreen.login:
+      case AppScreen.dashboard:
+        break;
+    }
+  }
+
   void _backToDashboard() {
     setState(() {
       _screen = AppScreen.dashboard;
@@ -189,7 +208,17 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
-      home: _buildHome(),
+      home: PopScope(
+        canPop: _screen == AppScreen.login || _screen == AppScreen.dashboard,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            return;
+          }
+
+          _handleSystemBack();
+        },
+        child: _buildHome(),
+      ),
     );
   }
 
@@ -298,7 +327,6 @@ class _TestPilotMobileAppState extends State<TestPilotMobileApp> {
           initialMode: _activeMode,
           onBack: _backToDashboard,
           onOpenHistory: _openHistory,
-          onOpenSettings: _openSettings,
           onOpenResult: (detail) {
             _openResult(
               generationId: detail.generationId,

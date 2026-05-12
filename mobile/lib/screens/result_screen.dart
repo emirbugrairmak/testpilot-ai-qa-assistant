@@ -41,6 +41,8 @@ class _ResultScreenState extends State<ResultScreen> {
   String? _errorMessage;
   String? _exportMessage;
 
+  bool get _isPremium => widget.authResponse.plan.toLowerCase() == "premium";
+
   @override
   void initState() {
     super.initState();
@@ -263,7 +265,6 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildExportSection(GenerationDetail detail, ThemeData theme) {
-    final isPremium = widget.authResponse.plan.toLowerCase() == "premium";
     final advancedFormats = _formatsForMode(detail.mode)
         .where((format) => format != ExportFormat.pdf)
         .toList();
@@ -272,10 +273,17 @@ class _ResultScreenState extends State<ResultScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isPremium
+          _isPremium
               ? "Premium kullanıcılar temiz PDF export alabilir."
               : "Free kullanıcılar PDF export alabilir; çıktıda TestPilot Free watermark yer alır.",
           style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          "Paylaşım menüsünden Dosyalar'a kaydedebilirsiniz.",
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
         const SizedBox(height: 12),
         FilledButton.icon(
@@ -285,7 +293,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   _export(ExportFormat.pdf);
                 },
           icon: const Icon(Icons.picture_as_pdf_rounded),
-          label: const Text("PDF export al"),
+          label: const Text("PDF paylaş / kaydet"),
         ),
         if (advancedFormats.isNotEmpty) ...[
           const SizedBox(height: 8),
@@ -306,20 +314,7 @@ class _ResultScreenState extends State<ResultScreen> {
                   runSpacing: 10,
                   children: advancedFormats
                       .map(
-                        (format) => OutlinedButton.icon(
-                          onPressed: _isExporting
-                              ? null
-                              : () {
-                                  _export(format);
-                                },
-                          icon: Icon(
-                            _iconForFormat(format, mode: detail.mode),
-                          ),
-                          label: Text(
-                            _labelForFormat(format, mode: detail.mode),
-                          ),
-                        ),
-                      )
+                          (format) => _buildExportButton(format, detail, theme))
                       .toList(),
                 ),
               ),
@@ -337,6 +332,51 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildExportButton(
+    ExportFormat format,
+    GenerationDetail detail,
+    ThemeData theme,
+  ) {
+    final locked = _requiresPremium(format) && !_isPremium;
+    final label = _labelForFormat(format, mode: detail.mode);
+
+    return OutlinedButton.icon(
+      onPressed: _isExporting
+          ? null
+          : () {
+              _export(format);
+            },
+      style: OutlinedButton.styleFrom(
+        foregroundColor: locked ? AppColors.textSecondary : null,
+        backgroundColor:
+            locked ? AppColors.textSecondary.withValues(alpha: 0.05) : null,
+        side: BorderSide(
+          color: locked
+              ? AppColors.textSecondary.withValues(alpha: 0.24)
+              : theme.colorScheme.outline,
+        ),
+      ),
+      icon: Icon(
+        locked ? Icons.lock_rounded : _iconForFormat(format, mode: detail.mode),
+        size: 18,
+      ),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label),
+          if (locked) ...[
+            const SizedBox(width: 6),
+            _buildSmallBadge(
+              "Premium",
+              foreground: AppColors.accent,
+              background: AppColors.accent.withValues(alpha: 0.10),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -449,10 +489,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                   ),
                   Expanded(
-                    child: Text(
-                      entry.value,
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                    child: _buildBodyText(entry.value, theme),
                   ),
                 ],
               ),
@@ -539,53 +576,7 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
           const SizedBox(height: 10),
           ...result.testCases.map(
-            (testCase) => Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "${testCase.id} • ${testCase.title}",
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text("Tür: ${testCase.type}"),
-                  Text("Priority: ${testCase.priority}"),
-                  if (testCase.preconditions.isNotEmpty)
-                    Text("Ön koşullar: ${testCase.preconditions}"),
-                  if (testCase.steps.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    ...testCase.steps.map((step) => Text("• $step")),
-                  ],
-                  const SizedBox(height: 8),
-                  Text(testCase.expectedResult),
-                  if (testCase.tags.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: testCase.tags
-                          .map(
-                            (tag) => Chip(
-                              label: Text(tag),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            (testCase) => _buildTestCaseCard(testCase, theme),
           ),
         ],
       ],
@@ -609,7 +600,7 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          Text(value, style: theme.textTheme.bodyMedium),
+          _buildBodyText(value, theme),
         ],
       ),
     );
@@ -636,7 +627,7 @@ class _ResultScreenState extends State<ResultScreen> {
           const SizedBox(height: 6),
           ...visibleItems.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text("• $item", style: theme.textTheme.bodyMedium),
+                child: _buildBodyText("• $item", theme),
               )),
         ],
       ),
@@ -706,7 +697,7 @@ class _ResultScreenState extends State<ResultScreen> {
     final label = part.key;
 
     if (label.isEmpty) {
-      return Text(part.value, style: theme.textTheme.bodyMedium);
+      return _buildBodyText(part.value, theme);
     }
 
     return Row(
@@ -723,10 +714,237 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
         ),
         Expanded(
-          child: Text(part.value, style: theme.textTheme.bodyMedium),
+          child: _buildBodyText(part.value, theme),
         ),
       ],
     );
+  }
+
+  Widget _buildTestCaseCard(TestCaseItem testCase, ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTestCaseHeader(testCase, theme),
+          const SizedBox(height: 12),
+          _buildLabeledValue("Type", testCase.type, theme),
+          _buildPriorityField(testCase.priority, theme),
+          _buildLabeledValue("Preconditions", testCase.preconditions, theme),
+          _buildStepsBlock(testCase.steps, theme),
+          _buildLabeledValue(
+            "Beklenen sonuç",
+            testCase.expectedResult,
+            theme,
+          ),
+          if (testCase.tags.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              "Tags",
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: testCase.tags
+                  .map(
+                    (tag) => _buildSmallBadge(
+                      tag,
+                      foreground: const Color(0xFF175CD3),
+                      background: const Color(0xFFEFF8FF),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTestCaseHeader(TestCaseItem testCase, ThemeData theme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                testCase.id.isEmpty ? "Test Case" : testCase.id,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              _buildBodyText(
+                testCase.title.isEmpty ? "Başlıksız test case" : testCase.title,
+                theme,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        _buildPriorityBadge(testCase.priority),
+      ],
+    );
+  }
+
+  Widget _buildLabeledValue(String label, String value, ThemeData theme) {
+    if (_isBlankValue(value)) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 5),
+          _buildBodyText(value, theme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriorityField(String priority, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Priority",
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          _buildPriorityBadge(priority),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepsBlock(List<String> steps, ThemeData theme) {
+    final visibleSteps = steps.where((step) => !_isBlankValue(step)).toList();
+
+    if (visibleSteps.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Steps",
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ...visibleSteps.asMap().entries.map(
+                (entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 5),
+                  child: _buildBodyText(
+                    "${entry.key + 1}. ${entry.value}",
+                    theme,
+                  ),
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriorityBadge(String priority) {
+    final normalized = priority.trim().toUpperCase();
+
+    switch (normalized) {
+      case "P0":
+        return _buildSmallBadge(
+          "P0",
+          foreground: const Color(0xFFB42318),
+          background: const Color(0xFFFEE4E2),
+        );
+      case "P1":
+        return _buildSmallBadge(
+          "P1",
+          foreground: const Color(0xFFB54708),
+          background: const Color(0xFFFEF0C7),
+        );
+      default:
+        return _buildSmallBadge(
+          normalized.isEmpty ? "P2" : normalized,
+          foreground: const Color(0xFF344054),
+          background: const Color(0xFFF2F4F7),
+        );
+    }
+  }
+
+  Widget _buildSmallBadge(
+    String label, {
+    required Color foreground,
+    required Color background,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: foreground,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBodyText(
+    String value,
+    ThemeData theme, {
+    TextStyle? style,
+  }) {
+    final effectiveStyle = style ?? theme.textTheme.bodyMedium;
+
+    if (_isPremium) {
+      return SelectableText(value, style: effectiveStyle);
+    }
+
+    return Text(value, style: effectiveStyle);
   }
 
   List<MapEntry<String, String>> _acceptanceCriteriaParts(String item) {

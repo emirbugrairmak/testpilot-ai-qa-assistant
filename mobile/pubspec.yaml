@@ -24,6 +24,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icons/testpilot_launcher.png
 
 flutter_launcher_icons:
   android: true

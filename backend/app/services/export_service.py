@@ -86,7 +86,7 @@ def get_owned_generation(api_key_id: int, generation_id: int) -> dict | None:
 
 def to_json_export(record: dict, key_info: dict | None = None) -> str:
     """JSON export içeriği."""
-    export_payload = _deepcopy_json(record)
+    export_payload = _structured_json_export_payload(record)
     if _should_add_free_provenance(key_info):
         export_payload["export_meta"] = _build_export_meta(
             payload=_export_payload_for_hash(export_payload),
@@ -146,8 +146,9 @@ def to_pdf_export(record: dict, key_info: dict | None = None) -> bytes:
 
 def to_csv_export(record: dict, key_info: dict | None = None) -> str:
     """Test case veya bug report kaydını basit CSV formatına dönüştür."""
-    buffer = io.StringIO()
-    writer = csv.writer(buffer)
+    buffer = io.StringIO(newline="")
+    buffer.write("\ufeff")
+    writer = csv.writer(buffer, lineterminator="\r\n")
 
     if record["mode"] == "bug_report":
         bug = record["output"].get("bug_report", {})
@@ -355,7 +356,13 @@ def _test_suite_pdf_sections(output: dict, styles: dict) -> list:
 
     acceptance_criteria = output.get("acceptance_criteria") or []
     if acceptance_criteria:
-        story.extend(_section("Acceptance Criteria", [_bullet_list(acceptance_criteria, styles)], styles))
+        story.extend(
+            _section(
+                "Acceptance Criteria",
+                _acceptance_criteria_cards(acceptance_criteria, styles),
+                styles,
+            )
+        )
 
     test_plan = output.get("test_plan") or {}
     if test_plan:
@@ -448,6 +455,96 @@ def _bullet_list(items: list, styles: dict, ordered: bool = False) -> ListFlowab
     )
 
 
+def _acceptance_criteria_cards(items: list, styles: dict) -> list:
+    cards: list = []
+    for index, item in enumerate(clean_list_items(items), 1):
+        parts = _acceptance_criteria_parts(item)
+        if not parts:
+            continue
+
+        rows = [[Paragraph(f"AC-{index}", styles["AcCardTitle"]), ""]]
+        for label, value in parts:
+            if label:
+                rows.append([
+                    Paragraph(_safe_text(label), styles["AcLabel"]),
+                    Paragraph(_safe_text(value), styles["AcValue"]),
+                ])
+            else:
+                rows.append([
+                    "",
+                    Paragraph(_safe_text(value), styles["AcValue"]),
+                ])
+
+        table = Table(
+            rows,
+            colWidths=[2.2 * cm, 12.8 * cm],
+            hAlign="LEFT",
+            splitByRow=True,
+        )
+        table_style = TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EFF6FF")),
+            ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#BFDBFE")),
+            ("INNERGRID", (0, 1), (-1, -1), 0.25, colors.HexColor("#DBEAFE")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 8),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("SPAN", (0, 0), (-1, 0)),
+        ])
+        for row_index, row in enumerate(rows[1:], 1):
+            if row[0]:
+                table_style.add(
+                    "BACKGROUND",
+                    (0, row_index),
+                    (0, row_index),
+                    colors.HexColor("#F8FAFC"),
+                )
+        table.setStyle(table_style)
+        cards.extend([table, Spacer(1, 0.16 * cm)])
+
+    return cards
+
+
+def _acceptance_criteria_parts(item: str) -> list[tuple[str, str]]:
+    clean_item = _strip_leading_bullet(item)
+    clean_item = re.sub(r"\s+", " ", clean_item).strip()
+    if not clean_item:
+        return []
+
+    marker_pattern = re.compile(r"\b(Given|When|Then|And|But)\b", re.IGNORECASE)
+    matches = list(marker_pattern.finditer(clean_item))
+    if not matches:
+        return [("", clean_item)]
+
+    leading_text = clean_item[: matches[0].start()].strip()
+    parts: list[tuple[str, str]] = []
+    if leading_text:
+        parts.append(("", leading_text))
+
+    for index, match in enumerate(matches):
+        next_start = matches[index + 1].start() if index + 1 < len(matches) else len(clean_item)
+        text = clean_item[match.start() : next_start].strip()
+        if text:
+            parts.append(_gherkin_part(text))
+
+    return parts
+
+
+def _strip_leading_bullet(value: str) -> str:
+    return re.sub(r"^\s*(?:[-*•]\s+|\d+[.)]\s*)", "", str(value))
+
+
+def _gherkin_part(value: str) -> tuple[str, str]:
+    match = re.match(r"^(given|when|then|and|but)\b\s*(.*)$", value, re.IGNORECASE)
+    if not match:
+        return ("", value)
+
+    label = match.group(1).title()
+    text = re.sub(r"^\s*[:\-–]\s*", "", match.group(2)).strip()
+    return (label, text)
+
+
 def _draw_pdf_page(canvas, document, is_free: bool) -> None:
     width, height = A4
     canvas.saveState()
@@ -529,6 +626,30 @@ def _pdf_styles() -> dict:
             spaceBefore=4,
             spaceAfter=3,
         ),
+        "AcCardTitle": ParagraphStyle(
+            "AcCardTitle",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=9.5,
+            leading=12,
+            textColor=colors.HexColor("#102050"),
+        ),
+        "AcLabel": ParagraphStyle(
+            "AcLabel",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_BOLD,
+            fontSize=8.8,
+            leading=11,
+            textColor=colors.HexColor("#175CD3"),
+        ),
+        "AcValue": ParagraphStyle(
+            "AcValue",
+            parent=base["BodyText"],
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9,
+            leading=12,
+            textColor=colors.HexColor("#334155"),
+        ),
         "MetaLabel": ParagraphStyle(
             "MetaLabel",
             parent=base["BodyText"],
@@ -571,6 +692,19 @@ def _safe_text(value: Any) -> str:
     if value is None:
         return ""
     return escape(str(value)).replace("\n", "<br/>")
+
+
+def _structured_json_export_payload(record: dict) -> dict:
+    payload = {
+        "generation_id": record.get("generation_id"),
+        "mode": record.get("mode"),
+        "input": _deepcopy_json(record.get("input") or {}),
+        "output": _deepcopy_json(record.get("output") or {}),
+        "created_at": record.get("created_at"),
+    }
+    if isinstance(payload["output"], dict):
+        payload["output"].pop("markdown", None)
+    return payload
 
 
 def verify_export_content(content: str, format_name: str | None = None) -> dict:
