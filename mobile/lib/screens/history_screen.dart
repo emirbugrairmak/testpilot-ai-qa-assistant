@@ -85,9 +85,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Geçmiş kaydını sil"),
+        title: const Text("History kaydını sil"),
         content: const Text(
-          "Bu üretim geçmişinizden kaldırılacak. Devam edilsin mi?",
+          "Bu üretim History'den kaldırılacak. Devam edilsin mi?",
         ),
         actions: [
           TextButton(
@@ -123,7 +123,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Geçmiş kaydı silindi.")),
+        const SnackBar(content: Text("History kaydı silindi.")),
       );
       await _loadHistory();
     } catch (error) {
@@ -149,7 +149,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Geçmiş"),
+        title: const Text("History"),
         leading: IconButton(
           onPressed: widget.onBack,
           icon: const Icon(Icons.arrow_back_rounded),
@@ -254,7 +254,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       )
                     : items.isEmpty
                         ? Text(
-                            "Bu filtrelerle eşleşen geçmiş kaydı yok.",
+                            "Bu filtrelerle eşleşen History kaydı yok.",
                             style: theme.textTheme.bodyMedium,
                           )
                         : Column(

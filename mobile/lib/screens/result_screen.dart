@@ -229,12 +229,14 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                     const SizedBox(height: 16),
                     SectionCard(
-                      title: "Girdi özeti",
+                      title: "Girdi",
                       child: _buildInputSummary(detail.input, theme),
                     ),
                     const SizedBox(height: 16),
                     SectionCard(
-                      title: "Sonuç blokları",
+                      title: detail.mode == GenerationMode.bugReport
+                          ? "Bug Report"
+                          : "Test çıktıları",
                       child: _buildResultBlocks(detail, theme),
                     ),
                     const SizedBox(height: 16),
@@ -301,7 +303,7 @@ class _ResultScreenState extends State<ResultScreen> {
             tilePadding: EdgeInsets.zero,
             childrenPadding: EdgeInsets.zero,
             title: Text(
-              "Gelişmiş exportlar",
+              "Gelişmiş Export",
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -466,7 +468,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (entries.isEmpty) {
       return Text(
-        "Girdi özeti yok.",
+        "Girdi yok.",
         style: theme.textTheme.bodyMedium,
       );
     }

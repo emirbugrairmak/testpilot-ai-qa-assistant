@@ -105,13 +105,13 @@ function TestSuitePreview({
       {result.acceptance_criteria && result.acceptance_criteria.length > 0 && (
         <div>
           <h4 className="text-sm font-bold text-slate-800">
-            AC
+            AC / Acceptance Criteria
           </h4>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-            {result.acceptance_criteria.map((item) => (
-              <li key={item}>{cleanListItem(item)}</li>
+          <div className="mt-3 grid gap-3">
+            {result.acceptance_criteria.map((item, index) => (
+              <AcceptanceCriteriaCard item={item} key={`${index}-${item}`} />
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
@@ -193,6 +193,41 @@ function TestSuitePreview({
   );
 }
 
+function AcceptanceCriteriaCard({ item }: { item: string }) {
+  const parts = acceptanceCriteriaParts(item);
+
+  if (parts.length === 0) {
+    return null;
+  }
+
+  return (
+    <article className="rounded-lg border border-slate-900 bg-white p-4">
+      <div className="grid gap-3">
+        {parts.map((part, index) =>
+          part.label ? (
+            <div
+              key={`${index}-${part.label}-${part.value}`}
+              className="grid grid-cols-[76px_minmax(0,1fr)] gap-4 text-sm leading-6 md:text-base"
+            >
+              <span className="font-extrabold text-navy-800">
+                {part.label}
+              </span>
+              <span className="text-slate-900">{part.value}</span>
+            </div>
+          ) : (
+            <p
+              key={`${index}-${part.value}`}
+              className="text-sm leading-6 text-slate-900 md:text-base"
+            >
+              {part.value}
+            </p>
+          ),
+        )}
+      </div>
+    </article>
+  );
+}
+
 function Meta({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -200,6 +235,74 @@ function Meta({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-sm font-bold text-navy-800">{value}</p>
     </div>
   );
+}
+
+function acceptanceCriteriaParts(item: string) {
+  const cleanItem = stripLeadingBullet(item).replace(/\s+/g, " ").trim();
+
+  if (!cleanItem) {
+    return [];
+  }
+
+  const markerPattern = /\b(Given|When|Then|And|But)\b/gi;
+  const matches = Array.from(cleanItem.matchAll(markerPattern));
+
+  if (matches.length === 0) {
+    return [{ label: "", value: cleanItem }];
+  }
+
+  const parts: Array<{ label: string; value: string }> = [];
+  const leadingText = cleanItem.slice(0, matches[0].index ?? 0).trim();
+  if (leadingText) {
+    parts.push({ label: "", value: leadingText });
+  }
+
+  matches.forEach((match, index) => {
+    const start = match.index ?? 0;
+    const nextStart =
+      index + 1 < matches.length
+        ? matches[index + 1].index ?? cleanItem.length
+        : cleanItem.length;
+    const text = cleanItem.slice(start, nextStart).trim();
+    if (text) {
+      parts.push(gherkinPart(text));
+    }
+  });
+
+  return parts;
+}
+
+function stripLeadingBullet(value: string) {
+  return value.replace(/^\s*(?:[-*•]\s+|\d+[.)]\s*)/, "");
+}
+
+function gherkinPart(value: string) {
+  const normalized = value.replace(
+    /^(given|when|then|and|but)\b/i,
+    (word) => {
+      const lower = word.toLowerCase();
+      if (lower === "given") return "Given";
+      if (lower === "when") return "When";
+      if (lower === "then") return "Then";
+      if (lower === "and") return "And";
+      if (lower === "but") return "But";
+      return word;
+    },
+  );
+  const separator = normalized.indexOf(" ");
+
+  if (separator === -1) {
+    return { label: normalized, value: "" };
+  }
+
+  return {
+    label: normalized.slice(0, separator),
+    value: stripLeadingPunctuation(normalized.slice(separator + 1)),
+  };
+}
+
+function stripLeadingPunctuation(value: string) {
+  return value.replace(/^\s*[:-]\s*/, "").trim();
 }
 
 function TextBlock({ label, value }: { label: string; value: string }) {

@@ -277,7 +277,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             child: Text(
               _isPremium
                   ? "Premium plan ile kendi Template’lerinizi oluşturup üretim sırasında seçebilirsiniz."
-                  : "Templates yalnızca Premium kullanıcılar için açıktır. Login ekranındaki Premium simülasyonu ile Premium access key oluşturabilirsiniz.",
+                  : "Templates yalnızca Premium kullanıcılar için açıktır. Login ekranındaki Premium simülasyonu ile Premium Access key oluşturabilirsiniz.",
               style: theme.textTheme.bodyMedium,
             ),
           ),

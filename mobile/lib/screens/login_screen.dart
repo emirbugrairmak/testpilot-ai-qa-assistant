@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final apiKey = _apiKeyController.text.trim();
       if (apiKey.isEmpty) {
-        throw ApiException("Lütfen erişim anahtarınızı girin.");
+        throw ApiException("Lütfen Access key girin.");
       }
 
       await widget.onLogin(apiKey);
@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _createdAccessKey = response.accessKey;
         _apiKeyController.text = response.accessKey;
         _infoMessage =
-            "Free erişim anahtarınız oluşturuldu. Anahtar alana dolduruldu; giriş yapabilirsiniz.";
+            "Free Access key hazır. Key alana dolduruldu; çalışma alanına girebilirsiniz.";
       });
     } catch (error) {
       if (!mounted) {
@@ -143,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _createdAccessKey = response.accessKey;
         _apiKeyController.text = response.accessKey;
         _infoMessage =
-            "Premium erişim simülasyonu tamamlandı. Anahtar alana dolduruldu; giriş yapabilirsiniz.";
+            "Premium Access key hazır. Key alana dolduruldu; çalışma alanına girebilirsiniz.";
       });
     } catch (error) {
       if (!mounted) {
@@ -196,12 +196,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    "QA üretim alanınıza erişmek için mevcut access key ile giriş yapın ya da ücretsiz erişim oluşturun.",
+                    "QA üretim alanınıza erişmek için Access key girin veya yeni bir Free/Premium erişim oluşturun.",
                     style: theme.textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 28),
                   Text(
-                    "Mevcut erişim anahtarı",
+                    "Mevcut Access key",
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -250,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                   ],
                   PrimaryActionButton(
-                    label: "Giriş yap",
+                    label: "Çalışma alanına gir",
                     icon: Icons.login_rounded,
                     onPressed: _isBusy
                         ? null
@@ -267,14 +267,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Ücretsiz erişim al",
+                            "Free çalışma alanı",
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Hesap kurmadan yeni bir Free access key oluşturur.",
+                            "30 üretim/ay, Markdown/JSON Export ve son 15 History kaydı.",
                             style: theme.textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 12),
@@ -297,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   )
                                 : const Icon(Icons.key_rounded),
-                            label: const Text("Ücretsiz erişim al"),
+                            label: const Text("Free Access key oluştur"),
                           ),
                         ],
                       ),
@@ -312,14 +312,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Premium al",
+                            "Premium satın alma simülasyonu",
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Gerçek ödeme alınmaz. Sunum için Premium access key oluşturur.",
+                            "200 üretim/ay, CSV/Jira Export, Batch Generate, Templates ve sınırsız History.",
                             style: theme.textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 12),
@@ -342,7 +342,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   )
                                 : const Icon(Icons.workspace_premium_rounded),
-                            label: const Text("Premium erişimi oluştur"),
+                            label: const Text("Premium Access key oluştur"),
                           ),
                         ],
                       ),
@@ -399,7 +399,7 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Oluşturulan access key",
+              "Access key hazır",
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -410,6 +410,11 @@ class _LoginScreenState extends State<LoginScreen> {
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Bu key ile çalışma alanına girmek için yukarıdaki butonu kullanabilirsiniz.",
+              style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(

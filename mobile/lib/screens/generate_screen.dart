@@ -203,7 +203,7 @@ class _GenerateScreenState extends State<GenerateScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: "Geçmiş",
+            tooltip: "History",
             onPressed: widget.onOpenHistory,
             icon: const Icon(Icons.history_rounded),
           ),

@@ -274,7 +274,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
             child: Text(
               _isPremium
                   ? "Premium plan ile Mod A ve Mod B için çoklu üretim yapabilirsiniz."
-                  : "Batch Generate yalnızca Premium kullanıcılar için açıktır. Premium access key ile giriş yapın.",
+                  : "Batch Generate yalnızca Premium kullanıcılar için açıktır. Premium Access key ile giriş yapın.",
               style: theme.textTheme.bodyMedium,
             ),
           ),

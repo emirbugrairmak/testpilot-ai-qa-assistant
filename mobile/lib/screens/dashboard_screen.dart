@@ -99,7 +99,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: const Text("Kontrol paneli"),
         actions: [
           IconButton(
-            tooltip: "Geçmiş",
+            tooltip: "History",
             onPressed: widget.onOpenHistory,
             icon: const Icon(Icons.history_rounded),
           ),
@@ -217,7 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 12),
                   _QuickActionTile(
-                    label: "Geçmişi aç",
+                    label: "History",
                     subtitle: "Önceki üretimleri incele",
                     icon: Icons.history_rounded,
                     onTap: widget.onOpenHistory,
@@ -234,7 +234,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 16),
             SectionCard(
-              title: "Son geçmiş",
+              title: "Son History",
               trailing: _history?.limit != null
                   ? Text(
                       "Son ${_history!.limit}",
@@ -313,14 +313,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          "üretim kullanıldı",
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         LinearProgressIndicator(
           value: _usage!.monthlyLimit == 0
               ? 0
@@ -342,15 +335,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final items = _history?.items.take(5).toList() ?? const <HistoryItem>[];
 
     if (items.isEmpty) {
-      return Text(
-        "Henüz geçmiş kaydı yok. Yeni bir üretimle başlayın.",
-        style: theme.textTheme.bodyMedium,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Bu Access key ile yapılan son üretimler.",
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Henüz History kaydı yok. Yeni bir üretimle başlayın.",
+            style: theme.textTheme.bodyMedium,
+          ),
+        ],
       );
     }
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: items
-          .map(
+          .map<Widget>(
             (item) => InkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: () => widget.onOpenResult(item.generationId),
@@ -384,7 +390,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           )
-          .toList(),
+          .toList()
+        ..insertAll(0, [
+          Text(
+            "Bu Access key ile yapılan son üretimler.",
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ]),
     );
   }
 }

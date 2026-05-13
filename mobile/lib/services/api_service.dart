@@ -411,7 +411,7 @@ class ApiService {
     }
 
     const knownMessages = {
-      "Invalid or inactive API key": "Geçersiz veya pasif erişim anahtarı.",
+      "Invalid or inactive API key": "Geçersiz veya pasif Access key.",
       "Generation not found": "Üretim bulunamadı.",
       "This export format is available for premium plans only":
           "Bu export formatı yalnızca Premium planda kullanılabilir.",
@@ -434,7 +434,7 @@ class ApiService {
     }
 
     if (statusCode == 401) {
-      return "Erişim anahtarı doğrulanamadı. Anahtarı kontrol edip tekrar deneyin.";
+      return "Access key doğrulanamadı. Key'i kontrol edip tekrar deneyin.";
     }
 
     if (statusCode == 422) {
@@ -442,7 +442,7 @@ class ApiService {
     }
 
     if (statusCode == 403) {
-      return "Bu işlem için Premium erişim gerekir.";
+      return "Bu işlem için Premium plan gerekir.";
     }
 
     if (statusCode == 429) {
