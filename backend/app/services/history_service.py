@@ -10,6 +10,7 @@ import json
 from typing import Any
 
 from app.database import get_db
+from app.utils.output_compat import clean_legacy_markdown, normalize_generation_output
 
 
 def list_generations(
@@ -78,14 +79,15 @@ def get_generation_detail(api_key_id: int, generation_id: int) -> dict | None:
     if not row:
         return None
 
-    output = _loads(row["output_json"])
+    input_payload = _loads(row["input_json"])
+    output = normalize_generation_output(_loads(row["output_json"]), input_payload)
 
     return {
         "generation_id": row["id"],
         "mode": row["mode"],
-        "input": _loads(row["input_json"]),
+        "input": input_payload,
         "output": output,
-        "markdown": row["output_md"],
+        "markdown": clean_legacy_markdown(row["output_md"], output),
         "created_at": output.get("created_at") or row["created_at"],
     }
 

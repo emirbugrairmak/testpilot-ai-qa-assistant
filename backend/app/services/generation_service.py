@@ -117,10 +117,6 @@ def _to_markdown(data: dict) -> str:
 
     lines.append(f"# Test Plan: {data['test_plan']['objective']}")
     lines.append("")
-    lines.append(f"**Mode:** `{data['mode']}`")
-    lines.append(f"**AI Provider:** `{data.get('provider', 'unknown')}`")
-    lines.append(f"**Generated:** {data['created_at']}")
-    lines.append("")
 
     # User Story
     lines.append("## User Story")
@@ -179,9 +175,6 @@ def _bug_report_to_markdown(data: dict) -> str:
     lines = [
         f"# Bug Report: {bug['title']}",
         "",
-        f"**Mode:** `{data['mode']}`",
-        f"**AI Provider:** `{data.get('provider', 'unknown')}`",
-        f"**Generated:** {data['created_at']}",
         f"**Severity:** {bug['severity']}",
         f"**Priority:** {bug['priority']}",
         f"**Environment:** {bug['environment']}",

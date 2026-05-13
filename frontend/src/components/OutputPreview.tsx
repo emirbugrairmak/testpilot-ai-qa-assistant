@@ -76,7 +76,7 @@ function BugReportPreview({
             {bugReport.labels.map((label) => (
               <span
                 key={label}
-                className="rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700"
+                className="rounded-md bg-sky-50 px-2 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100"
               >
                 {label}
               </span>
@@ -144,9 +144,14 @@ function TestSuitePreview({
                     {testCase.priority}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-700">
-                  {cleanListItem(testCase.expected_result)}
-                </p>
+                <div className="mt-3">
+                  <p className="text-xs font-bold uppercase text-slate-500">
+                    Beklenen Sonuç
+                  </p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {cleanListItem(testCase.expected_result)}
+                  </p>
+                </div>
                 {fullDetails ? (
                   <>
                     <p className="mt-2 text-sm text-slate-600">

@@ -144,6 +144,7 @@ class BugReportOutput {
     required this.steps,
     required this.actualResult,
     required this.expectedResult,
+    this.labels = const [],
   });
 
   final String title;
@@ -154,6 +155,7 @@ class BugReportOutput {
   final List<String> steps;
   final String actualResult;
   final String expectedResult;
+  final List<String> labels;
 
   factory BugReportOutput.fromJson(Map<String, dynamic> json) {
     return BugReportOutput(
@@ -167,6 +169,9 @@ class BugReportOutput {
           .toList(),
       actualResult: json["actual_result"] as String? ?? "",
       expectedResult: json["expected_result"] as String? ?? "",
+      labels: (json["labels"] as List<dynamic>? ?? const [])
+          .map((label) => label.toString())
+          .toList(),
     );
   }
 }

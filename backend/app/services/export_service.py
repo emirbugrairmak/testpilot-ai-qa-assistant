@@ -19,6 +19,7 @@ from xml.sax.saxutils import escape
 
 from app.config import settings
 from app.database import get_db
+from app.utils.output_compat import clean_legacy_markdown, normalize_generation_output
 from app.utils.text_formatting import clean_list_item, clean_list_items, clean_markdown_list_markers
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
@@ -72,14 +73,15 @@ def get_owned_generation(api_key_id: int, generation_id: int) -> dict | None:
     if not row:
         return None
 
-    output = _loads(row["output_json"])
+    input_payload = _loads(row["input_json"])
+    output = normalize_generation_output(_loads(row["output_json"]), input_payload)
 
     return {
         "generation_id": row["id"],
         "mode": row["mode"],
-        "input": _loads(row["input_json"]),
+        "input": input_payload,
         "output": output,
-        "markdown": row["output_md"],
+        "markdown": clean_legacy_markdown(row["output_md"], output),
         "created_at": output.get("created_at") or row["created_at"],
     }
 
@@ -99,7 +101,10 @@ def to_json_export(record: dict, key_info: dict | None = None) -> str:
 def to_markdown_export(record: dict, key_info: dict | None = None) -> str:
     """Markdown export içeriği."""
     content = clean_markdown_list_markers(
-        record["markdown"] or f"# Generation {record['generation_id']}\n"
+        clean_legacy_markdown(
+            record["markdown"] or f"# Generation {record['generation_id']}\n",
+            record.get("output") or {},
+        )
     )
     if not _should_add_free_provenance(key_info):
         return content
@@ -153,8 +158,6 @@ def to_csv_export(record: dict, key_info: dict | None = None) -> str:
     if record["mode"] == "bug_report":
         bug = record["output"].get("bug_report", {})
         writer.writerow([
-            "generation_id",
-            "mode",
             "title",
             "severity",
             "priority",
@@ -165,11 +168,9 @@ def to_csv_export(record: dict, key_info: dict | None = None) -> str:
             "labels",
         ])
         writer.writerow([
-            record["generation_id"],
-            record["mode"],
             bug.get("title", ""),
             bug.get("severity", ""),
-            bug.get("priority", ""),
+            _testrail_priority(bug.get("priority", "")),
             bug.get("environment", ""),
             " | ".join(clean_list_items(bug.get("steps_to_reproduce", []))),
             clean_list_item(bug.get("actual_result", "")),
@@ -179,8 +180,6 @@ def to_csv_export(record: dict, key_info: dict | None = None) -> str:
         return buffer.getvalue()
 
     writer.writerow([
-        "generation_id",
-        "mode",
         "test_case_id",
         "title",
         "type",
@@ -193,12 +192,10 @@ def to_csv_export(record: dict, key_info: dict | None = None) -> str:
 
     for test_case in record["output"].get("test_cases", []):
         writer.writerow([
-            record["generation_id"],
-            record["mode"],
             test_case.get("id", ""),
             test_case.get("title", ""),
             test_case.get("type", ""),
-            test_case.get("priority", ""),
+            _testrail_priority(test_case.get("priority", "")),
             clean_list_item(test_case.get("preconditions", "")),
             " | ".join(clean_list_items(test_case.get("steps", []))),
             clean_list_item(test_case.get("expected_result", "")),
@@ -289,6 +286,14 @@ def to_jira_export(record: dict, key_info: dict | None = None) -> str:
             "",
             f"{test_case.get('id', '')}: {test_case.get('title', '')}",
             f"Priority: {test_case.get('priority', '')}",
+            "Steps:",
+            *[
+                f"{index}. {step}"
+                for index, step in enumerate(
+                    clean_list_items(test_case.get("steps", [])),
+                    1,
+                )
+            ],
             f"Expected Result: {clean_list_item(test_case.get('expected_result', ''))}",
         ])
 
@@ -938,40 +943,31 @@ def _highest_priority(test_cases: list[dict]) -> str:
     return ""
 
 
-def _select_jira_test_cases(test_cases: list[dict], limit: int = 4) -> list[dict]:
-    """Jira task açıklaması için en alakalı, kısa test case özetlerini seç."""
-    priority_rank = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
-    assumption_keywords = [
-        "başka cihaz",
-        "diğer cihaz",
-        "rate limit",
-        "rate limiting",
-        "audit log",
-        "denetim kaydı",
+def _select_jira_test_cases(test_cases: list[dict]) -> list[dict]:
+    """Jira task açıklaması için test case'leri doğal ID sırasıyla döndür."""
+    return [
+        test_case
+        for _, test_case in sorted(
+            enumerate(test_cases),
+            key=lambda item: (_natural_sort_key(item[1].get("id", "")), item[0]),
+        )
     ]
 
-    ranked = sorted(
-        enumerate(test_cases),
-        key=lambda item: (
-            priority_rank.get(str(item[1].get("priority", "")).upper(), 9),
-            item[0],
-        ),
-    )
 
-    selected = []
-    for _, test_case in ranked:
-        searchable = " ".join([
-            str(test_case.get("title", "")),
-            str(test_case.get("expected_result", "")),
-            " ".join(str(step) for step in test_case.get("steps", [])),
-        ]).lower()
-        if any(keyword in searchable for keyword in assumption_keywords):
-            continue
-        selected.append(test_case)
-        if len(selected) >= limit:
-            return selected
+def _natural_sort_key(value: object) -> list[object]:
+    return [
+        int(part) if part.isdigit() else part.lower()
+        for part in re.split(r"(\d+)", str(value))
+    ]
 
-    return selected or test_cases[:limit]
+
+def _testrail_priority(value: object) -> str:
+    return {
+        "P0": "Critical",
+        "P1": "High",
+        "P2": "Medium",
+        "P3": "Low",
+    }.get(str(value or "").strip().upper(), str(value or ""))
 
 
 def _remove_assumption_sentences(value: str) -> str:

@@ -6,7 +6,7 @@ import { OutputPreview } from "../components/OutputPreview";
 import { PlanBadge } from "../components/PlanBadge";
 import { useAuth } from "../hooks/useAuth";
 import { useHistoryDetail } from "../hooks/useHistoryDetail";
-import type { GenerateResponse } from "../types/api";
+import type { BugReport, GenerateResponse } from "../types/api";
 import { cleanMarkdownListMarkers } from "../utils/textFormatting";
 
 type ResultPageProps = {
@@ -59,11 +59,19 @@ export function ResultPage({
     );
   }
 
+  const normalizedOutput = normalizeLegacyOutput(
+    detailQuery.data.output,
+    detailQuery.data.input,
+  );
   const result: GenerateResponse = {
     generation_id: detailQuery.data.generation_id,
-    ...detailQuery.data.output,
+    ...normalizedOutput,
     markdown: detailQuery.data.markdown,
   };
+  const markdownPreview = cleanLegacyMarkdown(
+    detailQuery.data.markdown,
+    result.bug_report,
+  );
 
   return (
     <div className="space-y-6">
@@ -105,7 +113,7 @@ export function ResultPage({
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-bold text-navy-800">Markdown önizleme</h2>
             <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">
-              {cleanMarkdownListMarkers(detailQuery.data.markdown)}
+              {cleanMarkdownListMarkers(markdownPreview)}
             </pre>
           </section>
         </div>
@@ -127,6 +135,118 @@ export function ResultPage({
       </div>
     </div>
   );
+}
+
+function normalizeLegacyOutput(
+  output: Omit<GenerateResponse, "generation_id">,
+  input: Record<string, unknown>,
+) {
+  if (output.mode !== "bug_report" || !output.bug_report) {
+    return output;
+  }
+
+  const { severity, priority } = normalizeSeverity(
+    input.severity ?? output.bug_report.severity,
+  );
+  const labels = normalizeLabels(output.bug_report.labels, severity);
+
+  return {
+    ...output,
+    tags: labels,
+    bug_report: {
+      ...output.bug_report,
+      severity,
+      priority,
+      labels,
+    },
+  };
+}
+
+function normalizeSeverity(value: unknown) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  const severityKey =
+    {
+      critical: "kritik",
+      blocker: "kritik",
+      kritik: "kritik",
+      high: "yüksek",
+      major: "yüksek",
+      yüksek: "yüksek",
+      yuksek: "yüksek",
+      medium: "orta",
+      minor: "orta",
+      orta: "orta",
+      low: "düşük",
+      trivial: "düşük",
+      düşük: "düşük",
+      dusuk: "düşük",
+    }[normalized] ?? "orta";
+
+  const severity =
+    severityKey === "kritik"
+      ? "Kritik"
+      : severityKey === "yüksek"
+        ? "Yüksek"
+        : severityKey === "düşük"
+          ? "Düşük"
+          : "Orta";
+  const priority =
+    severityKey === "kritik"
+      ? "P0"
+      : severityKey === "yüksek"
+        ? "P1"
+        : severityKey === "düşük"
+          ? "P3"
+          : "P2";
+
+  return { severity, priority };
+}
+
+function normalizeLabels(labels: string[] = [], severity: string) {
+  const severityLabels = new Set([
+    "critical",
+    "blocker",
+    "kritik",
+    "high",
+    "major",
+    "yüksek",
+    "yuksek",
+    "medium",
+    "minor",
+    "orta",
+    "low",
+    "trivial",
+    "düşük",
+    "dusuk",
+  ]);
+  const cleaned = labels.filter(
+    (label) => !severityLabels.has(label.trim().toLowerCase()),
+  );
+  const severityLabel = severity.toLowerCase();
+  if (!cleaned.some((label) => label.trim().toLowerCase() === severityLabel)) {
+    cleaned.push(severityLabel);
+  }
+  return cleaned;
+}
+
+function cleanLegacyMarkdown(markdown: string, bugReport?: BugReport) {
+  return markdown
+    .split("\n")
+    .filter(
+      (line) =>
+        !/^\*\*(Mode|AI Provider|Generated):\*\*/.test(line.trim()),
+    )
+    .map((line) => {
+      if (bugReport && /^\*\*Severity:\*\*/.test(line.trim())) {
+        return `**Severity:** ${bugReport.severity}`;
+      }
+      if (bugReport && /^\*\*Priority:\*\*/.test(line.trim())) {
+        return `**Priority:** ${bugReport.priority}`;
+      }
+      return line;
+    })
+    .join("\n")
+    .trim();
 }
 
 function formatPlanSource(result: GenerateResponse) {

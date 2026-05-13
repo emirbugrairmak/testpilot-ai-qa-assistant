@@ -50,3 +50,6 @@ Thumbs.db
 .env.local
 .env.*.local
 backend/data/testpilot.db*
+
+# ──────────────── Local input files ────────────────
+inputlar/

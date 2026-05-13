@@ -22,6 +22,7 @@ import urllib.parse
 import urllib.request
 
 from app.config import settings
+from app.utils.output_compat import normalize_bug_labels, normalize_bug_severity
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +279,7 @@ def _parse_and_validate(mode: str, raw_text: str, plan: str, inputs: dict) -> di
     elif mode == "mod_b":
         return _validate_mod_b(data, inputs)
     elif mode == "bug_report":
-        return _validate_bug_report(data)
+        return _validate_bug_report(data, inputs)
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
@@ -365,7 +366,7 @@ def _validate_mod_b(data: dict, inputs: dict) -> dict:
     }
 
 
-def _validate_bug_report(data: dict) -> dict:
+def _validate_bug_report(data: dict, inputs: dict | None = None) -> dict:
     """Bug report çıktısını doğrula ve normalize et."""
     if "bug_report" not in data:
         # Bazen model doğrudan alanları döner, wrap et
@@ -379,12 +380,20 @@ def _validate_bug_report(data: dict) -> dict:
     if isinstance(steps, str):
         steps = [s.strip() for s in steps.split("\n") if s.strip()]
 
+    severity, priority = normalize_bug_severity(
+        (inputs or {}).get("severity") or br.get("severity")
+    )
+    labels = [str(l) for l in br.get("labels", ["bug", "qa-generated"])]
+    if not labels:
+        labels = ["bug", "qa-generated"]
+    labels = normalize_bug_labels(labels, severity)
+
     return {
         "bug_report": {
             "title": str(br.get("title", "Bug Report")),
             "summary": str(br.get("summary", br.get("title", ""))),
-            "severity": str(br.get("severity", "major")).lower(),
-            "priority": str(br.get("priority", "P1")),
+            "severity": severity,
+            "priority": priority,
             "environment": str(br.get("environment", "Not specified")),
             "steps_to_reproduce": [str(s) for s in steps],
             "actual_result": str(br.get("actual_result", "")),
@@ -392,7 +401,7 @@ def _validate_bug_report(data: dict) -> dict:
             "root_cause_hint": str(br.get("root_cause_hint", "")),
             "regression_risk": str(br.get("regression_risk", "")),
             "suggested_fix": str(br.get("suggested_fix", "")),
-            "labels": [str(l) for l in br.get("labels", ["bug", "qa-generated"])],
+            "labels": labels,
         }
     }
 
@@ -631,20 +640,9 @@ def _mock_bug_report(inputs: dict) -> dict:
     if not steps:
         steps = ["Reproduce the issue using the reported user flow."]
 
-    severity = (inputs.get("severity") or "major").strip().lower()
-    severity_priority_map = {
-        "critical": "P0",
-        "blocker": "P0",
-        "major": "P1",
-        "high": "P1",
-        "medium": "P2",
-        "minor": "P2",
-        "low": "P3",
-        "trivial": "P3",
-    }
-    priority = severity_priority_map.get(severity, "P1")
+    severity, priority = normalize_bug_severity(inputs.get("severity"))
     title = (inputs.get("title") or "Bug report").strip()
-    labels = ["bug", "qa-generated", severity]
+    labels = ["bug", "qa-generated", severity.lower()]
 
     return {
         "bug_report": {

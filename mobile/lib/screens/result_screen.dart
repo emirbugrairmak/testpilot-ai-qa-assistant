@@ -547,6 +547,7 @@ class _ResultScreenState extends State<ResultScreen> {
           _buildListBlock("Adımlar", bug.steps, theme),
           _buildTextBlock("Gerçekleşen sonuç", bug.actualResult, theme),
           _buildTextBlock("Beklenen sonuç", bug.expectedResult, theme),
+          if (bug.labels.isNotEmpty) _buildBugLabelsBlock(bug.labels, theme),
         ],
       );
     }
@@ -909,6 +910,37 @@ class _ResultScreenState extends State<ResultScreen> {
           background: const Color(0xFFF2F4F7),
         );
     }
+  }
+
+  Widget _buildBugLabelsBlock(List<String> labels, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Etiketler",
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: labels
+                .map(
+                  (label) => _buildSmallBadge(
+                    label,
+                    foreground: const Color(0xFF175CD3),
+                    background: const Color(0xFFEFF8FF),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSmallBadge(
