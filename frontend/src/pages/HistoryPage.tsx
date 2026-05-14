@@ -158,7 +158,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
                         {formatMode(item.mode)}
                       </span>
                       <span className="text-xs font-semibold text-slate-500">
-                        #{item.generation_id}
+                        #{item.display_id}
                       </span>
                       <span className="text-xs text-slate-400">
                         {new Date(item.created_at).toLocaleString()}
@@ -195,7 +195,7 @@ export function HistoryPage({ onOpenResult }: HistoryPageProps) {
 
       {deleteTarget ? (
         <ConfirmDialog
-          title={`Üretim #${deleteTarget.generation_id} silinsin mi?`}
+          title={`Üretim #${deleteTarget.display_id} silinsin mi?`}
           description={`${formatMode(deleteTarget.mode)} kaydı History'den kalıcı olarak silinecek.`}
           isPending={deleteMutation.isPending}
           onCancel={() => setDeleteTarget(null)}

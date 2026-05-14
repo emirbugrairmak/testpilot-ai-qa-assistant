@@ -64,8 +64,9 @@ export function ResultPage({
     detailQuery.data.input,
   );
   const result: GenerateResponse = {
-    generation_id: detailQuery.data.generation_id,
     ...normalizedOutput,
+    generation_id: detailQuery.data.generation_id,
+    display_id: detailQuery.data.display_id,
     markdown: detailQuery.data.markdown,
   };
   const markdownPreview = cleanLegacyMarkdown(
@@ -83,7 +84,7 @@ export function ResultPage({
               <PlanBadge plan={user.plan} />
             </div>
             <h1 className="mt-2 text-3xl font-extrabold text-navy-800">
-              Üretim #{detailQuery.data.generation_id}
+              Üretim #{detailQuery.data.display_id}
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               Oluşturulma zamanı:{" "}
@@ -138,7 +139,7 @@ export function ResultPage({
 }
 
 function normalizeLegacyOutput(
-  output: Omit<GenerateResponse, "generation_id">,
+  output: Omit<GenerateResponse, "generation_id" | "display_id">,
   input: Record<string, unknown>,
 ) {
   if (output.mode !== "bug_report" || !output.bug_report) {

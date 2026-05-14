@@ -281,7 +281,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                           children: [
                                             _ModeBadge(mode: item.mode),
                                             Text(
-                                              "#${item.generationId}",
+                                              "#${item.displayId}",
                                               style: theme.textTheme.titleSmall
                                                   ?.copyWith(
                                                 fontWeight: FontWeight.w700,

@@ -280,6 +280,7 @@ def batch_generate(
                 index=idx,
                 success=True,
                 generation_id=result.get("generation_id"),
+                display_id=result.get("display_id"),
                 result=result,
             ))
             success_count += 1

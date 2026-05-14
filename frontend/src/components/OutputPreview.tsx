@@ -14,7 +14,7 @@ export function OutputPreview({
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <div>
         <p className="text-sm font-semibold text-slate-500">
-          Üretim #{result.generation_id}
+          Üretim #{result.display_id}
         </p>
         <h2 className="mt-1 text-xl font-bold text-navy-800">
           {result.mode === "bug_report" ? "Bug Report" : "Test çıktıları"}

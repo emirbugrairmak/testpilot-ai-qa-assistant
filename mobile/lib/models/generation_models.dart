@@ -179,6 +179,7 @@ class BugReportOutput {
 class GenerationResult {
   const GenerationResult({
     required this.generationId,
+    required this.displayId,
     required this.mode,
     required this.createdAt,
     this.userStory,
@@ -192,6 +193,7 @@ class GenerationResult {
   });
 
   final int generationId;
+  final int displayId;
   final GenerationMode mode;
   final String createdAt;
   final String? userStory;
@@ -210,6 +212,9 @@ class GenerationResult {
 
     return GenerationResult(
       generationId: json["generation_id"] as int? ?? 0,
+      displayId: (json["display_id"] as int?) ??
+          (json["generation_id"] as int?) ??
+          0,
       mode: generationModeFromApi(json["mode"] as String? ?? "mod_a"),
       createdAt: json["created_at"] as String? ?? "",
       userStory: json["user_story"] as String?,
@@ -236,6 +241,7 @@ class GenerationResult {
 
   GenerationResult copyWith({
     int? generationId,
+    int? displayId,
     GenerationMode? mode,
     String? createdAt,
     String? userStory,
@@ -249,6 +255,7 @@ class GenerationResult {
   }) {
     return GenerationResult(
       generationId: generationId ?? this.generationId,
+      displayId: displayId ?? this.displayId,
       mode: mode ?? this.mode,
       createdAt: createdAt ?? this.createdAt,
       userStory: userStory ?? this.userStory,
@@ -266,6 +273,7 @@ class GenerationResult {
 class GenerationDetail {
   const GenerationDetail({
     required this.generationId,
+    required this.displayId,
     required this.mode,
     required this.input,
     required this.output,
@@ -274,6 +282,7 @@ class GenerationDetail {
   });
 
   final int generationId;
+  final int displayId;
   final GenerationMode mode;
   final Map<String, dynamic> input;
   final GenerationResult output;
@@ -284,10 +293,14 @@ class GenerationDetail {
     final outputJson = (json["output"] as Map<String, dynamic>? ??
         <String, dynamic>{})
       ..putIfAbsent("generation_id", () => json["generation_id"]);
+    outputJson.putIfAbsent("display_id", () => json["display_id"]);
     outputJson.putIfAbsent("markdown", () => json["markdown"]);
 
     return GenerationDetail(
       generationId: json["generation_id"] as int? ?? 0,
+      displayId: (json["display_id"] as int?) ??
+          (json["generation_id"] as int?) ??
+          0,
       mode: generationModeFromApi(json["mode"] as String? ?? "mod_a"),
       input: (json["input"] as Map<String, dynamic>? ?? <String, dynamic>{}),
       output: GenerationResult.fromJson(outputJson),
@@ -302,6 +315,7 @@ class GenerationDetail {
   }) {
     return GenerationDetail(
       generationId: result.generationId,
+      displayId: result.displayId,
       mode: result.mode,
       input: input,
       output: result,
@@ -312,6 +326,7 @@ class GenerationDetail {
 
   GenerationDetail copyWith({
     int? generationId,
+    int? displayId,
     GenerationMode? mode,
     Map<String, dynamic>? input,
     GenerationResult? output,
@@ -320,6 +335,7 @@ class GenerationDetail {
   }) {
     return GenerationDetail(
       generationId: generationId ?? this.generationId,
+      displayId: displayId ?? this.displayId,
       mode: mode ?? this.mode,
       input: input ?? this.input,
       output: output ?? this.output,

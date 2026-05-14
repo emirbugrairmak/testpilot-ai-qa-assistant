@@ -58,6 +58,7 @@ export type SystemStatusResponse = {
 
 export type HistoryItem = {
   generation_id: number;
+  display_id: number;
   mode: GenerationMode;
   input: Record<string, unknown>;
   output_summary: string;
@@ -132,6 +133,7 @@ export type GenerateRequest =
 
 export type GenerateResponse = {
   generation_id: number;
+  display_id: number;
   mode: GenerationMode;
   provider?: string;
   user_story?: string;
@@ -154,9 +156,10 @@ export type GenerateResponse = {
 
 export type HistoryDetailResponse = {
   generation_id: number;
+  display_id: number;
   mode: GenerationMode;
   input: Record<string, unknown>;
-  output: Omit<GenerateResponse, "generation_id">;
+  output: Omit<GenerateResponse, "generation_id" | "display_id">;
   markdown: string;
   created_at: string;
 };
@@ -205,6 +208,7 @@ export type BatchResultItem = {
   index: number;
   success: boolean;
   generation_id?: number | null;
+  display_id?: number | null;
   result?: GenerateResponse | Record<string, unknown> | null;
   error?: string | null;
 };

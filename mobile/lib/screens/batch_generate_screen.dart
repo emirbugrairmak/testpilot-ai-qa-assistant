@@ -607,7 +607,7 @@ class _BatchGenerateScreenState extends State<BatchGenerateScreen> {
       return result.testCases.first.title;
     }
 
-    return "Generation #${result.generationId}";
+    return "Generation #${result.displayId}";
   }
 }
 

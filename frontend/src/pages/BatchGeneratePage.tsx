@@ -331,7 +331,7 @@ export function BatchGeneratePage({ onOpenResult }: BatchGeneratePageProps) {
                       onClick={() => onOpenResult(item.generation_id!)}
                       className="mt-2 text-sm font-bold text-sky-700 hover:text-sky-900"
                     >
-                      Üretimi aç #{item.generation_id}
+                      Üretimi aç #{item.display_id ?? item.generation_id}
                     </button>
                   ) : null}
 

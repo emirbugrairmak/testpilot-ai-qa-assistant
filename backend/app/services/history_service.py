@@ -20,7 +20,7 @@ def list_generations(
     q: str | None = None,
 ) -> dict:
     """API key'e ait generation kayıtlarını döndür."""
-    where = ["api_key_id = ?"]
+    where = ["1 = 1"]
     params: list[Any] = [api_key_id]
 
     if mode:
@@ -33,8 +33,19 @@ def list_generations(
         params.extend([like_q, like_q])
 
     sql = f"""
-        SELECT id, mode, input_json, output_json, created_at
-        FROM generations
+        WITH ranked AS (
+            SELECT
+                id,
+                mode,
+                input_json,
+                output_json,
+                created_at,
+                ROW_NUMBER() OVER (ORDER BY datetime(created_at), id) AS display_id
+            FROM generations
+            WHERE api_key_id = ?
+        )
+        SELECT id, display_id, mode, input_json, output_json, created_at
+        FROM ranked
         WHERE {' AND '.join(where)}
         ORDER BY datetime(created_at) DESC, id DESC
     """
@@ -52,6 +63,7 @@ def list_generations(
         output = _loads(row["output_json"])
         items.append({
             "generation_id": row["id"],
+            "display_id": row["display_id"],
             "mode": row["mode"],
             "input": _loads(row["input_json"]),
             "output_summary": _summarize_output(output),
@@ -75,6 +87,19 @@ def get_generation_detail(api_key_id: int, generation_id: int) -> dict | None:
                WHERE id = ? AND api_key_id = ?""",
             (generation_id, api_key_id),
         ).fetchone()
+        display_row = conn.execute(
+            """WITH ranked AS (
+                   SELECT
+                       id,
+                       ROW_NUMBER() OVER (ORDER BY datetime(created_at), id) AS display_id
+                   FROM generations
+                   WHERE api_key_id = ?
+               )
+               SELECT display_id
+               FROM ranked
+               WHERE id = ?""",
+            (api_key_id, generation_id),
+        ).fetchone()
 
     if not row:
         return None
@@ -84,6 +109,7 @@ def get_generation_detail(api_key_id: int, generation_id: int) -> dict | None:
 
     return {
         "generation_id": row["id"],
+        "display_id": display_row["display_id"],
         "mode": row["mode"],
         "input": input_payload,
         "output": output,

@@ -378,7 +378,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "#${item.generationId} • ${AppDateFormatters.formatDateTime(item.createdAt)}",
+                            "#${item.displayId} • ${AppDateFormatters.formatDateTime(item.createdAt)}",
                             style: theme.textTheme.bodySmall,
                           ),
                         ],

@@ -35,6 +35,7 @@ class BatchResultItem {
     required this.index,
     required this.success,
     this.generationId,
+    this.displayId,
     this.result,
     this.error,
   });
@@ -42,18 +43,23 @@ class BatchResultItem {
   final int index;
   final bool success;
   final int? generationId;
+  final int? displayId;
   final GenerationResult? result;
   final String? error;
 
   factory BatchResultItem.fromJson(Map<String, dynamic> json) {
     final rawResult = json["result"];
     final generationId = json["generation_id"] as int?;
+    final displayId = json["display_id"] as int?;
     GenerationResult? parsedResult;
 
     if (rawResult is Map<String, dynamic>) {
       final resultJson = Map<String, dynamic>.from(rawResult);
       if (generationId != null) {
         resultJson.putIfAbsent("generation_id", () => generationId);
+      }
+      if (displayId != null) {
+        resultJson.putIfAbsent("display_id", () => displayId);
       }
       parsedResult = GenerationResult.fromJson(resultJson);
     }
@@ -62,6 +68,7 @@ class BatchResultItem {
       index: json["index"] as int? ?? 0,
       success: json["success"] as bool? ?? false,
       generationId: generationId ?? parsedResult?.generationId,
+      displayId: displayId ?? parsedResult?.displayId,
       result: parsedResult,
       error: json["error"] as String?,
     );

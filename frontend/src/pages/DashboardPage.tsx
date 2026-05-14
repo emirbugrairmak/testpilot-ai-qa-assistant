@@ -110,7 +110,7 @@ export function DashboardPage({
                         {formatMode(item.mode)}
                       </span>
                       <span className="text-xs font-semibold text-slate-500">
-                        #{item.generation_id}
+                        #{item.display_id}
                       </span>
                       <span className="text-xs text-slate-400">
                         {new Date(item.created_at).toLocaleString()}

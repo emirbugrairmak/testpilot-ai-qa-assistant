@@ -187,6 +187,7 @@ class BugReportSchema(BaseModel):
 class GenerateResponse(BaseModel):
     """POST /api/v1/generate yanıtı."""
     generation_id: int
+    display_id: int
     mode: GenerationMode
     provider: Optional[str] = None
     user_story: Optional[str] = None
@@ -204,6 +205,7 @@ class GenerateResponse(BaseModel):
 class HistoryItem(BaseModel):
     """History liste elemanı."""
     generation_id: int
+    display_id: int
     mode: GenerationMode
     input: dict[str, Any]
     output_summary: str
@@ -221,6 +223,7 @@ class HistoryListResponse(BaseModel):
 class HistoryDetailResponse(BaseModel):
     """GET /api/v1/history/{id} yanıtı."""
     generation_id: int
+    display_id: int
     mode: GenerationMode
     input: dict[str, Any]
     output: dict[str, Any]
@@ -339,6 +342,7 @@ class BatchResultItem(BaseModel):
     index: int
     success: bool
     generation_id: Optional[int] = None
+    display_id: Optional[int] = None
     result: Optional[dict[str, Any]] = None
     error: Optional[str] = None
 

@@ -39,8 +39,8 @@ export function SettingsPage() {
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-500">Kayıtlı erişim anahtarı</p>
-            <p className="mt-3 font-mono text-sm font-semibold text-navy-800">
-              {maskApiKey(apiKey)}
+            <p className="mt-3 break-all font-mono text-sm font-semibold text-navy-800">
+              {apiKey || "Kayıtlı erişim anahtarı yok"}
             </p>
           </div>
 
@@ -76,16 +76,4 @@ export function SettingsPage() {
       </aside>
     </div>
   );
-}
-
-function maskApiKey(value: string | null) {
-  if (!value) {
-    return "Kayıtlı erişim anahtarı yok";
-  }
-
-  if (value.length <= 8) {
-    return `${value.slice(0, 2)}••••`;
-  }
-
-  return `${value.slice(0, 4)}••••••${value.slice(-4)}`;
 }

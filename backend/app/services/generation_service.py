@@ -100,9 +100,14 @@ def run_generation(mode: str, inputs: dict, key_info: dict) -> dict:
             ),
         )
         generation_id = cursor.lastrowid
+        display_id = conn.execute(
+            "SELECT COUNT(*) AS count FROM generations WHERE api_key_id = ?",
+            (key_info["id"],),
+        ).fetchone()["count"]
 
     # ── 7. Response ────────────────────────────────
     output["generation_id"] = generation_id
+    output["display_id"] = display_id
     if mode == "bug_report":
         output["markdown"] = output_md
     return output

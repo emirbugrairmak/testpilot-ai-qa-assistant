@@ -98,7 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text("Access key: ${_maskApiKey(widget.apiKey)}"),
+                SelectableText("Access key: ${widget.apiKey}"),
               ],
             ),
           ),
@@ -222,11 +222,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  String _maskApiKey(String apiKey) {
-    if (apiKey.length <= 8) {
-      return "${apiKey.substring(0, 2)}••••";
-    }
-
-    return "${apiKey.substring(0, 4)}••••••${apiKey.substring(apiKey.length - 4)}";
-  }
 }
