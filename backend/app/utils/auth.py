@@ -4,7 +4,7 @@ TestPilot – Auth Utilities
 API key doğrulama ve kullanım limiti kontrolü için FastAPI dependency'leri.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -15,11 +15,22 @@ security = HTTPBearer()
 
 
 def _next_month_reset() -> str:
-    """Bir sonraki ayın 1'i için ISO tarih döndür."""
-    now = datetime.utcnow()
-    if now.month == 12:
-        return datetime(now.year + 1, 1, 1).isoformat()
-    return datetime(now.year, now.month + 1, 1).isoformat()
+    """Bugünden bir ay sonrası için ISO tarih döndür."""
+    now = datetime.now(timezone.utc)
+    year = now.year + 1 if now.month == 12 else now.year
+    month = 1 if now.month == 12 else now.month + 1
+    day = min(now.day, _days_in_month(year, month))
+    return now.replace(year=year, month=month, day=day).isoformat()
+
+
+def _days_in_month(year: int, month: int) -> int:
+    if month == 2:
+        if (year % 4 == 0 and year % 100 != 0) or year % 400 == 0:
+            return 29
+        return 28
+    if month in {4, 6, 9, 11}:
+        return 30
+    return 31
 
 
 def get_api_key_info(
@@ -49,9 +60,11 @@ def get_api_key_info(
         key_info = dict(row)
 
         # ── Ay sıfırlama kontrolü ──────────────────
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         try:
             reset_at = datetime.fromisoformat(key_info["usage_reset_at"])
+            if reset_at.tzinfo is None:
+                reset_at = reset_at.replace(tzinfo=timezone.utc)
         except (ValueError, TypeError):
             reset_at = now  # Bozuk tarih varsa şimdi sıfırla
 

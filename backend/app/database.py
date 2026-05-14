@@ -7,7 +7,7 @@ Veritabanı başlatma, bağlantı yönetimi ve seed data.
 import os
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.config import settings
 
@@ -58,11 +58,22 @@ SEED_KEYS = [
 
 
 def _next_month_reset() -> str:
-    """Bir sonraki ayın 1'i için ISO tarih döndür."""
-    now = datetime.utcnow()
-    if now.month == 12:
-        return datetime(now.year + 1, 1, 1).isoformat()
-    return datetime(now.year, now.month + 1, 1).isoformat()
+    """Bugünden bir ay sonrası için ISO tarih döndür."""
+    now = datetime.now(timezone.utc)
+    year = now.year + 1 if now.month == 12 else now.year
+    month = 1 if now.month == 12 else now.month + 1
+    day = min(now.day, _days_in_month(year, month))
+    return now.replace(year=year, month=month, day=day).isoformat()
+
+
+def _days_in_month(year: int, month: int) -> int:
+    if month == 2:
+        if (year % 4 == 0 and year % 100 != 0) or year % 400 == 0:
+            return 29
+        return 28
+    if month in {4, 6, 9, 11}:
+        return 30
+    return 31
 
 
 # ── Connection Management ──────────────────────────────
